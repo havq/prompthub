@@ -1,0 +1,13 @@
+{
+  "firebaseConfig": {
+    "apiKey": "AIzaSyCwhjpAYE0cr_43PuoiuoMqSefaRjqLXsY",
+    "authDomain": "prompthub-68602.firebaseapp.com",
+    "databaseURL": "https://prompthub-68602-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "projectId": "prompthub-68602",
+    "storageBucket": "prompthub-68602.firebasestorage.app",
+    "messagingSenderId": "357427612601",
+    "appId": "1:357427612601:web:7e8317b98085aca89bc468"
+  }
+}
+
+//Firebase From hangha9198@gmail.com

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "2001",
+    "title": "Welcome to the New Posts Feature!",
+    "content": "This is the first post in our new 'Posts' section. Unlike prompts, which are short and for AI image generation, posts are for longer content like articles, announcements, or tutorials.\n\nYou can use **Markdown** for formatting!\n\n*   Create lists\n*   Use **bold** or *italic* text\n*   Share your thoughts with the community.",
+    "imageUrl": "https://i.ibb.co/z4N9kCg/cyberpunk-cat-1.png",
+    "categoryIds": ["1", "3"],
+    "tags": ["announcement", "feature"],
+    "authorId": "mock-admin-id",
+    "authorName": "MockAdmin",
+    "commentCount": 1,
+    "commentsEnabled": true,
+    "status": "published",
+    "viewCount": 125,
+    "rotation": 0,
+    "createdAt": "2024-07-28T10:00:00Z"
+  },
+  {
+    "id": "2002",
+    "title": "A Guide to Writing Better Prompts",
+    "content": "Writing a good prompt is an art. Here are a few tips:\n\n1.  **Be Specific:** Instead of 'a cat', try 'a fluffy siamese cat with blue eyes'.\n2.  **Set the Scene:** Describe the environment, lighting, and mood.\n3.  **Mention Artists or Styles:** Use phrases like 'in the style of Van Gogh' or 'cinematic lighting'.",
+    "imageUrl": "https://i.ibb.co/9vGzL9Q/fantasy-landscape-1.png",
+    "categoryIds": ["2"],
+    "tags": ["tutorial", "guide", "prompts"],
+    "authorId": "mock-user-id",
+    "authorName": "MockUser",
+    "commentCount": 0,
+    "commentsEnabled": true,
+    "status": "published",
+    "viewCount": 340,
+    "rotation": 0,
+    "createdAt": "2024-07-27T14:00:00Z"
+  }
+]

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://www.gstatic.com/lamda/images/gemini_sparkle_4g_512_lt_f94943af3be039176192d.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompthub.Today | AI Prompt Gallery</title>
+    <meta name="description" content="An application to display and manage a curated list of sample prompts for AI image generation." />
+    <meta name="keywords" content="ai prompts, image generation, prompthub, midjourney, stable diffusion, art prompts, creative ai" />
+    <script>
+      (function() {
+        try {
+          const theme = localStorage.getItem('theme');
+          if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (_) {}
+      })();
+    </script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/index.css" />
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Lexend', 'sans-serif']
+            },
+            typography: ({ theme }) => ({
+              DEFAULT: {
+                css: {
+                  '--tw-prose-body': theme('colors.gray.700'),
+                  '--tw-prose-headings': theme('colors.gray.900'),
+                  '--tw-prose-links': theme('colors.indigo.600'),
+                  '--tw-prose-invert-body': theme('colors.gray.300'),
+                  '--tw-prose-invert-headings': theme('colors.white'),
+                  '--tw-prose-invert-links': theme('colors.indigo.400'),
+                },
+              },
+            }),
+          }
+        }
+      }
+
+    </script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.3",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.3.0/",
+    "react-image-crop": "https://aistudiocdn.com/react-image-crop@^11.0.6",
+    "react-zoom-pan-pinch": "https://aistudiocdn.com/react-zoom-pan-pinch@^3.6.1"
+  }
+}
+</script>
+<link rel="modulepreload" href="https://aistudiocdn.com/react@19.2.0">
+<link rel="modulepreload" href="https://aistudiocdn.com/react-dom@19.2.0">
+<link rel="modulepreload" href="https://aistudiocdn.com/react-router-dom@7.9.3">
+<link rel="modulepreload" href="https://aistudiocdn.com/firebase@12.3.0/">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>

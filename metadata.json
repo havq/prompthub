@@ -1,0 +1,7 @@
+{
+  "name": "Prompthub.today Final 2",
+  "description": "An application to display and manage a curated list of sample prompts for AI image generation. It features a dark theme, categorization, and an admin dashboard for content management.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

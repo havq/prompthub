@@ -1,0 +1,276 @@
+import { getSettings } from './settingsService';
+import { uploadToImgbb } from './imgbbService';
+import { uploadToCloudinary } from './cloudinaryService';
+import { uploadToServer } from './serverUploadService';
+import { uploadToTumblr } from './tumblrService';
+import { UploadMethod, WatermarkSettings } from '../types';
+
+interface UploadResult {
+    imageUrl: string;
+    videoUrl?: string;
+}
+
+const applyWatermark = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+        const settings = getSettings().watermarkSettings;
+        if (!settings || !settings.enabled) {
+            resolve(file);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    reject(new Error("Could not get canvas context."));
+                    return;
+                }
+
+                // 1. Draw the original image
+                ctx.drawImage(img, 0, 0);
+
+                // 2. Prepare watermark
+                ctx.globalAlpha = settings.opacity / 100;
+                
+                const finalizeAndResolve = () => {
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(new File([blob], file.name, { type: file.type }));
+                        } else {
+                            reject(new Error("Canvas to Blob conversion failed."));
+                        }
+                    }, file.type);
+                };
+
+                // 3. Apply logo or text
+                if (settings.repeat) {
+                    if (settings.logoUrl) {
+                        const logo = new Image();
+                        logo.crossOrigin = "Anonymous";
+                        logo.onload = () => {
+                            const logoWidth = img.width * (settings.size / 100);
+                            const logoHeight = logo.height * (logoWidth / logo.width);
+                            const stepX = logoWidth * 2.5;
+                            const stepY = logoHeight * 3;
+
+                            for (let y = -stepY; y < canvas.height + stepY; y += stepY) {
+                                for (let x = -stepX; x < canvas.width + stepX; x += stepX) {
+                                    const offsetX = (Math.floor(y / stepY) % 2) * (stepX / 2);
+                                    ctx.save();
+                                    ctx.translate(x + offsetX, y);
+                                    ctx.rotate(-Math.PI / 6); // -30 degrees
+                                    ctx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+                                    ctx.restore();
+                                }
+                            }
+                            finalizeAndResolve();
+                        };
+                        logo.onerror = () => {
+                            console.error("Failed to load watermark logo image. Skipping watermark.");
+                            resolve(file);
+                        };
+                        logo.src = settings.logoUrl;
+                    } else if (settings.text) {
+                        const fontSize = Math.max(12, img.width * (settings.size / 100) / 5); // Heuristic
+                        ctx.font = `bold ${fontSize}px Arial`;
+                        ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+                        ctx.shadowBlur = 5;
+
+                        const textMetrics = ctx.measureText(settings.text);
+                        const stepX = textMetrics.width * 2;
+                        const stepY = fontSize * 5;
+
+                        for (let y = -stepY; y < canvas.height + stepY; y += stepY) {
+                            for (let x = -stepX; x < canvas.width + stepX; x += stepX) {
+                                 const offsetX = (Math.floor(y / stepY) % 2) * (stepX / 2);
+                                ctx.save();
+                                ctx.translate(x + offsetX, y);
+                                ctx.rotate(-Math.PI / 6); // -30 degrees
+                                ctx.fillText(settings.text, 0, 0);
+                                ctx.restore();
+                            }
+                        }
+                        finalizeAndResolve();
+                    } else {
+                        resolve(file);
+                    }
+                } else { // Single placement logic
+                    if (settings.logoUrl) {
+                        const logo = new Image();
+                        logo.crossOrigin = "Anonymous";
+                        logo.onload = () => {
+                            const logoWidth = img.width * (settings.size / 100);
+                            const logoHeight = logo.height * (logoWidth / logo.width);
+                            const { x, y } = getWatermarkPosition(img.width, img.height, logoWidth, logoHeight, settings.position);
+                            ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+                            finalizeAndResolve();
+                        };
+                        logo.onerror = () => {
+                            console.error("Failed to load watermark logo image. Skipping watermark.");
+                            resolve(file);
+                        };
+                        logo.src = settings.logoUrl;
+                    } else if (settings.text) {
+                        const fontSize = img.width * (settings.size / 100) / 5;
+                        ctx.font = `bold ${fontSize}px Arial`;
+                        ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'top';
+                        
+                        const textMetrics = ctx.measureText(settings.text);
+                        const { x, y } = getWatermarkPosition(img.width, img.height, textMetrics.width, fontSize, settings.position);
+
+                        ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+                        ctx.shadowBlur = 5;
+                        ctx.shadowOffsetX = 2;
+                        ctx.shadowOffsetY = 2;
+                        
+                        ctx.fillText(settings.text, x, y);
+                        finalizeAndResolve();
+                    } else {
+                        resolve(file);
+                    }
+                }
+            };
+            img.onerror = () => reject(new Error("Failed to load image for watermarking."));
+            img.src = event.target?.result as string;
+        };
+        reader.onerror = () => reject(new Error("Failed to read file for watermarking."));
+        reader.readAsDataURL(file);
+    });
+};
+
+const getWatermarkPosition = (imgWidth: number, imgHeight: number, wmWidth: number, wmHeight: number, position: WatermarkSettings['position']) => {
+    const margin = imgWidth * 0.02; // 2% margin
+    let x, y;
+    switch (position) {
+        case 'top-left':     x = margin; y = margin; break;
+        case 'top-right':    x = imgWidth - wmWidth - margin; y = margin; break;
+        case 'bottom-left':  x = margin; y = imgHeight - wmHeight - margin; break;
+        case 'center':       x = (imgWidth - wmWidth) / 2; y = (imgHeight - wmHeight) / 2; break;
+        case 'bottom-right':
+        default:             x = imgWidth - wmWidth - margin; y = imgHeight - wmHeight - margin; break;
+    }
+    return { x, y };
+};
+
+const uploadAsBase64 = (file: File): Promise<UploadResult> => {
+    return new Promise<UploadResult>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                if (file.type.startsWith('video/')) {
+                    resolve({ imageUrl: '', videoUrl: reader.result });
+                } else {
+                    resolve({ imageUrl: reader.result });
+                }
+            } else {
+                reject(new Error("Failed to read file as Base64 data URL."));
+            }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+    });
+};
+
+export const getUploadMethodsForRole = (
+  mediaType: 'image' | 'video',
+  roleInfo?: { isPro?: boolean; isAdmin?: boolean }
+): UploadMethod[] => {
+    const settings = getSettings();
+
+    const adminKey = mediaType === 'video' ? 'videoUploadMethod' : 'imageUploadMethod';
+    const userKey = mediaType === 'video' ? 'userVideoUploadMethod' : 'userImageUploadMethod';
+    const proKey = mediaType === 'video' ? 'proVideoUploadMethod' : 'proImageUploadMethod';
+  
+    const adminMethods = Array.isArray(settings[adminKey]) ? settings[adminKey]! : [];
+    const userMethods = Array.isArray(settings[userKey]) ? settings[userKey]! : [];
+    const proMethods = Array.isArray(settings[proKey]) ? settings[proKey]! : [];
+    
+    const fallback: UploadMethod[] = ['server'];
+
+    if (!roleInfo || roleInfo.isAdmin) {
+        return adminMethods.length > 0 ? adminMethods : fallback;
+    }
+    
+    if (roleInfo.isPro) {
+        if (proMethods.length > 0) return proMethods;
+        if (userMethods.length > 0) return userMethods;
+        return adminMethods.length > 0 ? adminMethods : fallback;
+    }
+    
+    // Regular User
+    if (userMethods.length > 0) {
+        return userMethods;
+    }
+
+    // For video, if no specific user methods are set, they get no methods.
+    if (mediaType === 'video') {
+        return [];
+    }
+    
+    // For images, they can still fall back to admin methods.
+    return adminMethods.length > 0 ? adminMethods : fallback;
+};
+
+
+export const uploadImage = async (file: File, methodOverride?: UploadMethod, roleInfo?: { isPro?: boolean; isAdmin?: boolean }): Promise<UploadResult> => {
+    const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+    let method: UploadMethod;
+    
+    if (methodOverride) {
+        method = methodOverride;
+    } else {
+        const availableMethods = getUploadMethodsForRole(mediaType, roleInfo);
+        if (availableMethods.length === 0) {
+            // If no methods are available (e.g., regular user with video uploads disabled), throw an error.
+            throw new Error(`No upload methods available for your user role and file type (${mediaType}).`);
+        } else {
+            // Randomly select one method
+            method = availableMethods[Math.floor(Math.random() * availableMethods.length)];
+        }
+    }
+
+    let fileToUpload = file;
+    const settings = getSettings();
+    const watermarkSettings = settings.watermarkSettings;
+
+    // Check if watermarking should be applied for this image and method
+    if (mediaType === 'image' && watermarkSettings?.enabled && watermarkSettings.applyTo?.includes(method) && method !== 'base64') {
+        try {
+            fileToUpload = await applyWatermark(file);
+        } catch (error) {
+            console.error("Failed to apply watermark, uploading original image instead.", error);
+            // Fallback to original file if watermarking fails
+            fileToUpload = file;
+        }
+    }
+
+
+    if (method === 'tumblr') {
+        return uploadToTumblr(fileToUpload);
+    }
+
+    if (method === 'server') {
+        return uploadToServer(fileToUpload);
+    }
+
+    if (method === 'imgbb') {
+        return uploadToImgbb(fileToUpload);
+    }
+    
+    if (method === 'cloudinary') {
+        return uploadToCloudinary(fileToUpload);
+    }
+    
+    // Default to base64
+    return uploadAsBase64(fileToUpload);
+};

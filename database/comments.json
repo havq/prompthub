@@ -1,0 +1,6 @@
+[
+  { "id": "c1", "promptId": "1001", "parentId": null, "userId": "mock-user-id", "username": "MockUser", "userPhotoURL": "https://api.dicebear.com/8.x/initials/svg?seed=MockUser", "text": "This is a great cyberpunk prompt!", "createdAt": "2023-10-27T10:00:00Z" },
+  { "id": "c2", "promptId": "1001", "parentId": "c1", "userId": "mock-admin-id", "username": "MockAdmin", "userPhotoURL": "https://api.dicebear.com/8.x/initials/svg?seed=MockAdmin", "text": "Thanks! Glad you like it.", "createdAt": "2023-10-27T11:00:00Z" },
+  { "id": "c3", "promptId": "1002", "parentId": null, "userId": "mock-admin-id", "username": "MockAdmin", "userPhotoURL": "https://api.dicebear.com/8.x/initials/svg?seed=MockAdmin", "text": "What a beautiful landscape.", "createdAt": "2023-10-26T14:00:00Z" },
+  { "id": "c4", "promptId": "1001", "parentId": "c2", "userId": "mock-user-id", "username": "MockUser", "text": "No problem! Keep up the good work.", "createdAt": "2023-10-27T12:00:00Z" }
+]

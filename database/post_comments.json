@@ -1,0 +1,12 @@
+[
+  {
+    "id": "pc1",
+    "postId": "2001",
+    "parentId": null,
+    "userId": "mock-user-id",
+    "username": "MockUser",
+    "userPhotoURL": "https://api.dicebear.com/8.x/initials/svg?seed=MockUser",
+    "text": "This is a great new feature! Looking forward to more articles.",
+    "createdAt": "2024-07-28T10:30:00Z"
+  }
+]

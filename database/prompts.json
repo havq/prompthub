@@ -1,0 +1,127 @@
+
+[
+  {
+    "id": "1001",
+    "title": "Cyberpunk Cat on a Rooftop",
+    "text": "A cool cyberpunk cat with neon glasses and a leather jacket, sitting on a rooftop overlooking a futuristic city at night, rain-slicked streets reflecting the glowing signs, cinematic lighting, 8k, photorealistic.",
+    "imageUrl": "[\"https://i.ibb.co/z4N9kCg/cyberpunk-cat-1.png\",\"https://i.ibb.co/pXj2ZqD/cyberpunk-cat-2.png\"]",
+    "categoryIds": ["1", "5"],
+    "tags": ["cyberpunk", "cat", "neon", "animal", "cinematic"],
+    "authorId": "mock-admin-id",
+    "authorName": "MockAdmin",
+    "remixCount": 1
+  },
+  {
+    "id": "1002",
+    "title": "Epic Fantasy Floating Islands",
+    "text": "Epic fantasy landscape with floating islands, cascading waterfalls, and a majestic castle in the clouds. Ethereal lighting, magical atmosphere, detailed, concept art, by Artgerm and Greg Rutkowski.",
+    "imageUrl": "https://i.ibb.co/9vGzL9Q/fantasy-landscape-1.png",
+    "categoryIds": ["2"],
+    "tags": ["fantasy", "landscape", "castle", "floating islands"],
+    "authorId": "mock-user-id",
+    "authorName": "MockUser"
+  },
+  {
+    "id": "1003",
+    "title": "Serene Autumn Forest Path",
+    "text": "A serene forest path in autumn, sunlight filtering through the golden leaves, a gentle mist rising from the ground. Tranquil, atmospheric, impressionistic painting style, high detail.",
+    "imageUrl": "https://i.ibb.co/mCb2F1r/serene-forest-path.png",
+    "categoryIds": ["3"],
+    "tags": ["nature", "forest", "autumn", "path", "serene"],
+    "authorId": "mock-admin-id",
+    "authorName": "MockAdmin"
+  },
+  {
+    "id": "1004",
+    "title": "Abstract Liquid Paint Waves",
+    "text": "Abstract colorful waves of liquid paint mixing together, creating intricate patterns. Macro photography, vibrant, high contrast, fluid dynamics, octane render.",
+    "imageUrl": "https://i.ibb.co/yqgJ4Yp/abstract-colorful-waves.png",
+    "categoryIds": ["4"],
+    "tags": ["abstract", "colorful", "fluid", "macro"],
+    "authorId": "mock-user-id",
+    "authorName": "MockUser"
+  },
+  {
+    "id": "1005",
+    "title": "Rugged Fantasy Warrior Portrait",
+    "text": "Portrait of a rugged fantasy warrior with intricate armor, battle scars, and a determined expression. Dramatic lighting, character concept art, detailed face, Lord of the Rings style.",
+    "imageUrl": "https://i.ibb.co/r2Ld5B4/fantasy-warrior-portrait.png",
+    "categoryIds": ["2", "5"],
+    "tags": ["fantasy", "character", "warrior", "portrait", "armor"],
+    "authorId": "mock-admin-id",
+    "authorName": "MockAdmin"
+  },
+  {
+    "id": "1006",
+    "title": "Vast Neon Cyberpunk Cityscape",
+    "text": "Vast neon cyberpunk cityscape at night, flying vehicles, towering skyscrapers with holographic ads, Blade Runner aesthetic, cinematic, wide-angle shot, hyper-detailed.",
+    "imageUrl": "https://i.ibb.co/k3p9y1z/neon-cyberpunk-cityscape.png",
+    "categoryIds": ["1"],
+    "tags": ["cyberpunk", "cityscape", "neon", "futuristic"],
+    "authorId": "mock-user-id",
+    "authorName": "MockUser"
+  },
+  {
+    "id": "1007",
+    "title": "Epic Dragon on Snowy Peak",
+    "text": "A magnificent red dragon perched atop a snowy mountain peak, breathing fire into the stormy sky. Epic scale, mythological, dramatic, fantasy art, digital painting.",
+    "imageUrl": "https://i.ibb.co/D8L9XQv/epic-dragon-mountains.png",
+    "categoryIds": ["2", "5"],
+    "tags": ["fantasy", "dragon", "mountain", "epic", "creature"],
+    "authorId": "mock-admin-id",
+    "authorName": "MockAdmin"
+  },
+  {
+    "id": "1008",
+    "title": "Serene Mountain Lake Sunrise",
+    "text": "A serene mountain lake at sunrise, perfect reflection of the colorful sky and snow-capped peaks on the still water. Landscape photography, peaceful, vibrant colors, wide-angle.",
+    "imageUrl": "https://i.ibb.co/8Y4BqV1/serene-lake-reflection.png",
+    "categoryIds": ["3"],
+    "tags": ["nature", "lake", "mountain", "reflection", "sunrise"],
+    "authorId": "mock-user-id",
+    "authorName": "MockUser"
+  },
+  {
+    "id": "1009",
+    "title": "Art Deco Geometric Patterns",
+    "text": "Intricate abstract geometric patterns in black and gold, art deco style, symmetrical, detailed line work, luxury feel, wallpaper design.",
+    "imageUrl": "https://i.ibb.co/4Z5vM6n/abstract-geometric-patterns.png",
+    "categoryIds": ["4"],
+    "tags": ["abstract", "geometric", "art deco", "gold", "pattern"],
+    "authorId": "mock-admin-id",
+    "authorName": "MockAdmin"
+  },
+  {
+    "id": "1010",
+    "title": "Sci-Fi Cyborg Female Portrait",
+    "text": "Close-up portrait of a female sci-fi character, cyborg enhancements on her face, glowing blue eyes, futuristic armor, detailed, realistic, Ghost in the Shell inspiration. Use the reference image for the face structure.",
+    "imageUrl": "https://i.ibb.co/Qv5sT1f/scifi-character-portrait.png",
+    "categoryIds": ["1", "5"],
+    "tags": ["scifi", "character", "cyborg", "portrait", "futuristic"],
+    "authorId": "mock-user-id",
+    "authorName": "MockUser",
+    "requiresUserImage": true,
+    "referenceImageUrl": "https://i.ibb.co/JqjXJ1C/reference-face.png"
+  },
+  {
+    "id": "1011",
+    "title": "Robotic Dog in a Rainy Alley",
+    "text": "A sleek robotic dog with glowing blue optics, standing in a rain-soaked alley of a futuristic city, cinematic lighting, 8k, photorealistic.",
+    "imageUrl": "https://i.ibb.co/pXj2ZqD/cyberpunk-cat-2.png",
+    "categoryIds": ["1", "5"],
+    "tags": ["cyberpunk", "robot", "dog", "animal", "futuristic"],
+    "authorId": "mock-user-id",
+    "authorName": "MockUser",
+    "remixedFrom": "1001"
+  },
+  {
+    "id": "1012",
+    "title": "Female Knight in a Cathedral",
+    "text": "Beautiful female knight in shining ornate silver armor, long flowing hair, standing in a sunlit cathedral. Fantasy, character portrait, detailed, ethereal, painting by WLOP.",
+    "imageUrl": "https://i.ibb.co/2j2FzST/female-knight-portrait.png",
+    "categoryIds": ["2", "5"],
+    "tags": ["fantasy", "character", "knight", "female", "armor", "portrait"],
+    "authorId": "mock-admin-id",
+    "authorName": "MockAdmin"
+  }
+]

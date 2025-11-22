@@ -1,0 +1,25 @@
+name: Prompthub Deployment
+
+on:
+  push:
+    branches: [production]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: 22
+          key: ${{ secrets.PROMPTHUB_SSH_PRIVATE_KEY }}
+          script: |
+            cd /www/wwwroot/prompthub
+            git fetch origin
+            git checkout production
+            git pull
+            npm install
+            npm run build
+            pm2 reload prompthub
