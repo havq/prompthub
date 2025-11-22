@@ -243,19 +243,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const changePassword = async (oldPassword: string, newPassword: string): Promise<boolean> => {
     if (!currentUser) throw new Error("No user is logged in.");
-    if (!currentUser.email) throw new Error("Current user does not have an email to re-authenticate with.");
-
+    
     try {
-      const credential = firebase.auth.EmailAuthProvider.credential(
-        currentUser.email,
-        oldPassword
-      );
-      await currentUser.reauthenticateWithCredential(credential);
-      await currentUser.updatePassword(newPassword);
-      return true;
-    } catch (error) {
-      console.error("Password change failed:", error);
-      return false;
+        // Only re-authenticate if an old password is provided.
+        // Social login users won't have an old password, so they skip this check.
+        if (oldPassword) {
+            if (!currentUser.email) throw new Error("Current user does not have an email to re-authenticate with.");
+            const credential = firebase.auth.EmailAuthProvider.credential(
+                currentUser.email,
+                oldPassword
+            );
+            await currentUser.reauthenticateWithCredential(credential);
+        }
+        
+        await currentUser.updatePassword(newPassword);
+        return true;
+    } catch (error: any) {
+        console.error("Password change failed:", error);
+        // If the error is about requiring recent login (common for sensitive operations without re-auth),
+        // we might need to handle it, but usually reauthenticateWithCredential covers it for password users.
+        // For Google users without a password, updatePassword might throw this if the session is old.
+        throw error;
     }
   };
 
