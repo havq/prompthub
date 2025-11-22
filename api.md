@@ -11,12 +11,16 @@ ini_set('session.cookie_samesite', 'None');
 
 // --- CONFIGURATION ---
 // REPLACE THIS WITH A STRONG RANDOM STRING IN PRODUCTION!
-define('JWT_SECRET_KEY', 'v2_super_secret_key_change_this_immediately_1234567890');
+define('JWT_SECRET_KEY', 'v2_Q8pYwE$kLzT2vG@hB7xN9rC5sD0fJ4mX!yA3uI6oP1eR');
 
 // --- AUTHORIZATION HEADER FIX ---
+// Updated logic to handle various server configurations (Apache, Nginx, FastCGI)
+// This block attempts to recover Authorization header if it was stripped by the web server
 if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
     if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
         $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (isset($_SERVER['Authorization'])) {
+        $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['Authorization'];
     } elseif (function_exists('apache_request_headers')) {
         $requestHeaders = apache_request_headers();
         $requestHeaders = array_combine(array_map('ucwords', array_map('strtolower', array_keys($requestHeaders))), array_values($requestHeaders));
@@ -146,7 +150,10 @@ $resource = $_GET['resource'] ?? '';
 if ($resource === 'auth') {
     require_once 'api/auth.php';
     try {
-        handle_auth($conn, $method, json_decode(file_get_contents('php://input'), true));
+        // Ensure we pass an array even if input is empty (for GET requests)
+        $input = file_get_contents('php://input');
+        $decoded = $input ? json_decode($input, true) : [];
+        handle_auth($conn, $method, $decoded ?: []);
     } catch (Throwable $e) {
         send_error('Auth Error: ' . $e->getMessage(), 500);
     }
@@ -236,3 +243,4 @@ if ($conn) {
     $conn->close();
 }
 ?>
+    

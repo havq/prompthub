@@ -1,3 +1,4 @@
+
 <?php
 // api/auth.php
 
@@ -26,11 +27,18 @@ function create_jwt($uid, $email, $role, $is_admin) {
 }
 
 function handle_auth($conn, $method, $post_data) {
-    if ($method !== 'POST') {
-        send_error('Method not allowed', 405);
-    }
-
     $action = $_GET['action'] ?? '';
+
+    // Allow GET only for verify action
+    if ($action === 'verify') {
+         if ($method !== 'GET' && $method !== 'POST') {
+             send_error('Method not allowed', 405);
+         }
+    } else {
+         if ($method !== 'POST') {
+            send_error('Method not allowed', 405);
+        }
+    }
 
     if ($action === 'login') {
         $identifier = $post_data['identifier'] ?? '';
@@ -234,3 +242,4 @@ function handle_auth($conn, $method, $post_data) {
     }
 }
 ?>
+    
