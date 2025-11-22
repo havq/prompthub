@@ -1,5 +1,6 @@
 ### Create table `support_tickets` and `support_messages` 
 
+```sql
 CREATE TABLE IF NOT EXISTS `support_tickets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` varchar(255) NOT NULL,
@@ -13,7 +14,8 @@ CREATE TABLE IF NOT EXISTS `support_tickets` (
   PRIMARY KEY (`id`),
   KEY `userId` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+```
+```sql
 CREATE TABLE IF NOT EXISTS `support_messages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ticketId` int(11) NOT NULL,
@@ -26,3 +28,4 @@ CREATE TABLE IF NOT EXISTS `support_messages` (
   KEY `ticketId` (`ticketId`),
   CONSTRAINT `fk_ticket_message` FOREIGN KEY (`ticketId`) REFERENCES `support_tickets` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
