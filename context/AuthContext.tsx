@@ -171,6 +171,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const user = result.user;
     if (!user) throw new Error("Google Sign-In failed.");
     
+    // CRITICAL FIX: Force token refresh to ensure the internal Firebase state 
+    // has a valid token ready for the subsequent API calls (fetchApi).
+    // This prevents "Authentication required" errors due to race conditions.
+    await user.getIdToken(true);
+    
     const profile = await getUserProfile(user.uid);
     
     if (!profile) {
@@ -190,6 +195,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     await user.updateProfile({ displayName: username });
     
+    // Ensure token is ready for profile creation
+    await user.getIdToken(true);
+
     const role = email === 'admin@testapp.ai' ? 'Admin' : 'User';
     await createUserProfile(user.uid, username, email, role);
     
