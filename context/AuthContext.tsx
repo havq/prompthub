@@ -171,18 +171,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const user = result.user;
     if (!user) throw new Error("Google Sign-In failed.");
     
-    // CRITICAL FIX: Force token refresh to ensure the internal Firebase state 
-    // has a valid token ready for the subsequent API calls (fetchApi).
-    // This prevents "Authentication required" errors due to race conditions.
-    await user.getIdToken(true);
+    // CRITICAL FIX: Force token refresh and get the token string
+    // Explicitly passing this token to subsequent API calls prevents race conditions
+    // where the auth state listener hasn't propagated the new token to the fetchApi helper yet.
+    const token = await user.getIdToken(true);
     
-    const profile = await getUserProfile(user.uid);
+    const profile = await getUserProfile(user.uid, token);
     
     if (!profile) {
         const username = user.displayName || 'New User';
         const email = user.email;
         if (!email) throw new Error("Email not provided by Google.");
-        await createUserProfile(user.uid, username, email, 'User');
+        await createUserProfile(user.uid, username, email, 'User', token);
     }
   };
 
@@ -196,12 +196,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await user.updateProfile({ displayName: username });
     
     // Ensure token is ready for profile creation
-    await user.getIdToken(true);
+    const token = await user.getIdToken(true);
 
     const role = email === 'admin@testapp.ai' ? 'Admin' : 'User';
-    await createUserProfile(user.uid, username, email, role);
+    await createUserProfile(user.uid, username, email, role, token);
     
-    const profile = await getUserProfile(user.uid);
+    const profile = await getUserProfile(user.uid, token);
     setCurrentUser(user);
     setUserProfile(profile);
     setIsAdmin(profile?.role === 'Admin');

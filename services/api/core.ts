@@ -4,7 +4,7 @@ import { getSettings } from '../settingsService';
 
 const getApiUrl = () => getSettings().externalApiUrl;
 
-export async function fetchApi<T>(resource: string, endpoint: string = '', options: RequestInit = {}): Promise<T> {
+export async function fetchApi<T>(resource: string, endpoint: string = '', options: RequestInit = {}, token?: string): Promise<T> {
   const apiUrl = getApiUrl();
   if (!apiUrl) throw new Error("External API URL is not configured.");
   
@@ -20,10 +20,13 @@ export async function fetchApi<T>(resource: string, endpoint: string = '', optio
     ...options.headers,
   };
 
-  if (auth && auth.currentUser) {
+  // Use explicit token if provided, otherwise try to get from auth instance
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  } else if (auth && auth.currentUser) {
     try {
-      const token = await auth.currentUser.getIdToken();
-      headers['Authorization'] = `Bearer ${token}`;
+      const idToken = await auth.currentUser.getIdToken();
+      headers['Authorization'] = `Bearer ${idToken}`;
     } catch (error) {
       console.error("Error getting Firebase ID token:", error);
     }

@@ -159,8 +159,9 @@ export const deleteStaticPage = (id: string): Promise<{ id: string }> => externa
 
 // --- User Profile Functions ---
 // FIX: Pass the 'role' argument to externalApi.createUserProfile to match expected signature.
-export const createUserProfile = (uid: string, username: string, email: string, role: UserProfile['role']): Promise<void> => externalApi.createUserProfile(uid, username, email, role);
-export const getUserProfile = (uid: string): Promise<UserProfile | null> => externalApi.getUserProfile(uid);
+// FIX: Accept and pass optional token to support authenticated profile creation/fetching during sign-in.
+export const createUserProfile = (uid: string, username: string, email: string, role: UserProfile['role'], token?: string): Promise<void> => externalApi.createUserProfile(uid, username, email, role, token);
+export const getUserProfile = (uid: string, token?: string): Promise<UserProfile | null> => externalApi.getUserProfile(uid, token);
 export const getAllUsers = (): Promise<UserProfile[]> => externalApi.getAllUsers();
 export const updateUserProfile = (uid: string, data: Partial<Omit<UserProfile, 'uid'>>): Promise<void> => externalApi.updateUserProfile(uid, data);
 export const findUserByUsername = (username: string): Promise<Partial<UserProfile> | null> => externalApi.findUserByUsername(username);

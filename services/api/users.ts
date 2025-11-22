@@ -5,7 +5,7 @@ import { createNotification } from './social';
 import { getAuth } from '../firebaseConfig';
 
 // --- User Profile Functions ---
-export const createUserProfile = (uid: string, username: string, email: string, role: UserProfile['role']): Promise<void> => fetchApi<void>('users', '', {
+export const createUserProfile = (uid: string, username: string, email: string, role: UserProfile['role'], token?: string): Promise<void> => fetchApi<void>('users', '', {
     method: 'POST',
     body: JSON.stringify({
         uid,
@@ -14,8 +14,10 @@ export const createUserProfile = (uid: string, username: string, email: string, 
         role,
         photoURL: `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(username)}&size=120`
     })
-});
-export const getUserProfile = (uid: string): Promise<UserProfile | null> => fetchApi<UserProfile | null>('users', `&uid=${uid}`);
+}, token);
+
+export const getUserProfile = (uid: string, token?: string): Promise<UserProfile | null> => fetchApi<UserProfile | null>('users', `&uid=${uid}`, {}, token);
+
 export const getAllUsers = (): Promise<UserProfile[]> => fetchApi<UserProfile[]>('users');
 export const updateUserProfile = (uid: string, data: Partial<Omit<UserProfile, 'uid'>>): Promise<void> => fetchApi<void>('users', `&uid=${uid}`, { method: 'PUT', body: JSON.stringify(data) });
 export const findUserByUsername = (username: string): Promise<Partial<UserProfile> | null> => {
