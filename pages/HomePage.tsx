@@ -132,6 +132,7 @@ export const HomePage: React.FC = () => {
       logic.selectedTag !== null ||
       logic.selectedDateFilter !== 'all' ||
       logic.debouncedSearchTerm.trim() !== '' ||
+      logic.sortBy !== 'newest' ||
       logic.commentFilter !== 'any' ||
       logic.remixFilter !== 'any' ||
       logic.referenceImageFilter !== 'any' ||
@@ -406,16 +407,19 @@ export const HomePage: React.FC = () => {
                                     </button>
                                     {isCategoryMenuOpen && (
                                         <div className="absolute top-full mt-2 w-56 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-[80] ring-1 ring-black ring-opacity-5">
-                                            <button onClick={() => { handleCategorySelect('All'); setIsCategoryMenuOpen(false); }} className="w-full text-left flex justify-between items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                            <button onClick={() => { handleCategorySelect('All'); setIsCategoryMenuOpen(false); }} className={`w-full text-left flex justify-between items-center px-4 py-2 text-sm ${logic.selectedCategory === 'All' ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-200'} hover:bg-gray-100 dark:hover:bg-gray-600`}>
                                                 <span>{t('common.all')}</span><span className="text-xs text-gray-500 dark:text-gray-400">{formatCount(logic.totalPrompts)}</span>
                                             </button>
                                             {(isMobileCategoryExpanded ? logic.categories : logic.categories.slice(0, MOBILE_CATEGORY_LIMIT)).map(category => (
-                                                <button key={category.id} onClick={() => { handleCategorySelect(category.id); setIsCategoryMenuOpen(false); }} className="w-full text-left flex justify-between items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                <button key={category.id} onClick={() => { handleCategorySelect(category.id); setIsCategoryMenuOpen(false); }} className={`w-full text-left flex justify-between items-center px-4 py-2 text-sm ${logic.selectedCategory === category.id ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-200'} hover:bg-gray-100 dark:hover:bg-gray-600`}>
                                                     <span>{category.name}</span><span className="text-xs text-gray-500 dark:text-gray-400">{formatCount(category.promptCount)}</span>
                                                 </button>
                                             ))}
                                             {logic.categories.length > MOBILE_CATEGORY_LIMIT && (
-                                                <button onClick={(e) => { e.stopPropagation(); setIsMobileCategoryExpanded(!isMobileCategoryExpanded); }} className="w-full text-center px-4 py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-600 border-t border-gray-200 dark:border-gray-600 transition-colors">
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); setIsMobileCategoryExpanded(!isMobileCategoryExpanded); }}
+                                                    className="w-full text-center px-4 py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-600 border-t border-gray-200 dark:border-gray-600 transition-colors"
+                                                >
                                                     {isMobileCategoryExpanded ? t('common.collapse') : t('common.showMore', { count: logic.categories.length - MOBILE_CATEGORY_LIMIT })}
                                                 </button>
                                             )}
