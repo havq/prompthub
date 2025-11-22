@@ -1,6 +1,4 @@
-
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "prompthub",
   "pages_build_output_dir": "dist",
   "compatibility_date": "2025-03-03",
