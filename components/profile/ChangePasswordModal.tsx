@@ -55,8 +55,6 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
         }
     };
 
-    const titleKey = hasPasswordAuth ? 'profile.changePasswordTitle' : 'Set Password'; // Use fallback or add new key
-
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md relative" onClick={e => e.stopPropagation()}>

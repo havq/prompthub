@@ -13,14 +13,13 @@ const fallbackSettings: AppSettings = {
   appLogoLight: null,
   appLogoDark: null,
   firebaseConfig: {
-    "apiKey": "AIzaSyAZBfESLd4NPf0GLg7XKSKEE5Pge4x-Hl0",
-    "authDomain": "ai-project-5a473.firebaseapp.com",
-    "databaseURL": "https://ai-project-5a473.firebaseio.com",
-    "projectId": "ai-project-5a473",
-    "storageBucket": "ai-project-5a473.appspot.com",
-    "messagingSenderId": "76274775671",
-    "appId": "1:76274775671:web:46e80b9009ec02c35e3872",
-    "measurementId": "G-8XHYJPMGFQ"
+    apiKey: "AIzaSyA8yI4rnsXrilR2YTF9Dzs9aBdsqGi9iIM",
+    authDomain: "prompthub-today.firebaseapp.com",
+    projectId: "prompthub-today",
+    storageBucket: "prompthub-today.firebasestorage.app",
+    messagingSenderId: "104073095550",
+    appId: "1:104073095550:web:0cca0b6c6981004636ab2f",
+    measurementId: "G-V0FDVXQGM1"
   },
   imageUploadMethod: ['server'],
   userImageUploadMethod: ['server'],

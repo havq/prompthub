@@ -193,16 +193,9 @@ export const PromptsListPage: React.FC = () => {
   }, [routePromptId, searchParams, navigate, setSearchParams]);
 
   const handleOpenPromptDetail = (prompt: Prompt) => {
-      if (logic.settings.routerMode === 'browser') {
-          const url = buildUrl('prompt', { promptId: prompt.id });
-          navigate(url);
-      } else {
-          setSearchParams(prev => {
-              const newParams = new URLSearchParams(prev);
-              newParams.set('prompt', prompt.id);
-              return newParams;
-          }, { replace: false });
-      }
+      // Always use route navigation for cleaner URLs (e.g. /#/prompt/123) even in hash mode
+      const url = buildUrl('prompt', { promptId: prompt.id });
+      navigate(url);
   };
 
   const handleClosePromptDetail = () => {
