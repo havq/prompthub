@@ -199,12 +199,15 @@ const fallbackSettings: AppSettings = {
 };
 
 export const loadSettings = async (): Promise<AppSettings> => {
-    // Default to api.php for AI Studio / Local / Standard Hosting
-    let apiUrl = "https://api.prompthub.today";
+    // Default fallback: Assume local PHP server or AI Studio environment
+    let apiUrl = "https://api.prompthub.today"; 
     
-    // Check for Cloudflare Pages environment by hostname
-    if (typeof window !== 'undefined' && window.location.hostname.includes('prompthub.today')) {
-        apiUrl = "/api";
+    // Check for Cloudflare Pages environment or Production
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname.includes('prompthub.today') || hostname.includes('workers.dev')) {
+            apiUrl = "/api";
+        }
     }
     
     // Allow environment variable override (Highest Priority)
