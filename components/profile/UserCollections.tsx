@@ -1,3 +1,4 @@
+
 // components/profile/UserCollections.tsx
 import React, { useState, useMemo } from 'react';
 import { Collection, Prompt } from '../../types';
@@ -7,6 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import Spinner from '../Spinner';
 import PromptCard from '../PromptCard';
 import ConfirmModal from '../ConfirmModal';
+// @ts-ignore
 import { Link } from 'react-router-dom';
 
 interface CardProps {

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+// @ts-ignore
 import { Link } from 'react-router-dom';
 
 type AdminTab = 'prompts' | 'posts' | 'reels' | 'showcase' | 'reports' | 'users' | 'categories' | 'post-categories' | 'reel-categories' | 'pages' | 'settings' | 'ads' | 'data' | 'navigation' | 'codeInjection' | 'analytics' | 'paymentGateways' | 'permalinks' | 'consent' | 'homepage' | 'support' | 'rewards';

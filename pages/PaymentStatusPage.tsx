@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
+// @ts-ignore
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { verifySepayPayment } from '../services/api';

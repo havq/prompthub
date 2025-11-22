@@ -267,8 +267,20 @@ const AppContent: React.FC = () => {
 };
 
 function App() {
-  const settings = getSettings();
-  const RouterComponent = settings.routerMode === 'browser' ? BrowserRouter : HashRouter;
+  // Initialize routerMode state with current settings value
+  const [routerMode, setRouterMode] = useState<'browser' | 'hash'>(() => getSettings().routerMode);
+
+  useEffect(() => {
+    // Listen for settings changes to update router mode dynamically
+    const handleSettingsChange = () => {
+      const newSettings = getSettings();
+      setRouterMode(newSettings.routerMode);
+    };
+    window.addEventListener('storage', handleSettingsChange);
+    return () => window.removeEventListener('storage', handleSettingsChange);
+  }, []);
+
+  const RouterComponent = routerMode === 'browser' ? BrowserRouter : HashRouter;
 
   return (
     <ThemeProvider>

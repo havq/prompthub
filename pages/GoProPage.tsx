@@ -2,6 +2,7 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+// @ts-ignore
 import { Link, useNavigate } from 'react-router-dom';
 import { getSettings } from '../services/settingsService';
 

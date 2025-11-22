@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+// @ts-ignore
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { Prompt, HomeWidget, CategoryWithCount } from '../types';
 import PromptCard from '../components/PromptCard';

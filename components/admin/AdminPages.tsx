@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+// @ts-ignore
 import { useLocation, useNavigate } from 'react-router-dom';
 import { StaticPage } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';

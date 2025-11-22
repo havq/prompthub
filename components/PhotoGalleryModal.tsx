@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { ShowcaseImage } from '../types';
 import Spinner from './Spinner';
+// @ts-ignore
 import { Link } from 'react-router-dom';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 

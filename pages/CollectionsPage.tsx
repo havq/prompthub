@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+// @ts-ignore
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {

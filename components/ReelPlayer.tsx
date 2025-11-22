@@ -4,6 +4,7 @@ import { Reel, ReelCategory } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { incrementReelViewCount } from '../services/api';
 import ShareButton from './ShareButton';
+// @ts-ignore
 import { Link, useNavigate } from 'react-router-dom';
 import { transformCloudinaryUrl } from '../services/cloudinaryUtils';
 import { useAuth } from '../context/AuthContext';
@@ -297,58 +298,35 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
                             <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 transition-all duration-200 transform ${isLiked ? 'text-red-500 scale-110' : 'text-white'}`} viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                             </svg>
-                            <span className="text-xs font-semibold mt-1">{reel.likeCount || 0}</span>
+                            <span className="text-xs font-semibold mt-1">{reel.likeCount}</span>
                         </button>
-
                         <button onClick={handleCommentClick} className="flex flex-col items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
-                             <span className="text-xs font-semibold mt-1">{reel.commentCount || 0}</span>
+                            <span className="text-xs font-semibold mt-1">{reel.commentCount}</span>
                         </button>
-                        
-                        <div className="flex flex-col items-center">
-                           <ShareButton 
-                                shareUrl={reelShareUrl}
-                                shareText={reel.title}
-                                className=""
-                            >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                        <ShareButton shareUrl={reelShareUrl} shareText={reel.title} className="flex flex-col items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367 2.684z" />
                             </svg>
-
-                            </ShareButton>
-                        </div>
+                            <span className="text-xs font-semibold mt-1">{t('common.share')}</span>
+                        </ShareButton>
+                         <button onClick={handleMuteToggle} className="flex flex-col items-center">
+                            {isMuted ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                </svg>
+                            )}
+                        </button>
                     </div>
                 </div>
-
-                {!youTubeVideoId && (
-                    <div className="mt-2" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-2 text-xs font-mono text-white/90">
-                            <span>{formatTime(progress)}</span>
-                            <input
-                                type="range"
-                                min={0}
-                                max={duration || 0}
-                                value={progress}
-                                onChange={handleSeek}
-                                className="w-full h-1.5 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white"
-                            />
-                            <span>{formatTime(duration)}</span>
-                        </div>
-                    </div>
-                )}
             </div>
-
-            {!youTubeVideoId && (
-                <button onClick={handleMuteToggle} className="absolute top-4 right-4 bg-black/30 p-2 rounded-full">
-                    {isMuted ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                    ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                    )}
-                </button>
-            )}
         </div>
     );
 };

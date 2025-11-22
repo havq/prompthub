@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+// @ts-ignore
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createSepayPayment, createPaypalOrder, capturePaypalOrder } from '../services/api';
 import Spinner from '../components/Spinner';

@@ -55,7 +55,7 @@ const fallbackSettings: AppSettings = {
   paginationStyle: 'pagination',
   postsPaginationStyle: 'pagination',
   defaultHomePage: 'prompts',
-  routerMode: 'hash',
+  routerMode: 'browser',
   appUrl: '',
   externalApiUrl: '',
   customBadgeIcons: {},
@@ -318,7 +318,6 @@ export const loadSettings = async (): Promise<AppSettings> => {
     settings.watermarkSettings = { ...fallbackSettings.watermarkSettings, ...settings.watermarkSettings };
     settings.homeLayout = settings.homeLayout || [];
     settings.rewardPackages = settings.rewardPackages || fallbackSettings.rewardPackages;
-
 
     window.dispatchEvent(new Event('storage'));
     return settings;

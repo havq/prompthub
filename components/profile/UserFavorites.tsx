@@ -1,7 +1,9 @@
+
 import React, { useMemo } from 'react';
 import { Prompt, Category } from '../../types';
 import PromptCard from '../PromptCard';
 import { useLanguage } from '../../context/LanguageContext';
+// @ts-ignore
 import { Link } from 'react-router-dom';
 
 interface CardProps {

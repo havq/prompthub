@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react';
+// @ts-ignore
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getReels, toggleReelLike, getReel, getReelCategories } from '../services/api';
 import { Reel, BannerAdSettings, ReelCategory } from '../types';

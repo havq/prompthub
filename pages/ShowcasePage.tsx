@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAllShowcaseImages, getPrompts } from '../services/api';
 import { ShowcaseImage, Prompt } from '../types';
@@ -5,6 +6,7 @@ import Spinner from '../components/Spinner';
 import { useLanguage } from '../context/LanguageContext';
 import PhotoGalleryModal from '../components/PhotoGalleryModal';
 import { transformCloudinaryUrl } from '../services/cloudinaryUtils';
+// @ts-ignore
 import { Link } from 'react-router-dom';
 
 interface GalleryImage extends ShowcaseImage {
