@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { UserProfile, Notification, AuthUser } from '../types';
 import { fetchApi } from '../services/api/core';
@@ -121,7 +120,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         const settings = getSettings();
-        const clientId = settings.googleClientId;
+        // Important: Trim the Client ID to remove any accidental whitespace
+        const clientId = settings.googleClientId ? settings.googleClientId.trim() : "";
 
         if (!clientId) {
             reject(new Error("Google Client ID is not configured in Admin Settings."));
@@ -133,6 +133,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             client_id: clientId,
             scope: 'email profile openid',
             callback: async (tokenResponse: any) => {
+                if (tokenResponse.error) {
+                    reject(new Error(`Google Login Error: ${tokenResponse.error_description || tokenResponse.error}`));
+                    return;
+                }
+
                 if (tokenResponse && tokenResponse.access_token) {
                      try {
                          const data = await fetchApi<{ token: string, user: UserProfile }>('auth', '&action=google', {
@@ -145,7 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                          reject(e);
                      }
                 } else {
-                    reject(new Error("Google Login Failed"));
+                    reject(new Error("Google Login Failed: No access token received."));
                 }
             },
         });
