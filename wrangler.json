@@ -1,8 +1,10 @@
 {
   "name": "prompthub",
   "compatibility_date": "2025-03-03",
-  "pages_build_output_dir": "./dist",
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "assets": {
+    "directory": "./dist"
+  }
 }
