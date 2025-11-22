@@ -1,5 +1,5 @@
 {
   "name": "prompthub",
   "compatibility_date": "2025-11-22",
-  "main": "index.tsx"
+  "pages_build_output_dir": "./dist"
 }
