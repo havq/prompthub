@@ -1,3 +1,4 @@
+
 # 🚀 Prompthub - Danh Sách Tính Năng (Features List)
 
 Chào mừng bạn đến với **Prompthub** - Nền tảng chia sẻ, khám phá và sáng tạo Prompt AI hàng đầu. Dưới đây là danh sách chi tiết tất cả các tính năng đã được tích hợp trong ứng dụng, từ trải nghiệm người dùng cơ bản đến các công cụ quản trị mạnh mẽ.
@@ -35,6 +36,7 @@ Xây dựng cộng đồng sôi nổi và kết nối người dùng.
 *   **Hệ thống Gamification (Trò chơi hóa):**
     *   **Cấp độ (Levels):** Tăng cấp dựa trên điểm tích lũy từ các hoạt động.
     *   **Huy hiệu (Badges):** Tự động mở khóa các huy hiệu (Người đóng góp đầu tiên, Top Rated, Pro Member, v.v.).
+    *   **Đổi quà (Rewards):** Hệ thống đổi điểm thưởng lấy gói Pro theo ngày (3, 7, 30 ngày).
 *   **Mạng xã hội:**
     *   Tính năng **Follow/Unfollow** tác giả yêu thích.
     *   **Bảng tin (Feed):** Chỉ hiển thị nội dung từ những người bạn theo dõi.
@@ -96,10 +98,12 @@ Mô hình kinh doanh tích hợp sẵn.
 Trung tâm điều khiển toàn bộ hệ thống.
 
 *   **Dashboard Analytics:** Biểu đồ thống kê người dùng, prompt, lượt xem, xu hướng theo thời gian thực.
+*   **Homepage Builder:** Kéo thả để tùy chỉnh giao diện trang chủ (Banner, Grid, Slider, Text Block).
 *   **Quản lý Nội dung:** Duyệt/Xóa/Sửa Prompts, Posts, Reels, Showcase.
-*   **Quản lý Người dùng:** Xem danh sách, chỉnh sửa vai trò, cấm người dùng, cấp Pro thủ công.
+*   **Quản lý Người dùng:** Xem danh sách, chỉnh sửa vai trò, cấm người dùng, cấp Pro thủ công, quản lý điểm số.
 *   **Quản lý Danh mục:** Tạo/Sửa/Xóa danh mục cho Prompt, Post, Reel.
 *   **Hệ thống Báo cáo:** Xem và xử lý các báo cáo vi phạm từ cộng đồng.
+*   **Hệ thống Hỗ trợ (Support Tickets):** Quản lý và trả lời phiếu hỗ trợ từ người dùng ngay trong Admin Panel.
 *   **Cấu hình Hệ thống (Settings):**
     *   Chỉnh sửa Logo, Tên App, Mô tả.
     *   Cấu hình API (ImgBB, Cloudinary, Tumblr, Firebase, Gemini, PayPal, SePay).
@@ -107,6 +111,7 @@ Trung tâm điều khiển toàn bộ hệ thống.
     *   **Code Injection:** Chèn mã CSS/JS tùy chỉnh vào Head/Footer.
     *   **Watermark:** Tự động đóng dấu bản quyền lên ảnh tải lên.
     *   Nhập/Xuất dữ liệu (JSON).
+    *   **Consent Management:** Quản lý banner đồng ý cookie.
 
 ## ⚙️ 7. Kỹ Thuật & UX (Technical)
 Nền tảng vững chắc và hiện đại.

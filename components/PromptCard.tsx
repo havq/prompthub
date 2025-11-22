@@ -230,4 +230,3 @@ const PromptCard: React.FC<PromptCardProps> = (props) => {
 };
 
 export default memo(PromptCard);
-    
