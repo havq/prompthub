@@ -199,8 +199,15 @@ const fallbackSettings: AppSettings = {
 };
 
 export const loadSettings = async (): Promise<AppSettings> => {
-    // Step 1: Define API URL from environment variable or a hardcoded fallback.
-    const apiUrl = process.env.API_URL || "https://api.prompthub.today";
+    // Step 1: Define API URL. Prioritize Vite's import.meta.env, then process.env, then fallback.
+    // Cloudflare Pages uses import.meta.env.VITE_...
+    let apiUrl = "https://api.prompthub.today";
+    
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_URL) {
+        apiUrl = (import.meta as any).env.VITE_API_URL;
+    } else if (typeof process !== 'undefined' && process.env && process.env.API_URL) {
+        apiUrl = process.env.API_URL;
+    }
     
     // Step 2: Initialize the global settings object with fallbacks and the determined API URL.
     settings = { ...fallbackSettings, externalApiUrl: apiUrl };
