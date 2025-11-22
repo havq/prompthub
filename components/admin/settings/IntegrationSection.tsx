@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { AppSettings, UploadMethod, WatermarkSettings, ImgbbKey, CloudinaryConfig, TumblrConfig } from '../../../types';
 import CollapsibleSection from './CollapsibleSection';
@@ -68,6 +70,23 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
 }) => {
     return (
         <>
+            <CollapsibleSection title="Authentication">
+                <div>
+                    <label htmlFor="google-client-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Client ID</label>
+                    <input 
+                        type="text" 
+                        id="google-client-id" 
+                        value={settings.googleClientId || ''} 
+                        onChange={e => onChange('googleClientId', e.target.value)} 
+                        className="mt-1 w-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600"
+                        placeholder="e.g. 123456789-abc...apps.googleusercontent.com"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Required for "Continue with Google" button. Get this from the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">Google Cloud Console</a>.
+                    </p>
+                </div>
+            </CollapsibleSection>
+
             <CollapsibleSection title="Image & Video Uploads">
                     <div className="space-y-6">
                     <UploadMethodSelector label={t('admin.settings.imageUploadMethodAdmin')} hint={t('admin.settings.imageUploadMethodHint')} selectedMethods={settings.imageUploadMethod || []} onChange={newMethods => onChange('imageUploadMethod', newMethods)} />

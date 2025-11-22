@@ -5,7 +5,7 @@ import { UserProfile, Notification, AuthUser } from '../types';
 import { fetchApi } from '../services/api/core';
 import { listenForNotifications, markNotificationAsRead, markAllNotificationsAsRead as apiMarkAllNotificationsAsRead, deleteNotification as apiDeleteNotification, deleteAllNotifications as apiDeleteAllNotifications } from '../services/api';
 import Spinner from '../components/Spinner';
-import { loadSettings } from '../services/settingsService';
+import { loadSettings, getSettings } from '../services/settingsService';
 
 interface AuthContextType {
   currentUser: AuthUser | null;
@@ -119,10 +119,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
              reject(new Error("Google Identity Services script not loaded."));
              return;
         }
+
+        const settings = getSettings();
+        const clientId = settings.googleClientId;
+
+        if (!clientId) {
+            reject(new Error("Google Client ID is not configured in Admin Settings."));
+            return;
+        }
         
         // @ts-ignore
         const client = google.accounts.oauth2.initTokenClient({
-            client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // You would ideally fetch this from settings
+            client_id: clientId,
             scope: 'email profile openid',
             callback: async (tokenResponse: any) => {
                 if (tokenResponse && tokenResponse.access_token) {

@@ -61,6 +61,7 @@ export interface RewardPackage {
 
 export interface AppSettings {
   adminPassword?: string;
+  googleClientId?: string;
   promptDisplayCount: number;
   postsPerPage: number;
   relatedPostsCount: number;

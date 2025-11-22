@@ -1,4 +1,5 @@
 
+
 import { AppSettings, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig } from '../types';
 import { saveAppSettings as saveExternalSettings, getAppSettings as getExternalSettings } from './externalApi';
 
@@ -7,6 +8,7 @@ const SETTINGS_PATH = 'settings/app_settings'; // Path in Realtime Database
 
 const fallbackSettings: AppSettings = {
   adminPassword: "",
+  googleClientId: "",
   promptDisplayCount: 8,
   postsPerPage: 9,
   relatedPostsCount: 5,
