@@ -199,10 +199,15 @@ const fallbackSettings: AppSettings = {
 };
 
 export const loadSettings = async (): Promise<AppSettings> => {
-    // Step 1: Define API URL. Prioritize Vite's import.meta.env, then process.env, then fallback.
-    // Cloudflare Pages uses import.meta.env.VITE_...
+    // Default to api.php for AI Studio / Local / Standard Hosting
     let apiUrl = "https://api.prompthub.today";
     
+    // Check for Cloudflare Pages environment by hostname
+    if (typeof window !== 'undefined' && window.location.hostname.includes('prompthub.today')) {
+        apiUrl = "/api";
+    }
+    
+    // Allow environment variable override (Highest Priority)
     if (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_URL) {
         apiUrl = (import.meta as any).env.VITE_API_URL;
     } else if (typeof process !== 'undefined' && process.env && process.env.API_URL) {
@@ -325,7 +330,7 @@ export const loadSettings = async (): Promise<AppSettings> => {
 
 export const getSettings = (): AppSettings => {
   if (!settings) {
-    console.warn("getSettings called before loadSettings completed. Returning fallback settings.");
+    // console.warn("getSettings called before loadSettings completed. Returning fallback settings.");
     return fallbackSettings;
   }
   return { ...settings };
