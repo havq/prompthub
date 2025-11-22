@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 // @ts-ignore
@@ -108,27 +109,7 @@ const RegisterPage: React.FC = () => {
       navigate('/');
     } catch (err: any) {
       let errorMessage = t('register.error.generic');
-      if (err.message.includes('reCAPTCHA')) {
-        errorMessage = err.message;
-      } else {
-          switch (err.code) {
-            case 'auth/email-already-in-use':
-              errorMessage = t('register.error.emailInUse');
-              break;
-            case 'auth/invalid-email':
-              errorMessage = t('register.error.invalidEmail');
-              break;
-            case 'auth/operation-not-allowed':
-              errorMessage = t('register.error.operationNotAllowed');
-              break;
-            case 'auth/weak-password':
-              errorMessage = t('register.error.weakPassword');
-              break;
-            default:
-              errorMessage = err.message || t('register.error.generic');
-              console.error("Registration error:", err);
-          }
-      }
+      if (err.message) errorMessage = err.message;
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -144,21 +125,9 @@ const RegisterPage: React.FC = () => {
     setIsLoading(true);
     try {
       await loginWithGoogle();
-      navigate('/'); // Navigate to home after successful registration/login
+      navigate('/');
     } catch (err: any) {
-      let errorMessage = t('login.error.generic');
-      switch (err.code) {
-        case 'auth/popup-closed-by-user':
-          errorMessage = t('login.error.popupClosed');
-          break;
-        case 'auth/account-exists-with-different-credential':
-          errorMessage = t('login.error.accountExists');
-          break;
-        default:
-          errorMessage = err.message || t('login.error.generic');
-          console.error("Google login error:", err);
-      }
-      setError(errorMessage);
+      setError(err.message || t('login.error.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -303,8 +272,6 @@ const RegisterPage: React.FC = () => {
               '1': (text) => <Link to="/page/privacy-policy" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300" target="_blank">{text}</Link>,
             })}
         </div>
-
-
       </form>
     </div>
   );

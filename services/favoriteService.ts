@@ -1,5 +1,6 @@
-import firebase from 'firebase/compat/app';
+
 import { getUserFavorites, setUserFavorite } from './api';
+import { AuthUser } from '../types';
 
 const GUEST_FAVORITES_KEY = 'promptGalleryGuestFavorites';
 
@@ -21,7 +22,7 @@ const saveLocalFavorites = (favorites: Set<string>) => {
   }
 };
 
-export const getFavorites = async (user: firebase.User | null): Promise<Set<string>> => {
+export const getFavorites = async (user: AuthUser | null): Promise<Set<string>> => {
   if (user) {
     return getUserFavorites(user.uid);
   }
@@ -30,7 +31,7 @@ export const getFavorites = async (user: firebase.User | null): Promise<Set<stri
 
 export const toggleFavorite = async (
   promptId: string, 
-  user: firebase.User | null, 
+  user: AuthUser | null, 
   authorId?: string, 
   existingFavorites?: Set<string>
 ): Promise<Set<string>> => {

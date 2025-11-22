@@ -1,10 +1,9 @@
 
-import { getAuth } from '../firebaseConfig';
 import { getSettings } from '../settingsService';
 
 const getApiUrl = () => getSettings().externalApiUrl;
 
-export async function fetchApi<T>(resource: string, endpoint: string = '', options: RequestInit = {}, token?: string): Promise<T> {
+export async function fetchApi<T>(resource: string, endpoint: string = '', options: RequestInit = {}, explicitToken?: string): Promise<T> {
   const apiUrl = getApiUrl();
   if (!apiUrl) throw new Error("External API URL is not configured.");
   
@@ -14,22 +13,15 @@ export async function fetchApi<T>(resource: string, endpoint: string = '', optio
 
   const url = `${apiUrl}?resource=${resource}${endpoint}${cacheBuster}`;
   
-  const auth = getAuth();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
 
-  // Use explicit token if provided, otherwise try to get from auth instance
+  // Retrieve token from LocalStorage instead of Firebase
+  const token = explicitToken || localStorage.getItem('auth_token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
-  } else if (auth && auth.currentUser) {
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      headers['Authorization'] = `Bearer ${idToken}`;
-    } catch (error) {
-      console.error("Error getting Firebase ID token:", error);
-    }
   }
 
   // Add timeout using AbortController
@@ -46,13 +38,36 @@ export async function fetchApi<T>(resource: string, endpoint: string = '', optio
       const response = await fetch(url, config);
       clearTimeout(timeoutId);
       
+      const text = await response.text();
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `API Error: ${response.statusText}` }));
-        const errorMessage = errorData.error || errorData.message || `API Error: ${response.status}`;
+        let errorMessage = `API Error: ${response.status}`;
+        try {
+            const errorData = JSON.parse(text);
+            errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch(e) {
+             // If not JSON, use text (might be HTML error page)
+             // Truncate if too long to avoid flooding logs
+             errorMessage = `API Error ${response.status}: ${text.substring(0, 200)}`;
+        }
+        
+        // Handle token expiration
+        if (response.status === 401 && token) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_profile');
+            window.dispatchEvent(new Event('auth-expired')); // Optional: listen for this to redirect
+        }
+        
         throw new Error(errorMessage);
       }
-      const text = await response.text();
-      return text ? JSON.parse(text) : ({} as T);
+      
+      try {
+          return text ? JSON.parse(text) : ({} as T);
+      } catch (e) {
+          console.error("Failed to parse server response as JSON. Raw text:", text);
+          throw new Error(`Invalid JSON response from server. The server returned: ${text.substring(0, 200)}...`);
+      }
+
   } catch (error: any) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {

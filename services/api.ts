@@ -1,10 +1,10 @@
 
+
 import * as externalApi from './externalApi';
 // All functions now point to the live API for posts and categories.
 import * as mockApi from './mockFirebase';
 // FIX: Add Suggestion to import
-import { Prompt, Category, UserProfile, Comment, Report, ShowcaseImage, Notification, StaticPage, Collection, CategoryWithCount, TopContributor, AnalyticsData, Suggestion, Reel, ReelComment, Post, PostComment, PostCategory, PostCategoryWithCount, ReelCategory, ReelCategoryWithCount, SupportTicket, TicketMessage } from '../types';
-import firebase from 'firebase/compat/app';
+import { Prompt, Category, UserProfile, Comment, Report, ShowcaseImage, Notification, StaticPage, Collection, CategoryWithCount, TopContributor, AnalyticsData, Suggestion, Reel, ReelComment, Post, PostComment, PostCategory, PostCategoryWithCount, ReelCategory, ReelCategoryWithCount, SupportTicket, TicketMessage, AuthUser } from '../types';
 import { getAuth } from './firebaseConfig';
 import { getSettings } from './settingsService';
 
@@ -203,14 +203,14 @@ export const updateReport = (data: Report): Promise<Report> => externalApi.updat
 export const deleteReport = (id: string): Promise<{ id: string }> => externalApi.deleteReport(id);
 
 // --- Collection (User Folders) Functions ---
-export const getCollections = (user: firebase.User | null): Promise<Collection[]> => {
+export const getCollections = (user: AuthUser | null): Promise<Collection[]> => {
     if (!user) {
         return Promise.resolve(getLocalCollections());
     }
     return externalApi.getCollectionsForUser(user.uid);
 };
 
-export const createCollection = async (user: firebase.User | null, name: string): Promise<Collection[]> => {
+export const createCollection = async (user: AuthUser | null, name: string): Promise<Collection[]> => {
     if (!user) {
         const collections = getLocalCollections();
         const newCollection: Collection = { id: `guest-${Date.now()}`, name, userId: 'guest', promptIds: {} };
@@ -222,7 +222,7 @@ export const createCollection = async (user: firebase.User | null, name: string)
     return externalApi.getCollectionsForUser(user.uid);
 };
 
-export const updateCollection = async (user: firebase.User | null, collectionId: string, name: string): Promise<Collection[]> => {
+export const updateCollection = async (user: AuthUser | null, collectionId: string, name: string): Promise<Collection[]> => {
     if (!user) {
         const collections = getLocalCollections().map(c => c.id === collectionId ? { ...c, name } : c);
         saveLocalCollections(collections);
@@ -232,7 +232,7 @@ export const updateCollection = async (user: firebase.User | null, collectionId:
     return externalApi.getCollectionsForUser(user.uid);
 };
 
-export const deleteCollection = async (user: firebase.User | null, collectionId: string): Promise<Collection[]> => {
+export const deleteCollection = async (user: AuthUser | null, collectionId: string): Promise<Collection[]> => {
     if (!user) {
         const collections = getLocalCollections().filter(c => c.id !== collectionId);
         saveLocalCollections(collections);
@@ -242,7 +242,7 @@ export const deleteCollection = async (user: firebase.User | null, collectionId:
     return externalApi.getCollectionsForUser(user.uid);
 };
 
-export const togglePromptInCollection = async (user: firebase.User | null, promptId: string, collectionId: string): Promise<Collection[]> => {
+export const togglePromptInCollection = async (user: AuthUser | null, promptId: string, collectionId: string): Promise<Collection[]> => {
     const updateLogic = (cols: Collection[]) => {
         const targetCollection = cols.find(c => c.id === collectionId);
         if(targetCollection) {
@@ -343,7 +343,7 @@ export const getUserFavorites = (uid: string): Promise<Set<string>> => externalA
 export const setUserFavorite = (uid: string, promptId: string, isFavorite: boolean, authorId?: string): Promise<void> => externalApi.setUserFavorite(uid, promptId, isFavorite, authorId);
 
 // --- Rating Functions ---
-export const getRatings = (user: firebase.User | null): Promise<Record<string, number>> => {
+export const getRatings = (user: AuthUser | null): Promise<Record<string, number>> => {
     // API handles guest ratings via IP, so we can pass undefined for user ID
     return externalApi.getRatings(user?.uid);
 };

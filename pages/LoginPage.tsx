@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 // @ts-ignore
@@ -90,25 +91,12 @@ const LoginPage: React.FC = () => {
         navigate(from, { replace: true });
     } catch (err: any) {
       let errorMessage = t('login.error.generic');
-      if (err.message.includes('reCAPTCHA')) {
-          errorMessage = err.message;
-      } else {
-        switch (err.code) {
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-          case 'auth/invalid-credential':
-            errorMessage = t('login.error.invalidCredentials');
-            break;
-          case 'auth/invalid-email':
-            errorMessage = t('login.error.invalidEmail');
-            break;
-          case 'auth/user-disabled':
-            errorMessage = t('login.error.userDisabled');
-            break;
-          default:
-            errorMessage = err.message || t('login.error.generic');
-            console.error("Login error:", err);
-        }
+      if (err.message) {
+         errorMessage = err.message; 
+      }
+      // Handle specific error text from API if needed
+      if (errorMessage.includes('Invalid credentials')) {
+          errorMessage = t('login.error.invalidCredentials');
       }
       setError(errorMessage);
     } finally {
@@ -127,19 +115,7 @@ const LoginPage: React.FC = () => {
       await loginWithGoogle();
       navigate(from, { replace: true });
     } catch (err: any) {
-      let errorMessage = t('login.error.generic');
-      switch (err.code) {
-        case 'auth/popup-closed-by-user':
-          errorMessage = t('login.error.popupClosed');
-          break;
-        case 'auth/account-exists-with-different-credential':
-          errorMessage = t('login.error.accountExists');
-          break;
-        default:
-          errorMessage = err.message || t('login.error.generic');
-          console.error("Google login error:", err);
-      }
-      setError(errorMessage);
+      setError(err.message || t('login.error.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -227,8 +203,6 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
           
-
-
           {recaptchaSettings?.enabled && recaptchaSettings.version === 'v2' && (
               <div className="flex justify-center">
                   <div ref={recaptchaRef}></div>

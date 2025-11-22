@@ -13,9 +13,9 @@
     "react-dom": "^19.2.0",
     "@google/genai": "latest",
     "react-router-dom": "^7.9.3",
-    "firebase": "^12.3.0",
     "react-image-crop": "^11.0.6",
-    "react-zoom-pan-pinch": "^3.6.1"
+    "react-zoom-pan-pinch": "^3.6.1",
+    "firebase": "^12.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

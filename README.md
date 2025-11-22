@@ -1,3 +1,4 @@
+
 ### Create table `support_tickets` and `support_messages` 
 
 ```sql
@@ -28,4 +29,13 @@ CREATE TABLE IF NOT EXISTS `support_messages` (
   KEY `ticketId` (`ticketId`),
   CONSTRAINT `fk_ticket_message` FOREIGN KEY (`ticketId`) REFERENCES `support_tickets` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+### Update `users` table for Auth (REQUIRED)
+
+Run these commands to support the new login system and prevent "Unexpected end of JSON input" errors during registration:
+
+```sql
+ALTER TABLE `users` ADD COLUMN `password_hash` VARCHAR(255) NULL;
+ALTER TABLE `users` ADD COLUMN `google_id` VARCHAR(255) NULL;
 ```

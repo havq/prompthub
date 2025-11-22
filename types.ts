@@ -1,8 +1,17 @@
 
+
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
 export type UploadMethod = 'server' | 'imgbb' | 'cloudinary' | 'tumblr' | 'base64';
+
+export interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  providerData: { providerId: string }[];
+}
 
 // --- Widget Types ---
 export type WidgetType = 'banner' | 'prompt-grid' | 'rich-text' | 'category-tabs' | 'post-grid' | 'reel-grid';

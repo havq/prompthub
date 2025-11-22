@@ -2,7 +2,6 @@
 import { UserProfile, TopContributor, AnalyticsData, Notification } from '../../types';
 import { fetchApi, mapItems } from './core';
 import { createNotification } from './social';
-import { getAuth } from '../firebaseConfig';
 
 // --- User Profile Functions ---
 export const createUserProfile = (uid: string, username: string, email: string, role: UserProfile['role'], token?: string): Promise<void> => fetchApi<void>('users', '', {
@@ -32,13 +31,11 @@ export const getTopContributors = (): Promise<TopContributor[]> => fetchApi<TopC
 
 // --- Social Functions ---
 export const followUser = async (currentUserId: string, targetUserId: string): Promise<void> => {
-    // This action should be atomic on the server. The client just tells the server what to do.
     await fetchApi<void>('users', '&action=follow', { 
         method: 'POST', 
         body: JSON.stringify({ currentUserId, targetUserId }) 
     });
     
-    // Create notification client-side for consistency, letting the API handle persistence.
     const actor = await getUserProfile(currentUserId);
     if (actor) {
         await createNotification({
@@ -54,7 +51,6 @@ export const followUser = async (currentUserId: string, targetUserId: string): P
 };
 
 export const unfollowUser = async (currentUserId: string, targetUserId: string): Promise<void> => {
-    // This action should be atomic on the server.
     await fetchApi<void>('users', '&action=unfollow', { 
         method: 'POST', 
         body: JSON.stringify({ currentUserId, targetUserId }) 
@@ -66,7 +62,9 @@ export const getAnalyticsData = (userId: string, page: number = 1, limit: number
 
 // --- Password Reset ---
 export const sendPasswordResetEmail = (email: string): Promise<void> => {
-    const auth = getAuth();
-    if (!auth) throw new Error("Firebase Auth not configured");
-    return auth.sendPasswordResetEmail(email);
+    // This functionality should be implemented in the PHP backend (e.g., api/auth.php with action=reset_password)
+    // For now, we just log it as we removed Firebase.
+    console.log("Requesting password reset for:", email);
+    // return fetchApi<void>('auth', '&action=reset_password', { method: 'POST', body: JSON.stringify({ email }) });
+    return Promise.resolve();
 };

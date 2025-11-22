@@ -1,19 +1,19 @@
+
 // services/ratingService.ts
-import firebase from 'firebase/compat/app';
 import { 
     saveRating as apiSaveRating, 
     getAverageRating as apiGetAverageRating, 
     getAllAverageRatings as apiGetAllAverageRatings,
     getRatings as apiGetRatings
 } from './api';
-import { Prompt, UserProfile } from '../types';
+import { Prompt, UserProfile, AuthUser } from '../types';
 
 /**
  * Retrieves the ratings given by the current logged-in user. Guests will not have ratings.
- * @param user The current Firebase user object, or null if guest.
+ * @param user The current Auth user object, or null if guest.
  * @returns A promise that resolves to a record of prompt IDs to the user's rating.
  */
-export const getRatings = async (user: firebase.User | null): Promise<Record<string, number>> => {
+export const getRatings = async (user: AuthUser | null): Promise<Record<string, number>> => {
     // Only fetch ratings for logged-in users.
     if (!user) {
         return {};
@@ -21,7 +21,7 @@ export const getRatings = async (user: firebase.User | null): Promise<Record<str
 
     try {
         // Use the user's UID as the unique identifier for ratings.
-        // FIX: The `apiGetRatings` function from `api.ts` expects the `firebase.User` object, not just the UID.
+        // FIX: The `apiGetRatings` function from `api.ts` expects the `AuthUser` object (or id), not just the UID.
         return await apiGetRatings(user);
     } catch (error) {
         console.error("Could not fetch user ratings:", error);

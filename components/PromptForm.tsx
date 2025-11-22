@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Prompt, CategoryWithCount, UserProfile, UploadMethod } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -9,6 +10,7 @@ import MediaPreview from './remix/MediaPreview';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';
 import { GoogleGenAI } from '@google/genai';
 import { useAuth } from '../context/AuthContext';
+import { getAllUsers } from '../services/api';
 
 interface PromptFormProps {
   initialData: Prompt | null;
@@ -25,10 +27,11 @@ interface PromptFormProps {
 const INPUT_STYLE = "block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed";
 
 export const PromptForm: React.FC<PromptFormProps> = ({
-    initialData, categories, users, onSubmit, onClose, isSubmitting, isUserAdmin, isPro, inline = false
+    initialData, categories, users: propUsers, onSubmit, onClose, isSubmitting, isUserAdmin, isPro, inline = false
 }) => {
     const { t } = useLanguage();
     const { currentUser } = useAuth();
+    const [users, setUsers] = useState<UserProfile[]>(propUsers);
 
     // Basic Details
     const [title, setTitle] = useState('');
@@ -70,6 +73,21 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     const videoFileInputRef = useRef<HTMLInputElement>(null);
     const referenceFileInputRef = useRef<HTMLInputElement>(null);
     const progressIntervalRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        setUsers(propUsers);
+    }, [propUsers]);
+
+    // If admin and user list is empty, fetch it.
+    // This allows us to remove the heavy getAllUsers call from the homepage logic
+    // and only load it here when the form is actually rendered.
+    useEffect(() => {
+        if (isUserAdmin && users.length === 0) {
+            getAllUsers().then(fetchedUsers => {
+                setUsers(fetchedUsers);
+            }).catch(err => console.error("Failed to fetch users for PromptForm", err));
+        }
+    }, [isUserAdmin]);
 
     useEffect(() => {
         if (initialData) {

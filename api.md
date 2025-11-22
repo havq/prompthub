@@ -1,3 +1,4 @@
+
 <?php
 // api.php
 
@@ -8,20 +9,24 @@ ini_set('session.cookie_secure', 1);
 ini_set('session.cookie_httponly', 1); 
 ini_set('session.cookie_samesite', 'None'); 
 
-// --- CORS & HEADERS ---
-// $allowed_origins = [
-//     'http://localhost:3000',
-//     'http://localhost:5173',
-//     'https://prompthub.today',
-//     'https://www.prompthub.today'
-// ];
+// --- CONFIGURATION ---
+// REPLACE THIS WITH A STRONG RANDOM STRING IN PRODUCTION!
+define('JWT_SECRET_KEY', 'v2_super_secret_key_change_this_immediately_1234567890');
 
-// $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-// if (in_array($origin, $allowed_origins)) {
-//     header("Access-Control-Allow-Origin: $origin");
-// }
-header("Access-Control-Allow-Origin: *"); // REMOVED for security
+// --- AUTHORIZATION HEADER FIX ---
+if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (function_exists('apache_request_headers')) {
+        $requestHeaders = apache_request_headers();
+        $requestHeaders = array_combine(array_map('ucwords', array_map('strtolower', array_keys($requestHeaders))), array_values($requestHeaders));
+        if (isset($requestHeaders['Authorization'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $requestHeaders['Authorization'];
+        }
+    }
+}
 
+header("Access-Control-Allow-Origin: *"); 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Max-Age: 3600");
@@ -41,107 +46,67 @@ require_once 'db.php';
 // --- REDIS CACHE CONNECTION ---
 $redis = new Redis();
 try {
-    // Connect to the default Redis server on localhost
     $redis->connect('127.0.0.1', 6379);
-    // Use the following line if your Redis server requires a password
-    $redis->auth('dsjweunbert235');
+    // $redis->auth('password'); // Uncomment if needed
 } catch (RedisException $e) {
-    // If Redis connection fails, log the error and let the app run without caching.
     error_log('Could not connect to Redis: ' . $e->getMessage());
     $redis = null;
 }
 
-
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-use GuzzleHttp\Client;
-
 // --- HELPER FUNCTIONS ---
 function send_json($data) {
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+    exit();
 }
 
 function send_error($message, $code = 400) {
     http_response_code($code);
-    send_json(['error' => $message]);
+    echo json_encode(['error' => $message]);
     exit();
 }
 
-// --- AUTHENTICATION FUNCTIONS ---
-function get_decoded_token($project_id) {
-    if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+// --- CUSTOM JWT AUTHENTICATION FUNCTIONS ---
+function verify_jwt_token($token) {
+    $parts = explode('.', $token);
+    if (count($parts) !== 3) return null;
+
+    list($base64UrlHeader, $base64UrlPayload, $base64UrlSignature) = $parts;
+
+    // Verify Signature
+    $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, JWT_SECRET_KEY, true);
+    $base64UrlSignatureExpected = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+
+    if (!hash_equals($base64UrlSignatureExpected, $base64UrlSignature)) {
         return null;
     }
 
+    $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $base64UrlPayload)), true);
+    
+    if (!$payload || !isset($payload['exp']) || $payload['exp'] < time()) {
+        return null;
+    }
+
+    return $payload;
+}
+
+function get_decoded_token() {
+    if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        return null;
+    }
     $auth_header = $_SERVER['HTTP_AUTHORIZATION'];
     if (!preg_match('/Bearer\s(\S+)/', $auth_header, $matches)) {
         return null;
     }
     $jwt = $matches[1];
-
-    $cache_file = sys_get_temp_dir() . '/firebase_jwt_public_keys.json';
-    $keys = [];
-    if (file_exists($cache_file) && (filemtime($cache_file) + 3600 > time())) {
-        $keys = json_decode(file_get_contents($cache_file), true);
-    } else {
-        try {
-            $client = new Client();
-            $response = $client->get('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
-            $keys = json_decode($response->getBody(), true);
-            file_put_contents($cache_file, json_encode($keys));
-        } catch (Exception $e) {
-            error_log('Failed to fetch Firebase public keys: ' . $e->getMessage());
-            return null;
-        }
-    }
-
-    if (empty($keys)) {
-        return null;
-    }
-
-    try {
-        $keyObjects = [];
-        foreach ($keys as $kid => $pem) {
-            $keyObjects[$kid] = new Key($pem, 'RS256');
-        }
-
-        $decoded = JWT::decode($jwt, $keyObjects);
-        
-        $now = time();
-        if ($decoded->iss !== 'https://securetoken.google.com/' . $project_id ||
-            $decoded->aud !== $project_id ||
-            $decoded->auth_time > $now) {
-            return null;
-        }
-
-        return $decoded;
-
-    } catch (Exception $e) {
-        return null;
-    }
+    return verify_jwt_token($jwt);
 }
-
-function is_admin($conn, $uid) {
-    if (!$uid || !$conn) return false;
-    $stmt = $conn->prepare("SELECT role FROM users WHERE uid = ?");
-    if (!$stmt) return false;
-    $stmt->bind_param("s", $uid);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
-    $stmt->close();
-    return $user && $user['role'] === 'Admin';
-}
-
 
 // --- AUTH MIDDLEWARE LOGIC ---
-if (!isset($firebase_project_id)) {
-    send_error('Server configuration error: Firebase Project ID is not set.', 500);
-}
-
-$decoded_token = get_decoded_token($firebase_project_id);
-$current_user_uid = $decoded_token->user_id ?? ($decoded_token->uid ?? null);
-$is_admin_request = $decoded_token ? is_admin($conn, $current_user_uid) : false;
+$decoded_token = get_decoded_token();
+$current_user_uid = $decoded_token['uid'] ?? null;
+// Trust the token's claim for admin to avoid DB lookup on every request, 
+// or implement is_admin() DB check for higher security.
+$is_admin_request = isset($decoded_token['is_admin']) && $decoded_token['is_admin'] === true;
 
 $admin_routes = [
     'categories' => ['POST', 'PUT', 'DELETE'], 
@@ -177,6 +142,17 @@ $user_routes = [
 $method = $_SERVER['REQUEST_METHOD'];
 $resource = $_GET['resource'] ?? '';
 
+// Special case: Auth Resource
+if ($resource === 'auth') {
+    require_once 'api/auth.php';
+    try {
+        handle_auth($conn, $method, json_decode(file_get_contents('php://input'), true));
+    } catch (Throwable $e) {
+        send_error('Auth Error: ' . $e->getMessage(), 500);
+    }
+    exit();
+}
+
 $is_admin_action = isset($admin_routes[$resource]) && in_array($method, $admin_routes[$resource]);
 
 if ($resource === 'reels' && $method === 'POST' && isset($_GET['action']) && in_array($_GET['action'], ['like', 'view'])) {
@@ -194,7 +170,6 @@ if ($is_user_action) {
     $is_lookup_action = ($resource === 'users' && $method === 'POST' && isset($_GET['action']) && $_GET['action'] === 'lookup_username');
     $is_increment_view_action = (($resource === 'prompts' || $resource === 'posts') && $method === 'POST' && isset($_GET['action']) && $_GET['action'] === 'increment_view');
     $is_ipn_action = ($resource === 'sepay' && isset($_GET['action']) && $_GET['action'] === 'ipn');
-
 
     if (!$decoded_token && !$is_lookup_action && !$is_increment_view_action && !$is_ipn_action) {
         if ($method === 'GET') {
@@ -215,12 +190,11 @@ if ($resource === 'users' && $method === 'PUT' && isset($_GET['uid'])) {
     }
 }
 
-
 // --- ROUTING ---
 $get_params = filter_input_array(INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
 $post_data = null;
-if ($resource !== 'upload') { 
+if ($resource !== 'upload' && $resource !== 'auth') { 
     $post_data = json_decode(file_get_contents('php://input'), true);
 }
 

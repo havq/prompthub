@@ -62,7 +62,7 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                             unset($row['pro_expiration_date']);
                         }
                         // SECURITY: Filter sensitive info
-                        unset($row['email'], $row['notificationSettings'], $row['following']);
+                        unset($row['email'], $row['notificationSettings'], $row['following'], $row['password_hash']);
                         $row['profileBannerUrl'] = $row['profileBannerUrl'] ?? null;
                         $row['badges'] = json_decode($row['badges']);
                         $row['socialLinks'] = json_decode($row['socialLinks']);
@@ -81,6 +81,7 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                         if (!$is_admin_request && !$is_self) {
                             unset($user['email'], $user['notificationSettings'], $user['following']); 
                         }
+                        unset($user['password_hash']); // Always hide password hash
                         $user['isPro'] = isset($user['is_pro']) ? (bool)$user['is_pro'] : false;
                         unset($user['is_pro']);
                         
@@ -109,6 +110,7 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                         if (!$is_admin_request && !$is_self) {
                             unset($user['email'], $user['notificationSettings'], $user['following']);
                         }
+                        unset($user['password_hash']); // Always hide password hash
                         $user['isPro'] = isset($user['is_pro']) ? (bool)$user['is_pro'] : false;
                         unset($user['is_pro']);
                         
@@ -142,6 +144,7 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                         $result = $conn->query("SELECT * FROM users");
                         $users = [];
                         while ($row = $result->fetch_assoc()) {
+                            unset($row['password_hash']); // Ensure we don't leak hash
                             $row['isPro'] = isset($row['is_pro']) ? (bool)$row['is_pro'] : false;
                             unset($row['is_pro']);
 
@@ -254,15 +257,41 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                     return;
                 }
 
-                $stmt = $conn->prepare("INSERT INTO users (uid, username, email, photoURL, role, is_pro) VALUES (?, ?, ?, ?, ?, ?)");
-                
-                // SECURITY: Enforce default role and pro status for non-admins
+                // Prepare data
+                $password_hash = isset($data['password']) ? password_hash($data['password'], PASSWORD_BCRYPT) : null;
+                $google_id = $data['google_id'] ?? null;
                 $role = $is_admin_request ? ($data['role'] ?? 'User') : 'User';
                 $is_pro = $is_admin_request ? (isset($data['isPro']) && $data['isPro'] ? 1 : 0) : 0;
                 $photoURL = $data['photoURL'] ?? null;
                 $sanitized_username = htmlspecialchars($data['username'], ENT_QUOTES, 'UTF-8');
+
+                // Construct Dynamic Query based on available data
+                $cols = ['uid', 'username', 'email', 'photoURL', 'role', 'is_pro', 'points'];
+                $vals = [$data['uid'], $sanitized_username, $data['email'], $photoURL, $role, $is_pro, 0];
+                $types = "sssssii";
+
+                if ($password_hash) {
+                    $cols[] = 'password_hash';
+                    $vals[] = $password_hash;
+                    $types .= "s";
+                }
+                if ($google_id) {
+                    $cols[] = 'google_id';
+                    $vals[] = $google_id;
+                    $types .= "s";
+                }
+
+                $col_str = implode(", ", $cols);
+                $placeholders = implode(", ", array_fill(0, count($cols), "?"));
+
+                $stmt = $conn->prepare("INSERT INTO users ($col_str) VALUES ($placeholders)");
                 
-                $stmt->bind_param("sssssi", $data['uid'], $sanitized_username, $data['email'], $photoURL, $role, $is_pro);
+                if (!$stmt) {
+                    send_error('Database prepare failed. Ensure `password_hash` and `google_id` columns exist. Error: ' . $conn->error, 500);
+                }
+
+                $stmt->bind_param($types, ...$vals);
+                
                 if ($stmt->execute()) {
                     send_json(['uid' => $data['uid']]);
                 } else {

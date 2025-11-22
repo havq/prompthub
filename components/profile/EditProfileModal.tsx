@@ -1,6 +1,5 @@
+
 import React, { useState, useEffect, useRef, ChangeEvent, useMemo } from 'react';
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { uploadImage } from '../../services/imageUploadService';
@@ -107,14 +106,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onCameraOp
 
             // Step 1: Handle email change first if it exists
             if (emailChanged) {
-                if (!password) throw new Error(t('profile.error.passwordRequired'));
-                if (!currentUser.email) throw new Error("Current user session is invalid.");
-                
-                const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, password);
-                await currentUser.reauthenticateWithCredential(credential);
-                await currentUser.verifyBeforeUpdateEmail(newEmail);
-                
-                setVerificationSent(true); // Show success message
+                 if (!password) throw new Error(t('profile.error.passwordRequired'));
+                 // Since we've moved away from Firebase Client SDK for Auth, we cannot call reauthenticateWithCredential directly.
+                 // Email updates should be handled by the backend API.
+                 // For now, we will prevent email updates or require backend implementation.
+                 throw new Error("Changing email address is not supported in this version. Please contact support.");
             }
 
             // Step 2: Update other profile data if they have changed
@@ -129,13 +125,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onCameraOp
                 await updateUserProfile(profileDataToUpdate);
             }
 
-            // Step 3: Close modal or show message
-            if (!emailChanged) {
-                onClose(); // Close immediately if only non-email fields were updated or nothing changed
-            } else {
-                // If email verification was sent, keep modal open for a few seconds to show the message
-                setTimeout(onClose, 5000);
-            }
+            // Step 3: Close modal
+            onClose();
 
         } catch (err: any) {
             setError(err.code === 'auth/wrong-password' ? t('profile.error.wrongPassword') : err.message || t('profile.error.generic'));

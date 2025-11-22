@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
-import { getPrompts, getCategories, getCommentCounts, getCollections, createCollection, togglePromptInCollection, getAllUsers, getAllShowcaseImageCounts, addShowcaseImage, updatePrompt, deletePrompt as apiDeletePrompt, addPrompt as apiAddPrompt, getCombinedRatings, saveRating } from '../services/api';
+import { getPrompts, getCategories, getCommentCounts, getCollections, createCollection, togglePromptInCollection, getAllShowcaseImageCounts, addShowcaseImage, updatePrompt, deletePrompt as apiDeletePrompt, addPrompt as apiAddPrompt, getCombinedRatings, saveRating } from '../services/api';
 import { Prompt, CategoryWithCount, Collection, UserProfile } from '../types';
 import { getSettings } from '../services/settingsService';
 import { getFavorites, toggleFavorite } from '../services/favoriteService';
@@ -14,7 +14,7 @@ export const useHomeLogic = () => {
     const [searchablePrompts, setSearchablePrompts] = useState<Prompt[]>([]);
     const [totalPrompts, setTotalPrompts] = useState(0);
     const [categories, setCategories] = useState<CategoryWithCount[]>([]);
-    const [users, setUsers] = useState<UserProfile[]>([]);
+    // Removed users state as it's no longer fetched here
     const [allTags, setAllTags] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -135,17 +135,14 @@ export const useHomeLogic = () => {
             
             setCommentCounts(commentCountsData);
 
-            if (isAdmin) {
-                const usersData = await getAllUsers();
-                setUsers(usersData);
-            }
+            // Removed getAllUsers call to optimize performance
 
         } catch (error) {
             console.error("Failed to fetch page data:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [currentUser, isAdmin]);
+    }, [currentUser]);
 
     useEffect(() => {
         fetchData();
@@ -294,7 +291,7 @@ export const useHomeLogic = () => {
         searchablePrompts,
         totalPrompts,
         categories,
-        users,
+        users: [], // Return empty array since we don't fetch users here anymore
         allTags,
         isLoading,
         ratings,
