@@ -207,7 +207,7 @@ export const loadSettings = async (): Promise<AppSettings> => {
         const hostname = window.location.hostname;
         // Updated to include 'pages.dev' so Cloudflare Pages deployments properly use the /api proxy
         if (hostname.includes('prompthub.today') || hostname.includes('workers.dev') || hostname.includes('pages.dev')) {
-            apiUrl = "/api";
+            //apiUrl = "/api";
         }
     }
     
