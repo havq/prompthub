@@ -31,19 +31,13 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Needed for PromptMediaUpload but unused in Reel context (or use placeholders)
-  const [referenceImageUrl, setReferenceImageUrl] = useState('');
-  const referenceFileInputRef = useRef<HTMLInputElement>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
-  const [isUploadingReference, setIsUploadingReference] = useState(false);
   
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [isRefDragging, setIsRefDragging] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const { t } = useLanguage();
@@ -333,13 +327,22 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
                 <PromptMediaUpload
                     imageUrls={imageUrls} setImageUrls={setImageUrls}
                     videoUrl={videoUrl} setVideoUrl={setVideoUrl}
-                    // Pass dummy props for features not used in ReelForm but required by component
-                    referenceImageUrl={referenceImageUrl} setReferenceImageUrl={setReferenceImageUrl}
+                    
+                    // Pass dummy props for unused reference image logic
+                    referenceImageUrl={""} setReferenceImageUrl={() => {}}
                     requiresUserImage={false} setRequiresUserImage={() => {}}
+                    referenceFileInputRef={useRef<HTMLInputElement>(null)}
+                    handleReferenceUploadClick={() => {}}
+                    handleReferenceFileChange={() => {}}
+                    isRefDragging={false}
+                    handleRefDragEvents={() => {}}
+                    handleRefDrop={() => {}}
+                    isUploadingReference={false}
+
                     imageDimensions={null}
                     rotation={0} setRotation={() => {}}
                     
-                    isUploading={isUploading} isUploadingVideo={isUploadingVideo} isUploadingReference={isUploadingReference}
+                    isUploading={isUploading} isUploadingVideo={isUploadingVideo}
                     uploadProgress={uploadProgress}
                     uploadOptions={uploadOptions} videoUploadOptions={videoUploadOptions}
                     isAdmin={isAdmin} isPro={!!isPro}
@@ -356,17 +359,13 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
                     handleRemoveImage={(index) => setImageUrls(prev => prev.filter((_, i) => i !== index))}
                     addUrlFromInput={() => { if (urlInputRef.current?.value) { setImageUrls(prev => [...prev, urlInputRef.current!.value]); urlInputRef.current.value = ''; } }}
                     
-                    urlInputRef={urlInputRef} fileInputRef={fileInputRef} videoFileInputRef={videoFileInputRef} referenceFileInputRef={referenceFileInputRef}
+                    urlInputRef={urlInputRef} fileInputRef={fileInputRef} videoFileInputRef={videoFileInputRef}
                     
                     handleVideoUploadClick={handleVideoUploadClick}
                     handleVideoFileSelected={(e) => e.target.files?.[0] && processVideoFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
                     
-                    // Dummy handlers for reference image
-                    handleReferenceUploadClick={() => {}}
-                    handleReferenceFileChange={() => {}}
-                    isRefDragging={false}
-                    handleRefDragEvents={(e) => {e.preventDefault(); e.stopPropagation();}}
-                    handleRefDrop={(e) => {e.preventDefault(); e.stopPropagation();}}
+                    // IMPORTANT: Hide reference image settings for Reels
+                    hideReferenceImageSettings={true}
                 />
 
                  <div>

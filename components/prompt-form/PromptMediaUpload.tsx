@@ -49,6 +49,7 @@ interface PromptMediaUploadProps {
     isRefDragging: boolean;
     handleRefDragEvents: (e: React.DragEvent<HTMLDivElement>) => void;
     handleRefDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+    hideReferenceImageSettings?: boolean;
 }
 
 const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
@@ -186,7 +187,7 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                 </div>
             </div>
 
-            {props.imageUrls.length > 0 && !props.videoUrl && (
+            {!props.hideReferenceImageSettings && props.imageUrls.length > 0 && !props.videoUrl && (
                 <div>
                     <label htmlFor="image-rotation" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('submitPromptPage.imageRotation')}</label>
                     <select
@@ -202,15 +203,17 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                 </div>
             )}
 
-            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg mt-2">
-                <input id="requires-user-image" type="checkbox" checked={props.requiresUserImage} onChange={e => props.setRequiresUserImage(e.target.checked)} className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-400 dark:border-gray-500 bg-gray-200 dark:bg-gray-600 rounded" />
-                <label htmlFor="requires-user-image" className="flex-grow flex flex-col cursor-pointer">
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Requires User Image</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Check this if the prompt is designed for users to upload their own reference image.</span>
-                </label>
-            </div>
+            {!props.hideReferenceImageSettings && (
+                <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg mt-2">
+                    <input id="requires-user-image" type="checkbox" checked={props.requiresUserImage} onChange={e => props.setRequiresUserImage(e.target.checked)} className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-400 dark:border-gray-500 bg-gray-200 dark:bg-gray-600 rounded" />
+                    <label htmlFor="requires-user-image" className="flex-grow flex flex-col cursor-pointer">
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Requires User Image</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Check this if the prompt is designed for users to upload their own reference image.</span>
+                    </label>
+                </div>
+            )}
 
-            {props.requiresUserImage && (
+            {!props.hideReferenceImageSettings && props.requiresUserImage && (
                 <div>
                     <label htmlFor="reference-image-url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('submitPromptPage.referenceImageUrl')}</label>
                     <div 
