@@ -73,7 +73,7 @@ function handle_auth($conn, $method, $post_data) {
         unset($user['password_hash']);
         unset($user['reset_token']);
         unset($user['reset_token_expiry']);
-        unset($user['email']); // Optionally hide email
+        // Email is required for the frontend profile state
         $user['badges'] = json_decode($user['badges'] ?: '[]');
         $user['socialLinks'] = json_decode($user['socialLinks'] ?: '[]');
 
@@ -113,13 +113,22 @@ function handle_auth($conn, $method, $post_data) {
             $upd->bind_param("sss", $token, $expiry, $user['uid']);
             
             if ($upd->execute()) {
-                // Get App URL from settings or default
-                $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'appUrl'");
-                $appUrlSetting = $result ? $result->fetch_assoc()['setting_value'] : '';
-                $appUrl = !empty($appUrlSetting) ? rtrim($appUrlSetting, '/') : 'https://prompthub.today';
-                
-                // Construct Reset Link (Frontend route)
-                $resetLink = "$appUrl/reset-password?token=$token&uid=" . $user['uid'];
+                // Get App Settings (Url and RouterMode)
+                $result = $conn->query("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('appUrl', 'routerMode')");
+                $settings = [];
+                while ($row = $result->fetch_assoc()) {
+                    $settings[$row['setting_key']] = $row['setting_value'];
+                }
+
+                $appUrl = !empty($settings['appUrl']) ? rtrim($settings['appUrl'], '/') : 'https://prompthub.today';
+                $routerMode = $settings['routerMode'] ?? 'browser';
+
+                // Construct Reset Link based on Router Mode
+                if ($routerMode === 'hash') {
+                    $resetLink = "$appUrl/#/reset-password?token=$token&uid=" . $user['uid'];
+                } else {
+                    $resetLink = "$appUrl/reset-password?token=$token&uid=" . $user['uid'];
+                }
                 
                 $subject = "Reset Password Request - Prompthub";
                 $body = "

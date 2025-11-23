@@ -1,3 +1,4 @@
+
 <?php
 function clear_users_cache($redis, $uid = null) {
     if(!$redis) return;
@@ -130,6 +131,12 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                 } else {
                     // List all users
                     if (!$is_admin_request) {
+                        // SECURITY: Prevent unauthenticated access to user list
+                        if (!$current_user_uid) {
+                            send_json([]);
+                            return;
+                        }
+
                         // Public view: Only show limited info of users who have public prompts
                         $is_private_column_exists = $conn->query("SHOW COLUMNS FROM `prompts` LIKE 'isPrivate'")->num_rows > 0;
                         $where_clause = $is_private_column_exists ? "WHERE p.isPrivate = 0" : "";
@@ -248,10 +255,26 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                     }
                 }
                 
-                if (!isset($data['uid'], $data['username'], $data['email'])) { send_error('Missing required fields for user creation', 400); return; }
+                if (!isset($data['username'], $data['email'])) { send_error('Missing required fields for user creation', 400); return; }
                 
+                $uid = $data['uid'] ?? null;
+                
+                // If Admin, generate UID if missing
+                if ($is_admin_request && empty($uid)) {
+                    try {
+                        $uid = 'user_' . bin2hex(random_bytes(10));
+                    } catch (Exception $e) {
+                        $uid = uniqid('user_');
+                    }
+                }
+
+                if (empty($uid)) {
+                     send_error('UID is required.', 400);
+                     return;
+                }
+
                 // SECURITY: Prevent users from creating accounts for others
-                if ($data['uid'] !== $current_user_uid && !$is_admin_request) {
+                if ($uid !== $current_user_uid && !$is_admin_request) {
                     send_error('Forbidden: You can only create your own profile.', 403);
                     return;
                 }
@@ -262,12 +285,26 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                 $role = $is_admin_request ? ($data['role'] ?? 'User') : 'User';
                 $is_pro = $is_admin_request ? (isset($data['isPro']) && $data['isPro'] ? 1 : 0) : 0;
                 $photoURL = $data['photoURL'] ?? null;
+                $profileBannerUrl = $data['profileBannerUrl'] ?? null;
                 $sanitized_username = htmlspecialchars($data['username'], ENT_QUOTES, 'UTF-8');
+                $sanitized_bio = isset($data['bio']) ? htmlspecialchars($data['bio'], ENT_QUOTES, 'UTF-8') : null;
 
                 // Construct Dynamic Query based on available data
                 $cols = ['uid', 'username', 'email', 'photoURL', 'role', 'is_pro', 'points'];
-                $vals = [$data['uid'], $sanitized_username, $data['email'], $photoURL, $role, $is_pro, 0];
+                $vals = [$uid, $sanitized_username, $data['email'], $photoURL, $role, $is_pro, 0];
                 $types = "sssssii";
+
+                if ($sanitized_bio) {
+                    $cols[] = 'bio';
+                    $vals[] = $sanitized_bio;
+                    $types .= "s";
+                }
+                
+                if ($profileBannerUrl) {
+                    $cols[] = 'profileBannerUrl';
+                    $vals[] = $profileBannerUrl;
+                    $types .= "s";
+                }
 
                 if ($password_hash) {
                     $cols[] = 'password_hash';
@@ -277,6 +314,26 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                 if ($google_id) {
                     $cols[] = 'google_id';
                     $vals[] = $google_id;
+                    $types .= "s";
+                }
+                
+                if ($is_admin_request && isset($data['badges'])) {
+                    $cols[] = 'badges';
+                    $vals[] = json_encode($data['badges']);
+                    $types .= "s";
+                }
+                
+                if (isset($data['socialLinks'])) {
+                    $cols[] = 'socialLinks';
+                    $sanitized_links = array_map(function($link) {
+                        return [
+                            'platform' => htmlspecialchars($link['platform'] ?? '', ENT_QUOTES, 'UTF-8'),
+                            'url' => htmlspecialchars($link['url'] ?? '', ENT_QUOTES, 'UTF-8'),
+                            'iconUrl' => isset($link['iconUrl']) ? htmlspecialchars($link['iconUrl'], ENT_QUOTES, 'UTF-8') : null,
+                            'target' => isset($link['target']) && $link['target'] === '_self' ? '_self' : '_blank'
+                        ];
+                    }, $data['socialLinks']);
+                    $vals[] = json_encode($sanitized_links);
                     $types .= "s";
                 }
 
@@ -292,7 +349,7 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                 $stmt->bind_param($types, ...$vals);
                 
                 if ($stmt->execute()) {
-                    send_json(['uid' => $data['uid']]);
+                    send_json(['uid' => $uid]);
                 } else {
                     send_error('Failed to create user: ' . $stmt->error, 500);
                 }

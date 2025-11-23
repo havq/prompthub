@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { UserProfile, Badge } from '../types';
+import { UserProfile, Badge, SocialLink } from '../types';
 import Spinner from './Spinner';
 import { uploadImage } from '../services/imageUploadService';
 import { useLanguage } from '../context/LanguageContext';
@@ -49,6 +50,8 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isS
   const [role, setRole] = useState<'User' | 'Admin'>('User');
   const [bio, setBio] = useState('');
   const [photoURL, setPhotoURL] = useState('');
+  const [profileBannerUrl, setProfileBannerUrl] = useState('');
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [isPro, setIsPro] = useState(false);
   
@@ -63,6 +66,8 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isS
       setRole(initialData.role || 'User');
       setBio(initialData.bio || '');
       setPhotoURL(initialData.photoURL || '');
+      setProfileBannerUrl(initialData.profileBannerUrl || '');
+      setSocialLinks(initialData.socialLinks || []);
       setBadges(initialData.badges || []);
       setIsPro(initialData.isPro || false);
       setPassword('');
@@ -73,6 +78,8 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isS
       setRole('User');
       setBio('');
       setPhotoURL('');
+      setProfileBannerUrl('');
+      setSocialLinks([]);
       setBadges([]);
       setIsPro(false);
       setPassword('');
@@ -91,6 +98,8 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isS
         role,
         bio,
         photoURL,
+        profileBannerUrl,
+        socialLinks,
         badges,
         isPro,
       };
@@ -102,6 +111,8 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isS
         role, 
         bio, 
         photoURL,
+        profileBannerUrl,
+        socialLinks,
         badges,
         isPro,
         // Password is not part of the UserProfile type, it's handled separately by auth
@@ -125,8 +136,6 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isS
 
     setIsUploading(true);
     try {
-        // FIX: The uploadImage function returns an object with `imageUrl` and `videoUrl`.
-        // Destructure the result to get the `imageUrl`.
         const result = await uploadImage(file, undefined, { isAdmin: true });
         setPhotoURL(result.imageUrl);
     } catch(err: any) {

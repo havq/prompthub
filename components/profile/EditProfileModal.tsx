@@ -47,12 +47,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onCameraOp
     useEffect(() => {
         if (!userProfile) return;
         setUsername(userProfile.username || '');
-        setEmail(userProfile.email || '');
+        // Try to get email from profile, fallback to currentUser object if missing
+        setEmail(userProfile.email || currentUser?.email || '');
         setBio(userProfile.bio || '');
         setPhotoURL(userProfile.photoURL || '');
         setProfileBannerUrl(userProfile.profileBannerUrl || '');
         setSocialLinks(userProfile.socialLinks || []);
-    }, [userProfile]);
+    }, [userProfile, currentUser]);
 
     useEffect(() => {
         return () => {
@@ -85,8 +86,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onCameraOp
         const newEmail = e.target.value;
         setEmail(newEmail);
         if (hasPasswordAuth) {
-            setNeedsPassword(newEmail.trim().toLowerCase() !== userProfile?.email.toLowerCase());
-            if (newEmail.trim().toLowerCase() === userProfile?.email.toLowerCase()) {
+            setNeedsPassword(newEmail.trim().toLowerCase() !== (userProfile?.email || currentUser?.email || '').toLowerCase());
+            if (newEmail.trim().toLowerCase() === (userProfile?.email || currentUser?.email || '').toLowerCase()) {
                 setPassword('');
             }
         }
@@ -102,7 +103,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onCameraOp
             if (!userProfile || !currentUser) throw new Error("Not authenticated.");
             
             const newEmail = email.trim();
-            const emailChanged = hasPasswordAuth && newEmail.toLowerCase() !== userProfile.email.toLowerCase();
+            const currentEmail = (userProfile.email || currentUser.email || '').toLowerCase();
+            const emailChanged = hasPasswordAuth && newEmail.toLowerCase() !== currentEmail;
 
             // Step 1: Handle email change first if it exists
             if (emailChanged) {

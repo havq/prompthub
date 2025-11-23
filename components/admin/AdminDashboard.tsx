@@ -24,10 +24,10 @@ import {
   getAllShowcaseImages,
   deleteShowcaseImage as apiDeleteShowcaseImage,
   getTickets
-} from '../services/api';
-import { Prompt, Post, Category, Report, UserProfile, StaticPage, Reel, PostCategory, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount, ReelCategory, ShowcaseImage, SupportTicket } from '../types';
-import Spinner from './Spinner';
-import { useLanguage } from '../context/LanguageContext';
+} from '../../services/api';
+import { Prompt, Post, Category, Report, UserProfile, StaticPage, Reel, PostCategory, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount, ReelCategory, ShowcaseImage, SupportTicket } from '../../types';
+import Spinner from '../Spinner';
+import { useLanguage } from '../../context/LanguageContext';
 
 // Import tab components
 import AdminPrompts from './admin/AdminPrompts';
@@ -52,15 +52,15 @@ import AdminSidebar from './admin/AdminSidebar';
 import AdminHeader from './admin/AdminHeader';
 import AdminFooter from './admin/AdminFooter';
 import AdminHomepage from './admin/AdminHomepage';
-import AdminSupport from './admin/AdminSupport';
-import AdminRewards from './admin/AdminRewards'; // New Import
-import ConfirmModal from './ConfirmModal';
-import { PromptForm } from './PromptForm';
-import { ReelForm } from './ReelForm';
-import UserForm from './UserForm';
-import { useAuth } from '../context/AuthContext';
+import AdminSupport from './admin/AdminSupport'; // New Import
+import AdminRewards from './admin/AdminRewards';
+import ConfirmModal from '../ConfirmModal';
+import { PromptForm } from '../PromptForm';
+import { ReelForm } from '../ReelForm';
+import UserForm from '../UserForm';
+import { useAuth } from '../../context/AuthContext';
 import AdminConsent from './admin/AdminConsent';
-import { AdminContext, useAdminContext } from '../context/AdminContext';
+import { AdminContext, useAdminContext } from '../../context/AdminContext';
 
 type AdminTab = 'prompts' | 'posts' | 'reels' | 'showcase' | 'reports' | 'users' | 'categories' | 'post-categories' | 'reel-categories' | 'pages' | 'settings' | 'ads' | 'data' | 'navigation' | 'codeInjection' | 'analytics' | 'paymentGateways' | 'permalinks' | 'consent' | 'homepage' | 'support' | 'rewards';
 
@@ -100,7 +100,7 @@ const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     getAllUsers(),
                     getStaticPages(),
                     getAllShowcaseImages(),
-                    getTickets()
+                    getTickets() // Fetch all support tickets for admin
                 ]);
 
                 setPrompts(promptsResponse.prompts);
@@ -312,7 +312,10 @@ const AdminDashboard: React.FC = () => {
             }
             refreshData();
             setIsUserFormOpen(false);
-        } catch (error) { console.error(error); }
+        } catch (error: any) { 
+            console.error(error);
+            alert(error.message || "Failed to save user. Please try again.");
+        }
         finally { setIsActionLoading(false); }
     };
 

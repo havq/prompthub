@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 // @ts-ignore
 import { Link } from 'react-router-dom';
@@ -221,6 +222,9 @@ export const CommunityPage: React.FC = () => {
 
 
     useEffect(() => {
+        // Only admins can run the logic to update/award badges based on stats
+        if (!isAdmin) return;
+
         if (isLoading || (popularPrompts.length === 0 && topRatedByAverage.length === 0)) {
             return;
         }
@@ -261,7 +265,7 @@ export const CommunityPage: React.FC = () => {
         };
     
         awardLeaderboardBadges();
-    }, [isLoading, popularPrompts, topRatedByAverage]);
+    }, [isLoading, popularPrompts, topRatedByAverage, isAdmin]);
 
     const handleRatePrompt = async (prompt: Prompt, newRating: number) => {
         if (!currentUser || !userProfile) {

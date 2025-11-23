@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { UserProfile } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import BadgeIcon from '../BadgeIcon';
+import Pagination from '../Pagination';
 
 interface AdminUsersProps {
     users: UserProfile[];
@@ -10,9 +12,12 @@ interface AdminUsersProps {
     onDelete: (user: UserProfile) => void;
 }
 
+const USERS_PER_PAGE = 10;
+
 const AdminUsers: React.FC<AdminUsersProps> = ({ users, onAdd, onEdit, onDelete }) => {
     const { t } = useLanguage();
     const [userSearchQuery, setUserSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
     const filteredUsers = useMemo(() => {
         if (userSearchQuery.trim() === '') return users;
@@ -23,17 +28,28 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ users, onAdd, onEdit, onDelete 
         );
     }, [users, userSearchQuery]);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [userSearchQuery]);
+
+    const paginatedUsers = useMemo(() => {
+        const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+        return filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
+    }, [filteredUsers, currentPage]);
+
+    const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+
     return (
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
             <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
-                <h2 className="text-2xl font-bold">{t('admin.users.title')}<span className="text-base font-medium text-gray-500 dark:text-gray-400 ml-2">({users.length} total)</span></h2>
+                <h2 className="text-2xl font-bold">{t('admin.users.title')}<span className="text-base font-medium text-gray-500 dark:text-gray-400 ml-2">({filteredUsers.length} total)</span></h2>
                 <div className="flex items-center gap-4">
                     <input type="text" placeholder={t('admin.users.searchPlaceholder')} value={userSearchQuery} onChange={e => setUserSearchQuery(e.target.value)}
                         className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600" />
                     <button onClick={onAdd} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition-colors">{t('admin.users.addNew')}</button>
                 </div>
             </div>
-            <div className="overflow-x-auto max-h-96">
+            <div className="overflow-x-auto">
                 <table className="w-full text-left">
                     <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0">
                         <tr>
@@ -41,7 +57,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ users, onAdd, onEdit, onDelete 
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredUsers.length > 0 ? filteredUsers.map(user => (
+                        {paginatedUsers.length > 0 ? paginatedUsers.map(user => (
                             <tr key={user.uid} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td className="p-3 font-medium text-gray-900 dark:text-white">{user.username}</td>
                                 <td className="p-3 text-gray-600 dark:text-gray-300">{user.email}</td>
@@ -53,6 +69,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ users, onAdd, onEdit, onDelete 
                     </tbody>
                 </table>
             </div>
+            {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
         </div>
     );
 };
