@@ -131,6 +131,18 @@ export interface AppSettings {
   watermarkSettings: WatermarkSettings;
   homeLayout?: HomeWidget[]; // New field for homepage builder
   rewardPackages: RewardPackage[]; // New field for reward packages configuration
+  smtpConfig?: SmtpConfig;
+}
+
+export interface SmtpConfig {
+  host: string;
+  port: number;
+  username: string;
+  password?: string;
+  encryption: 'tls' | 'ssl' | 'none';
+  fromEmail: string;
+  fromName: string;
+  enabled: boolean;
 }
 
 export interface ImgbbKey {

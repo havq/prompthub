@@ -1,3 +1,4 @@
+
 <?php
 // api/upload.php
 
@@ -297,7 +298,10 @@ function handle_upload($conn) {
             
             // Create .htaccess to prevent script execution
             if (!file_exists($root_upload_dir . '.htaccess')) {
-                if (!is_dir($root_upload_dir)) mkdir($root_upload_dir, 0755, true);
+                if (!is_dir($root_upload_dir) && !mkdir($root_upload_dir, 0755, true)) {
+                     send_error('Failed to create root uploads directory. Check server permissions.', 500);
+                     return;
+                }
                 file_put_contents($root_upload_dir . '.htaccess', "Options -Indexes\nSetHandler text/plain\n<FilesMatch \"\.(php|phtml|php5|html|js)$\">\n Order Deny,Allow\n Deny from all\n</FilesMatch>");
             }
 
@@ -306,7 +310,7 @@ function handle_upload($conn) {
             
             if (!is_dir($upload_dir)) {
                 if (!mkdir($upload_dir, 0755, true)) {
-                    send_error('Failed to create upload directory.', 500);
+                    send_error('Failed to create daily upload directory. Check server permissions.', 500);
                     return;
                 }
             }
@@ -329,7 +333,7 @@ function handle_upload($conn) {
                     'videoUrl' => $is_video ? $file_url : null,
                 ];
             } else {
-                send_error('Failed to move uploaded file.', 500);
+                send_error('Failed to move uploaded file. Check server permissions.', 500);
             }
         }
         

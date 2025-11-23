@@ -1,4 +1,3 @@
-
 <?php
 // api/auth.php
 
@@ -72,11 +71,117 @@ function handle_auth($conn, $method, $post_data) {
 
         // Clean sensitive data
         unset($user['password_hash']);
+        unset($user['reset_token']);
+        unset($user['reset_token_expiry']);
         unset($user['email']); // Optionally hide email
         $user['badges'] = json_decode($user['badges'] ?: '[]');
         $user['socialLinks'] = json_decode($user['socialLinks'] ?: '[]');
 
         send_json(['token' => $token, 'user' => $user]);
+
+    } elseif ($action === 'forgot_password') {
+        // Load mail function
+        if (file_exists('api/mail.php')) {
+            require_once 'api/mail.php';
+        } elseif (file_exists('mail.php')) {
+            require_once 'mail.php';
+        } else {
+            send_error('Mail service configuration missing.', 500);
+        }
+
+        $email = $post_data['email'] ?? '';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            send_error('Invalid email format.', 400);
+        }
+
+        // Check if user exists
+        $stmt = $conn->prepare("SELECT uid, username FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if ($user) {
+            // Generate secure token
+            $token = bin2hex(random_bytes(32));
+            // Token valid for 1 hour
+            $expiry = date('Y-m-d H:i:s', time() + 3600);
+
+            // Save token to DB
+            // Ensure `reset_token` and `reset_token_expiry` columns exist in `users` table
+            $upd = $conn->prepare("UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE uid = ?");
+            $upd->bind_param("sss", $token, $expiry, $user['uid']);
+            
+            if ($upd->execute()) {
+                // Get App URL from settings or default
+                $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'appUrl'");
+                $appUrlSetting = $result ? $result->fetch_assoc()['setting_value'] : '';
+                $appUrl = !empty($appUrlSetting) ? rtrim($appUrlSetting, '/') : 'https://prompthub.today';
+                
+                // Construct Reset Link (Frontend route)
+                $resetLink = "$appUrl/reset-password?token=$token&uid=" . $user['uid'];
+                
+                $subject = "Reset Password Request - Prompthub";
+                $body = "
+                    <h3>Hello {$user['username']},</h3>
+                    <p>We received a request to reset your password for your Prompthub account.</p>
+                    <p>Click the link below to set a new password:</p>
+                    <p><a href='$resetLink' style='background:#4f46e5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:5px;'>Reset Password</a></p>
+                    <p><small>Or copy this link: $resetLink</small></p>
+                    <p>This link is valid for 1 hour. If you didn't ask for this, you can safely ignore this email.</p>
+                ";
+                
+                if (send_mail_custom($email, $subject, $body)) {
+                    send_json(['status' => 'success', 'message' => 'Password reset email sent.']);
+                } else {
+                    send_error('Failed to send email. Please try again later.', 500);
+                }
+            } else {
+                send_error('Database error while generating token.', 500);
+            }
+        } else {
+            // Return success even if user not found to prevent enumeration
+            send_json(['status' => 'success', 'message' => 'If an account exists, an email has been sent.']);
+        }
+
+    } elseif ($action === 'reset_password') {
+        $uid = $post_data['uid'] ?? '';
+        $token = $post_data['token'] ?? '';
+        $newPassword = $post_data['newPassword'] ?? '';
+
+        if (empty($uid) || empty($token) || empty($newPassword)) {
+            send_error('Missing required fields.', 400);
+        }
+
+        if (strlen($newPassword) < 6) {
+            send_error('Password must be at least 6 characters.', 400);
+        }
+
+        // Verify token
+        $stmt = $conn->prepare("SELECT reset_token, reset_token_expiry FROM users WHERE uid = ?");
+        $stmt->bind_param("s", $uid);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$user || $user['reset_token'] !== $token) {
+            send_error('Invalid or expired token.', 400);
+        }
+
+        if (strtotime($user['reset_token_expiry']) < time()) {
+            send_error('Token has expired. Please request a new one.', 400);
+        }
+
+        // Update password and clear token
+        $password_hash = password_hash($newPassword, PASSWORD_BCRYPT);
+        $upd = $conn->prepare("UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE uid = ?");
+        $upd->bind_param("ss", $password_hash, $uid);
+
+        if ($upd->execute()) {
+            send_json(['status' => 'success', 'message' => 'Password has been reset successfully.']);
+        } else {
+            send_error('Failed to update password.', 500);
+        }
 
     } elseif ($action === 'google') {
         $access_token = $post_data['accessToken'] ?? '';
@@ -158,6 +263,7 @@ function handle_auth($conn, $method, $post_data) {
         $token = create_jwt($uid, $email, $role, $isAdmin);
 
         unset($user['password_hash']);
+        unset($user['reset_token']);
         $user['badges'] = json_decode($user['badges'] ?: '[]');
         $user['socialLinks'] = json_decode($user['socialLinks'] ?: '[]');
         
@@ -233,6 +339,8 @@ function handle_auth($conn, $method, $post_data) {
         if (!$user) send_error('User not found', 404);
         
         unset($user['password_hash']);
+        unset($user['reset_token']);
+        unset($user['reset_token_expiry']);
         $user['badges'] = json_decode($user['badges'] ?: '[]');
         $user['socialLinks'] = json_decode($user['socialLinks'] ?: '[]');
         $user['isPro'] = (bool)($user['is_pro'] ?? false);
@@ -242,4 +350,3 @@ function handle_auth($conn, $method, $post_data) {
     }
 }
 ?>
-    

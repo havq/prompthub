@@ -5,6 +5,7 @@ import { fetchApi } from '../services/api/core';
 import { listenForNotifications, markNotificationAsRead, markAllNotificationsAsRead as apiMarkAllNotificationsAsRead, deleteNotification as apiDeleteNotification, deleteAllNotifications as apiDeleteAllNotifications } from '../services/api';
 import Spinner from '../components/Spinner';
 import { loadSettings, getSettings } from '../services/settingsService';
+import { sendPasswordResetEmail as apiSendPasswordResetEmail } from '../services/api/users';
 
 interface AuthContextType {
   currentUser: AuthUser | null;
@@ -189,20 +190,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const changePassword = async (oldPassword: string, newPassword: string): Promise<boolean> => {
-    // Since we are using custom auth, password change logic should be handled by a backend endpoint
-    // Currently, our basic `api/auth.php` does not have a change-password action.
-    // This serves as a placeholder. You would need to implement `action=change_password` in backend.
+    // Placeholder for password change
     console.warn("Change password is not fully implemented in this custom auth demo.");
     return true; 
   };
 
   const sendPasswordResetEmail = async (email: string) => {
-      // Custom API call to trigger email sending
-      // await fetchApi('auth', '&action=reset_password', { method: 'POST', body: JSON.stringify({ email }) });
-      console.log("Password reset requested for", email);
+      // Use the new API function
+      await apiSendPasswordResetEmail(email);
   };
   
-  // Notification methods remain largely the same, using the api functions
+  // Notification methods
   const markAsRead = async (notificationId: string, type: Notification['type']) => {
     if (!userProfile) return;
     const originalNotifications = notifications;

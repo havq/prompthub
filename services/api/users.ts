@@ -62,9 +62,8 @@ export const getAnalyticsData = (userId: string, page: number = 1, limit: number
 
 // --- Password Reset ---
 export const sendPasswordResetEmail = (email: string): Promise<void> => {
-    // This functionality should be implemented in the PHP backend (e.g., api/auth.php with action=reset_password)
-    // For now, we just log it as we removed Firebase.
-    console.log("Requesting password reset for:", email);
-    // return fetchApi<void>('auth', '&action=reset_password', { method: 'POST', body: JSON.stringify({ email }) });
-    return Promise.resolve();
+    return fetchApi<void>('auth', '&action=forgot_password', { 
+        method: 'POST', 
+        body: JSON.stringify({ email }) 
+    });
 };

@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { AppSettings, UploadMethod, WatermarkSettings, ImgbbKey, CloudinaryConfig, TumblrConfig } from '../../../types';
+import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig } from '../../../types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 import Spinner from '../../Spinner';
@@ -68,8 +68,65 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
     handleWatermarkSettingChange, handleWatermarkApplyToChange, isUploadingLogo, handleLogoChange,
     handleRepeaterChange, handleRemoveRepeaterItem, handleAddRepeaterItem
 }) => {
+    
+    const handleSmtpChange = (field: keyof SmtpConfig, value: any) => {
+        const newConfig = { ...settings.smtpConfig, [field]: value } as SmtpConfig;
+        onChange('smtpConfig', newConfig);
+    };
+
     return (
         <>
+            <CollapsibleSection title="SMTP Configuration">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Configure your email server to send automated emails (e.g., password resets).</p>
+                <div className="space-y-4">
+                    <Toggle 
+                        checked={settings.smtpConfig?.enabled ?? false} 
+                        onChange={val => handleSmtpChange('enabled', val)} 
+                        label="Enable SMTP Email" 
+                        hint="Turn off to disable email sending features."
+                    />
+                    
+                    {settings.smtpConfig?.enabled && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Host</label>
+                                <input type="text" value={settings.smtpConfig?.host || ''} onChange={e => handleSmtpChange('host', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="smtp.gmail.com" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Port</label>
+                                <input type="number" value={settings.smtpConfig?.port || 587} onChange={e => handleSmtpChange('port', parseInt(e.target.value))} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="587" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                                <input type="text" value={settings.smtpConfig?.username || ''} onChange={e => handleSmtpChange('username', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                                <input type="password" value={settings.smtpConfig?.password || ''} onChange={e => handleSmtpChange('password', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="App Password (if 2FA on)" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Encryption</label>
+                                <select value={settings.smtpConfig?.encryption || 'tls'} onChange={e => handleSmtpChange('encryption', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500">
+                                    <option value="tls">TLS</option>
+                                    <option value="ssl">SSL</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">From Email</label>
+                                    <input type="email" value={settings.smtpConfig?.fromEmail || ''} onChange={e => handleSmtpChange('fromEmail', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="no-reply@domain.com" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">From Name</label>
+                                    <input type="text" value={settings.smtpConfig?.fromName || ''} onChange={e => handleSmtpChange('fromName', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="Prompthub" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </CollapsibleSection>
+
             <CollapsibleSection title="Authentication">
                 <div>
                     <label htmlFor="google-client-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Client ID</label>
