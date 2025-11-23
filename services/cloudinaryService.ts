@@ -1,3 +1,4 @@
+
 import { getSettings } from './settingsService';
 
 interface CloudinaryResponse {
@@ -22,11 +23,15 @@ export const uploadToCloudinary = async (imageFile: File): Promise<UploadResult>
     const isVideo = imageFile.type.startsWith('video/');
     const resourceType = isVideo ? 'video' : 'image';
 
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+    // Trim whitespace to prevent "Upload preset not found" errors
+    const cleanCloudName = cloudName.trim();
+    const cleanUploadPreset = uploadPreset.trim();
+
+    const url = `https://api.cloudinary.com/v1_1/${cleanCloudName}/${resourceType}/upload`;
     
     const formData = new FormData();
     formData.append('file', imageFile);
-    formData.append('upload_preset', uploadPreset);
+    formData.append('upload_preset', cleanUploadPreset);
 
     try {
         const response = await fetch(url, {

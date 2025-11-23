@@ -1,3 +1,4 @@
+
 <?php
 function clear_reels_cache($redis) {
     if (!$redis) return;
@@ -13,6 +14,7 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
 
     // Check for column existence once at the beginning of the function
     $is_nsfw_column_exists = $conn->query("SHOW COLUMNS FROM `reels` LIKE 'isNSFW'")->num_rows > 0;
+    $is_image_url_column_exists = $conn->query("SHOW COLUMNS FROM `reels` LIKE 'imageUrl'")->num_rows > 0;
 
     try {
         if ($method === 'POST' && isset($get_params['action'])) {
@@ -97,6 +99,7 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                         $reel['commentCount'] = (int)($reel['commentCount'] ?? 0);
                         $reel['authorPhotoURL'] = $reel['authorPhotoURL'] ?? null;
                         $reel['isNSFW'] = (bool)($reel['isNSFW'] ?? false);
+                        $reel['imageUrl'] = $reel['imageUrl'] ?? null; // Might contain JSON string
                         
                         $is_owner = $current_user_uid && $reel['authorId'] === $current_user_uid;
                         if ($is_admin_request || $reel['status'] === 'approved' || $is_owner) {
@@ -192,6 +195,7 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                     $row['commentCount'] = (int)($row['commentCount'] ?? 0);
                     $row['authorPhotoURL'] = $row['authorPhotoURL'] ?? null;
                     $row['isNSFW'] = (bool)($row['isNSFW'] ?? false);
+                    $row['imageUrl'] = $row['imageUrl'] ?? null;
                     $reels[] = $row;
                 }
 
@@ -269,6 +273,13 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                     $params[] = isset($data['isNSFW']) ? (int)$data['isNSFW'] : 0;
                 }
 
+                if ($is_image_url_column_exists) {
+                    $sql_columns .= ", imageUrl";
+                    $sql_placeholders .= ", ?";
+                    $types .= "s";
+                    $params[] = $data['imageUrl'] ?? null;
+                }
+
                 $stmt = $conn->prepare("INSERT INTO reels ($sql_columns) VALUES ($sql_placeholders)");
                 $stmt->bind_param($types, ...$params);
                 $stmt->execute();
@@ -328,6 +339,12 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                     $sql_update .= ", isNSFW=?";
                     $types .= "i";
                     $params[] = isset($data['isNSFW']) ? (int)$data['isNSFW'] : 0;
+                }
+
+                if ($is_image_url_column_exists) {
+                    $sql_update .= ", imageUrl=?";
+                    $types .= "s";
+                    $params[] = $data['imageUrl'] ?? null;
                 }
 
                 $sql_update .= " WHERE id=?";

@@ -1,5 +1,6 @@
 
 
+
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -419,6 +420,7 @@ export interface Reel {
   id: string;
   title: string;
   videoUrl: string;
+  imageUrl?: string; // JSON string of image URLs
   promptId?: string;
   authorId?: string;
   authorName?: string;

@@ -6,6 +6,7 @@ import CircularProgress from './CircularProgress';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import PromptMediaUpload from './prompt-form/PromptMediaUpload';
 
 interface ReelFormProps {
   initialData: Reel | null;
@@ -21,6 +22,7 @@ const INPUT_STYLE = "block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border 
 export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClose, isSubmitting, prompts, categories }) => {
   const [title, setTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [promptId, setPromptId] = useState<string>('');
   const [tagsInput, setTagsInput] = useState('');
   const [status, setStatus] = useState<'pending' | 'approved' | 'rejected'>('approved');
@@ -28,11 +30,21 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
   const [isNSFW, setIsNSFW] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Needed for PromptMediaUpload but unused in Reel context (or use placeholders)
+  const [referenceImageUrl, setReferenceImageUrl] = useState('');
+  const referenceFileInputRef = useRef<HTMLInputElement>(null);
+  const urlInputRef = useRef<HTMLInputElement>(null);
+
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingReference, setIsUploadingReference] = useState(false);
+  
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadMethodOverride, setUploadMethodOverride] = useState<UploadMethod | undefined>();
-  const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
-  const uploadDropdownRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isRefDragging, setIsRefDragging] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const { t } = useLanguage();
   const { isAdmin, isPro } = useAuth();
@@ -86,6 +98,20 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
     if (initialData) {
       setTitle(initialData.title || '');
       setVideoUrl(initialData.videoUrl || '');
+      
+      if (initialData.imageUrl) {
+        if (initialData.imageUrl.startsWith('[') && initialData.imageUrl.endsWith(']')) {
+            try {
+                const parsed = JSON.parse(initialData.imageUrl);
+                setImageUrls(Array.isArray(parsed) ? parsed : [initialData.imageUrl]);
+            } catch (e) {
+                setImageUrls([initialData.imageUrl]);
+            }
+        } else {
+            setImageUrls([initialData.imageUrl]);
+        }
+      }
+
       setPromptId(initialData.promptId || '');
       const initialPrompt = prompts.find(p => p.id === initialData.promptId);
       setPromptSearch(initialPrompt?.title || '');
@@ -125,9 +151,6 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (uploadDropdownRef.current && !uploadDropdownRef.current.contains(event.target as Node)) {
-            setIsUploadDropdownOpen(false);
-        }
         if (promptSelectRef.current && !promptSelectRef.current.contains(event.target as Node)) {
             setIsPromptDropdownOpen(false);
         }
@@ -138,13 +161,14 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || isUploading) return;
+    if (isSubmitting || isUploading || isUploadingVideo) return;
     
     const tags = tagsInput.split(',').map(tag => tag.trim()).filter(Boolean);
     
     const reelData = {
         title,
         videoUrl,
+        imageUrl: JSON.stringify(imageUrls),
         tags,
         status,
         promptId: promptId || undefined,
@@ -188,38 +212,90 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
     });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    startProgressSimulation();
-    setError('');
-    try {
-        const result = await uploadImage(file, uploadMethodOverride, { isAdmin, isPro });
-        if (result.videoUrl) {
-            setVideoUrl(result.videoUrl);
-        } else {
-            setError("The uploaded file does not appear to be a video.");
-        }
-        completeProgress();
-    } catch(err: any) {
-        setError(err.message || "Failed to upload file.");
-        resetProgress();
-    } finally {
-        setIsUploading(false);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        setUploadMethodOverride(undefined);
-        setTimeout(resetProgress, 500);
-    }
-  };
-
+  // --- Media Handling Logic (Copied/Adapted from PromptForm) ---
+  
   const handleUploadClick = (method?: UploadMethod) => {
-    setUploadMethodOverride(method);
-    fileInputRef.current?.click();
+      if (fileInputRef.current) {
+          fileInputRef.current.setAttribute('data-method', method || '');
+          fileInputRef.current.click();
+      }
   };
 
-  const videoUploadOptions = getUploadMethodsForRole('video', { isAdmin, isPro });
+  const processImageFiles = async (files: FileList | File[], methodOverride?: UploadMethod) => {
+      const fileArray = Array.from(files as any);
+      if (fileArray.length === 0) return;
+
+      setIsUploading(true);
+      startProgressSimulation();
+
+      try {
+          for (const file of fileArray) {
+              setUploadProgress(0);
+              startProgressSimulation();
+              const result = await uploadImage(file as File, methodOverride, { isPro, isAdmin });
+              completeProgress();
+              setImageUrls(prev => [...prev, result.imageUrl]);
+              await new Promise(resolve => setTimeout(resolve, 500));
+          }
+      } catch (error) {
+          console.error("Upload failed:", error);
+          setError("Failed to upload image(s).");
+      } finally {
+          setIsUploading(false);
+          setUploadProgress(0); 
+          if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+  };
+
+  const handleVideoUploadClick = (method?: UploadMethod) => {
+      if (videoFileInputRef.current) {
+          videoFileInputRef.current.setAttribute('data-method', method || '');
+          videoFileInputRef.current.click();
+      }
+  };
+  
+  const processVideoFile = async (file: File, methodOverride?: UploadMethod) => {
+      setIsUploadingVideo(true);
+      startProgressSimulation();
+      try {
+          const result = await uploadImage(file, methodOverride, { isPro, isAdmin });
+          if (result.videoUrl) {
+              setVideoUrl(result.videoUrl);
+              if (result.imageUrl && imageUrls.length === 0) {
+                  setImageUrls([result.imageUrl]);
+              }
+          }
+          completeProgress();
+      } catch (error) {
+          console.error("Video upload failed:", error);
+          setError("Failed to upload video.");
+      } finally {
+          setIsUploadingVideo(false);
+          if (videoFileInputRef.current) videoFileInputRef.current.value = '';
+      }
+  };
+
+  const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          processImageFiles(e.dataTransfer.files);
+      }
+  };
+
+  const handleDragStart = (index: number) => setDraggedIndex(index);
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (draggedIndex === null || draggedIndex === index) return;
+      const newUrls = [...imageUrls];
+      const draggedItem = newUrls[draggedIndex];
+      newUrls.splice(draggedIndex, 1);
+      newUrls.splice(index, 0, draggedItem);
+      setImageUrls(newUrls);
+      setDraggedIndex(index);
+  };
 
   const sortedPrompts = useMemo(() => {
     return [...prompts].sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
@@ -227,16 +303,17 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
 
   const filteredPrompts = useMemo(() => {
       if (!promptSearch.trim()) {
-          // If search is empty but a prompt is selected, show nothing to avoid confusion.
           if (promptId) return [];
-          // Show initial results, max 100
           return sortedPrompts.slice(0, 100);
       }
       return sortedPrompts.filter(p =>
           p.title?.toLowerCase().includes(promptSearch.toLowerCase())
-      ).slice(0, 100); // Limit results for performance
+      ).slice(0, 100);
   }, [promptSearch, sortedPrompts, promptId]);
   
+  const uploadOptions = getUploadMethodsForRole('image', { isAdmin, isPro });
+  const videoUploadOptions = getUploadMethodsForRole('video', { isAdmin, isPro });
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl relative space-y-4 max-h-[90vh] overflow-y-auto">
@@ -246,55 +323,51 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{initialData ? t('admin.reelForm.editTitle') : t('admin.reelForm.addTitle')}</h2>
             {error && <p className="text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-900/50 p-3 rounded-md text-sm text-center">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-4">
-                {videoUrl && (
-                    <div className="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Preview</label>
-                        <video src={videoUrl} controls className="w-full max-w-xs mx-auto rounded-md border border-gray-300 dark:border-gray-600" />
-                    </div>
-                )}
                 <div>
                     <label htmlFor="reel-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.titleLabel')}</label>
                     <input id="reel-title" type="text" value={title} onChange={(e) => setTitle(e.target.value)}
                         className={`mt-1 ${INPUT_STYLE}`} required />
                 </div>
-                <div>
-                    <label htmlFor="video-url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.reelForm.videoUrl')}</label>
-                    <div className="mt-1 flex items-center gap-2">
-                        <input
-                            type="text"
-                            id="video-url"
-                            value={videoUrl}
-                            onChange={(e) => setVideoUrl(e.target.value)}
-                            className={`flex-grow ${INPUT_STYLE}`}
-                            required
-                            placeholder="https://... or YouTube URL"
-                        />
-                        {videoUploadOptions.length > 0 && (
-                            <div ref={uploadDropdownRef} className="relative inline-block text-left flex-shrink-0">
-                                <div className="flex rounded-md shadow-sm">
-                                    <button type="button" onClick={() => handleUploadClick()} disabled={isUploading} className="relative inline-flex items-center justify-center min-w-[80px] space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 disabled:opacity-50 rounded-l-md">
-                                        {isUploading ? <CircularProgress progress={uploadProgress} size={20} strokeWidth={3} /> : <span>{t('admin.settings.upload')}</span>}
-                                    </button>
-                                    <button type="button" onClick={() => setIsUploadDropdownOpen(prev => !prev)} disabled={isUploading} className="-ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-500">
-                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                                    </button>
-                                </div>
-                                {isUploadDropdownOpen && (
-                                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 z-10">
-                                        <div className="py-1">
-                                            {videoUploadOptions.map(method => (
-                                                <button key={method} type="button" onClick={() => { handleUploadClick(method); setIsUploadDropdownOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 capitalize">
-                                                    {method === 'base64' ? t('admin.settings.base64') : method === 'imgbb' ? t('admin.settings.imgbb') : method === 'cloudinary' ? t('admin.settings.cloudinary') : method === 'tumblr' ? 'Tumblr' : 'Server'}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="video/mp4,video/webm,video/quicktime,video/mov"/>
-                    </div>
-                </div>
+
+                {/* Media Upload Section using PromptMediaUpload */}
+                <PromptMediaUpload
+                    imageUrls={imageUrls} setImageUrls={setImageUrls}
+                    videoUrl={videoUrl} setVideoUrl={setVideoUrl}
+                    // Pass dummy props for features not used in ReelForm but required by component
+                    referenceImageUrl={referenceImageUrl} setReferenceImageUrl={setReferenceImageUrl}
+                    requiresUserImage={false} setRequiresUserImage={() => {}}
+                    imageDimensions={null}
+                    rotation={0} setRotation={() => {}}
+                    
+                    isUploading={isUploading} isUploadingVideo={isUploadingVideo} isUploadingReference={isUploadingReference}
+                    uploadProgress={uploadProgress}
+                    uploadOptions={uploadOptions} videoUploadOptions={videoUploadOptions}
+                    isAdmin={isAdmin} isPro={!!isPro}
+                    INPUT_STYLE={INPUT_STYLE} t={t}
+                    
+                    handleUploadClick={handleUploadClick}
+                    handleImageFilesSelected={(e) => processImageFiles(e.target.files || [] as any, e.target.getAttribute('data-method') as UploadMethod)}
+                    handleImageDrop={handleImageDrop}
+                    handleDragStart={handleDragStart} handleDragOver={handleDragOver}
+                    handleDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
+                    isDragging={isDragging}
+                    draggedIndex={draggedIndex}
+                    setDraggedIndex={setDraggedIndex}
+                    handleRemoveImage={(index) => setImageUrls(prev => prev.filter((_, i) => i !== index))}
+                    addUrlFromInput={() => { if (urlInputRef.current?.value) { setImageUrls(prev => [...prev, urlInputRef.current!.value]); urlInputRef.current.value = ''; } }}
+                    
+                    urlInputRef={urlInputRef} fileInputRef={fileInputRef} videoFileInputRef={videoFileInputRef} referenceFileInputRef={referenceFileInputRef}
+                    
+                    handleVideoUploadClick={handleVideoUploadClick}
+                    handleVideoFileSelected={(e) => e.target.files?.[0] && processVideoFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
+                    
+                    // Dummy handlers for reference image
+                    handleReferenceUploadClick={() => {}}
+                    handleReferenceFileChange={() => {}}
+                    isRefDragging={false}
+                    handleRefDragEvents={(e) => {e.preventDefault(); e.stopPropagation();}}
+                    handleRefDrop={(e) => {e.preventDefault(); e.stopPropagation();}}
+                />
 
                  <div>
                     <label htmlFor="reel-prompt-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Linked Prompt (Optional)</label>
@@ -305,7 +378,7 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
                             value={promptSearch}
                             onChange={(e) => {
                                 setPromptSearch(e.target.value);
-                                if (promptId) setPromptId(''); // Clear ID when user starts typing again
+                                if (promptId) setPromptId('');
                                 setIsPromptDropdownOpen(true);
                             }}
                             onFocus={() => setIsPromptDropdownOpen(true)}

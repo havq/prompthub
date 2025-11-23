@@ -8,8 +8,9 @@ import ShareButton from './ShareButton';
 import { Link, useNavigate } from 'react-router-dom';
 import { transformCloudinaryUrl } from '../services/cloudinaryUtils';
 import { useAuth } from '../context/AuthContext';
-import BannerAd from './BannerAd';
 import { getSettings } from '../services/settingsService';
+import { getImageUrls } from './PromptDetail/utils'; // Helper for JSON parsing
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 const parseYouTubeUrl = (url: string): { videoId: string | null } => {
     if (!url) {
@@ -42,17 +43,53 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
     const reelRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
-    const [progress, setProgress] = useState(0);
-    const [duration, setDuration] = useState(0);
     const [isNSFWConfirmed, setIsNSFWConfirmed] = useState(false);
     const { t } = useLanguage();
-    const { isPro } = useAuth();
     const navigate = useNavigate();
 
-    const youTubeVideoId = useMemo(() => parseYouTubeUrl(reel.videoUrl).videoId, [reel.videoUrl]);
-    const showNSFWOverlay = reel.isNSFW && !isNSFWConfirmed;
+    // Unified Media Items Logic (Video + Images)
+    const mediaItems = useMemo(() => {
+        const items: { type: 'image' | 'video' | 'youtube'; url: string; id: string }[] = [];
+        const imageUrls = getImageUrls(reel.imageUrl || '');
+        const { videoId } = parseYouTubeUrl(reel.videoUrl || '');
 
-    // Intersection Observer for play/pause and view count
+        if (reel.videoUrl) {
+            if (videoId) {
+                items.push({ 
+                    type: 'youtube', 
+                    url: `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&showinfo=0&rel=0`,
+                    id: 'video-youtube' 
+                });
+            } else {
+                items.push({ type: 'video', url: reel.videoUrl, id: 'video-native' });
+            }
+        }
+        
+        imageUrls.forEach((url, index) => {
+            items.push({ type: 'image', url, id: `image-${index}` });
+        });
+
+        return items;
+    }, [reel.videoUrl, reel.imageUrl]);
+
+    const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+    
+    const goToNext = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentMediaIndex(prevIndex => (prevIndex + 1) % mediaItems.length);
+    };
+
+    const goToPrev = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentMediaIndex(prevIndex => (prevIndex - 1 + mediaItems.length) % mediaItems.length);
+    };
+
+    const showNSFWOverlay = reel.isNSFW && !isNSFWConfirmed;
+    const currentMedia = mediaItems[currentMediaIndex];
+    const isVideoActive = currentMedia?.type === 'video';
+    const isYouTubeActive = currentMedia?.type === 'youtube';
+
+    // Intersection Observer for play/pause of VIDEO
     useEffect(() => {
         const videoElement = videoRef.current;
         const currentReelRef = reelRef.current;
@@ -61,13 +98,13 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
-                    // Only autoplay if not NSFW or if confirmed
-                    if (videoElement && !showNSFWOverlay) {
+                    // Only autoplay if active item is video AND not NSFW blocked
+                    if (isVideoActive && videoElement && !showNSFWOverlay) {
                         videoElement.play().catch(e => console.log("Autoplay was prevented.", e));
                         setIsPlaying(true);
                     }
                     onInView(reel.id);
-                    // Increment view count only once per session view and only if logged in
+                    // Increment view count logic...
                     const viewedKey = `viewed_reel_${reel.id}`;
                     if (!sessionStorage.getItem(viewedKey) && isLoggedIn) {
                         incrementReelViewCount(reel.id);
@@ -83,7 +120,7 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
             },
             {
                 root: containerRef.current,
-                threshold: 0.7 // Play when 70% of the video is visible
+                threshold: 0.6
             }
         );
 
@@ -92,60 +129,27 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
         return () => {
             observer.disconnect();
         };
-    }, [reel.id, containerRef, isLoggedIn, onInView, showNSFWOverlay]);
+    }, [reel.id, containerRef, isLoggedIn, onInView, showNSFWOverlay, isVideoActive, currentMediaIndex]); // Re-run when index changes to attach to new video element if needed
     
-    // Handle transition from NSFW overlay to content (e.g., user confirms)
+    // Handle transition from NSFW overlay to content
     useEffect(() => {
-        if (!showNSFWOverlay && videoRef.current) {
-             // Check if the reel is currently in view to start playing
+        if (!showNSFWOverlay && isVideoActive && videoRef.current) {
              const rect = reelRef.current?.getBoundingClientRect();
              const containerRect = containerRef.current?.getBoundingClientRect();
              
              if (rect && containerRect) {
-                 const isVisible = (
-                     rect.top >= containerRect.top &&
-                     rect.bottom <= containerRect.bottom
-                 );
-                 
+                 const isVisible = (rect.top >= containerRect.top && rect.bottom <= containerRect.bottom);
                  if (isVisible) {
                      videoRef.current.play().catch(e => console.log("Play after NSFW confirmation prevented", e));
                      setIsPlaying(true);
                  }
              }
         }
-    }, [showNSFWOverlay, containerRef]);
+    }, [showNSFWOverlay, containerRef, isVideoActive]);
 
-    const formatTime = (timeInSeconds: number) => {
-        if (isNaN(timeInSeconds) || timeInSeconds === Infinity) {
-            return '00:00';
-        }
-        const minutes = Math.floor(timeInSeconds / 60);
-        const seconds = Math.floor(timeInSeconds % 60);
-        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    };
-
-    const handleTimeUpdate = () => {
-        if (videoRef.current) {
-            setProgress(videoRef.current.currentTime);
-        }
-    };
-    
-    const handleLoadedMetadata = () => {
-        if (videoRef.current) {
-            setDuration(videoRef.current.duration);
-        }
-    };
-
-    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (videoRef.current) {
-            const newTime = Number(e.target.value);
-            videoRef.current.currentTime = newTime;
-            setProgress(newTime);
-        }
-    };
-
-    const handleVideoClick = () => {
-        if (youTubeVideoId || showNSFWOverlay) return; // YouTube iframe handles its own clicks, block if NSFW
+    const handleVideoClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isYouTubeActive || showNSFWOverlay) return;
         if (videoRef.current) {
             if (isPlaying) {
                 videoRef.current.pause();
@@ -184,7 +188,7 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
                 const tag = part.substring(1);
-                return <Link key={index} to={`/?tag=${tag}`} className="font-bold hover:underline" onClick={e => e.stopPropagation()}>{part}</Link>;
+                return <Link key={index} to={`/?tag=${tag}`} className="font-bold hover:underline" onClick={(e:any) => e.stopPropagation()}>{part}</Link>;
             }
             return part;
         });
@@ -215,47 +219,69 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
                     <h3 className="text-xl font-bold text-white mb-2">{t('promptDetail.nsfwWarningTitle')}</h3>
                     <p className="text-gray-300 mb-6 max-w-md">{t('promptDetail.nsfwWarningMessage')}</p>
                     <div className="flex flex-wrap justify-center gap-4">
-                        <button 
-                            onClick={() => navigate('/')}
-                            className="bg-gray-800 text-white font-medium py-2 px-6 rounded-full hover:bg-gray-700 transition-colors shadow-lg border border-gray-700"
-                        >
-                            {t('common.backToHome')}
-                        </button>
-                        <button 
-                            onClick={() => setIsNSFWConfirmed(true)}
-                            className="bg-white text-black font-bold py-2 px-8 rounded-full hover:bg-gray-200 transition-colors shadow-lg transform hover:scale-105 active:scale-95"
-                        >
-                            {t('promptDetail.confirmAge')}
-                        </button>
+                        <button onClick={() => navigate('/')} className="bg-gray-800 text-white font-medium py-2 px-6 rounded-full hover:bg-gray-700 transition-colors shadow-lg border border-gray-700">{t('common.backToHome')}</button>
+                        <button onClick={() => setIsNSFWConfirmed(true)} className="bg-white text-black font-bold py-2 px-8 rounded-full hover:bg-gray-200 transition-colors shadow-lg transform hover:scale-105 active:scale-95">{t('promptDetail.confirmAge')}</button>
                     </div>
                 </div>
             )}
 
-            {youTubeVideoId ? (
-                <iframe
-                    src={`https://www.youtube.com/embed/${youTubeVideoId}?autoplay=${showNSFWOverlay ? 0 : 1}&mute=1&loop=1&playlist=${youTubeVideoId}&controls=0&modestbranding=1&showinfo=0&rel=0`}
-                    className="w-full h-full object-contain"
-                    frameBorder="0"
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    allowFullScreen
-                    title={reel.title}
-                ></iframe>
-            ) : (
-                <video
-                    ref={videoRef}
-                    src={reel.videoUrl}
-                    loop
-                    muted={isMuted}
-                    playsInline
-                    preload="metadata"
-                    className="w-full h-full object-contain"
-                    onClick={handleVideoClick}
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={handleLoadedMetadata}
-                />
+            {/* Slider Navigation Controls */}
+            {mediaItems.length > 1 && !showNSFWOverlay && (
+                <>
+                    <button onClick={goToPrev} className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-black/30 text-white rounded-full hover:bg-black/50 transition-opacity" title="Previous">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <button onClick={goToNext} className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-black/30 text-white rounded-full hover:bg-black/50 transition-opacity" title="Next">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                    <div className="absolute bottom-40 left-0 right-0 z-20 flex justify-center items-center gap-1.5 pointer-events-none">
+                         {mediaItems.map((_, index) => (
+                            <div key={index} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${currentMediaIndex === index ? 'bg-white w-3' : 'bg-white/40'}`}></div>
+                        ))}
+                    </div>
+                </>
             )}
-            
-            {!isPlaying && !youTubeVideoId && !showNSFWOverlay && (
+
+            {/* Media Rendering */}
+            {currentMedia ? (
+                currentMedia.type === 'youtube' ? (
+                     <iframe
+                        src={`https://www.youtube.com/embed/${parseYouTubeUrl(currentMedia.url).videoId}?autoplay=${showNSFWOverlay ? 0 : 1}&mute=1&loop=1&playlist=${parseYouTubeUrl(currentMedia.url).videoId}&controls=0&modestbranding=1&showinfo=0&rel=0`}
+                        className="w-full h-full object-contain"
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                        title={reel.title}
+                    ></iframe>
+                ) : currentMedia.type === 'video' ? (
+                    <video
+                        ref={videoRef}
+                        src={currentMedia.url}
+                        loop
+                        muted={isMuted}
+                        playsInline
+                        preload="metadata"
+                        className="w-full h-full object-contain"
+                        onClick={handleVideoClick}
+                    />
+                ) : (
+                    <TransformWrapper centerOnInit={true}>
+                        {({ zoomIn, zoomOut, resetTransform }) => (
+                           <TransformComponent wrapperStyle={{ width: '100%', height: '100%' }} contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <img 
+                                    src={transformCloudinaryUrl(currentMedia.url, 'w_1080')} 
+                                    alt="Reel content" 
+                                    className={`max-w-full max-h-full object-contain ${showNSFWOverlay ? 'filter blur-2xl scale-110' : ''}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                           </TransformComponent>
+                        )}
+                    </TransformWrapper>
+                )
+            ) : (
+                 <div className="absolute inset-0 flex items-center justify-center text-white">Media not found</div>
+            )}
+
+            {!isPlaying && isVideoActive && !showNSFWOverlay && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white/50" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
@@ -263,15 +289,15 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
                 </div>
             )}
             
-            <div className={`absolute bottom-0 left-0 right-0 p-4 text-white bg-gradient-to-t from-black/60 via-black/30 to-transparent ${isBannerVisible ? 'pb-28' : 'pb-4'}`}>
-                <div className="flex justify-between items-end">
+            <div className={`absolute bottom-0 left-0 right-0 p-4 text-white bg-gradient-to-t from-black/60 via-black/30 to-transparent ${isBannerVisible ? 'pb-28' : 'pb-4'} pointer-events-none`}>
+                <div className="flex justify-between items-end pointer-events-auto">
                     <div className="flex-1 min-w-0 pr-4 space-y-2">
                         <Link to={`/author/${reel.authorId}`} className="text-sm font-bold opacity-90 hover:underline" onClick={e => e.stopPropagation()}>@{reel.authorName || 'Anonymous'}</Link>
                         <p className="text-base text-shadow-md">{renderCaption(reel.title)}</p>
                         {reelCategories.length > 0 && (
                             <div className="flex flex-wrap gap-2 pt-2">
                                 {reelCategories.map(cat => {
-                                    const link = routerMode === 'browser' ? `/reels/category/${cat.id}` : `/reels/explore?category=${cat.id}`;
+                                    const link = '/reels/explore?category=' + cat.id; // Simplification
                                     return (
                                         <Link key={cat.id} to={link} className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors" onClick={e => e.stopPropagation()}>
                                             {cat.name}
@@ -312,18 +338,20 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
                             </svg>
                             <span className="text-xs font-semibold mt-1">{t('common.share')}</span>
                         </ShareButton>
-                         <button onClick={handleMuteToggle} className="flex flex-col items-center">
-                            {isMuted ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                                </svg>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                                </svg>
-                            )}
-                        </button>
+                        {isVideoActive && (
+                            <button onClick={handleMuteToggle} className="flex flex-col items-center">
+                                {isMuted ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                    </svg>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
