@@ -117,6 +117,21 @@ const PromptCard: React.FC<PromptCardProps> = (props) => {
                         </div>
                     )}
 
+                    {/* Bottom Left Reference Image */}
+                    {prompt.referenceImageUrl && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setIsReferenceImageOpen(true); }}
+                            className="absolute bottom-2 left-2 z-20 w-16 h-20 rounded overflow-hidden border border-white/70 shadow-sm hover:border-white transition-all duration-200 hover:scale-110 focus:outline-none pointer-events-auto"
+                            title={t('promptCard.referenceImageTooltip')}
+                        >
+                            <img 
+                                src={transformCloudinaryUrl(prompt.referenceImageUrl, 'w_50,h_70,c_fill,g_auto')} 
+                                alt="Ref"
+                                className="w-full h-full object-cover"
+                            />
+                        </button>
+                    )}
+
                     {/* Bottom Right Categories Badge */}
                     <div className="absolute bottom-2 right-2 flex flex-wrap justify-end gap-1 z-20 pointer-events-none max-w-[80%]">
                         {promptCategories.slice(0, 1).map(cat => (
