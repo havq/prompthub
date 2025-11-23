@@ -33,6 +33,20 @@ function update_comment_timestamp($conn, $userId) {
     $stmt->close();
 }
 
+function add_points_to_user($conn, $userId, $points) {
+    if (!$userId || $points <= 0) return false;
+    try {
+        $stmt = $conn->prepare("UPDATE users SET points = IFNULL(points, 0) + ? WHERE uid = ?");
+        $stmt->bind_param("is", $points, $userId);
+        $stmt->execute();
+        $stmt->close();
+        return true;
+    } catch (Exception $e) {
+        error_log("Failed to add points to user $userId: " . $e->getMessage());
+        return false;
+    }
+}
+
 function clear_prompt_comments_cache($redis, $promptId) {
     if (!$redis) return;
     if ($promptId) {
@@ -44,7 +58,7 @@ function clear_prompt_comments_cache($redis, $promptId) {
 function handle_comments($conn, $method, $id, $get_params, $post_data) {
     global $current_user_uid, $is_admin_request, $redis;
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-    require_once 'api/prompts.md';
+    require_once 'api/prompts.php';
 
     try {
         switch ($method) {
@@ -180,7 +194,8 @@ function handle_comments($conn, $method, $id, $get_params, $post_data) {
                                 $notification_stmt = $conn->prepare(
                                     "INSERT INTO notifications (recipientId, actorId, actorName, actorPhotoURL, type, promptId, commentId, commentText, is_read, createdAt) VALUES (?, ?, ?, ?, 'prompt-comment-mention', ?, ?, ?, 0, NOW())"
                                 );
-                                $comment_text_snippet = mb_substr($data['text'], 0, 50);
+                                // Fallback for mb_substr
+                                $comment_text_snippet = function_exists('mb_substr') ? mb_substr($data['text'], 0, 50) : substr($data['text'], 0, 50);
                                 $actorPhotoURL = $data['userPhotoURL'] ?? null;
                                 
                                 // Use commentId if available (reply), otherwise root comment (newId)
@@ -221,7 +236,8 @@ function handle_comments($conn, $method, $id, $get_params, $post_data) {
                             $notification_stmt = $conn->prepare(
                                 "INSERT INTO notifications (recipientId, actorId, actorName, actorPhotoURL, type, promptId, commentId, commentText, is_read, createdAt) VALUES (?, ?, ?, ?, 'comment-reply', ?, ?, ?, 0, NOW())"
                             );
-                            $comment_text_snippet = mb_substr($parent_comment['text'], 0, 50); // The parent comment's text
+                            // Fallback for mb_substr
+                            $comment_text_snippet = function_exists('mb_substr') ? mb_substr($parent_comment['text'], 0, 50) : substr($parent_comment['text'], 0, 50);
                             $actorPhotoURL = $data['userPhotoURL'] ?? null;
                             
                             $notification_stmt->bind_param(
@@ -250,7 +266,8 @@ function handle_comments($conn, $method, $id, $get_params, $post_data) {
                             $notification_stmt = $conn->prepare(
                                 "INSERT INTO notifications (recipientId, actorId, actorName, actorPhotoURL, type, promptId, promptText, is_read, createdAt) VALUES (?, ?, ?, ?, 'comment', ?, ?, 0, NOW())"
                             );
-                            $prompt_text_snippet = mb_substr($prompt_details['text'], 0, 50);
+                            // Fallback for mb_substr
+                            $prompt_text_snippet = function_exists('mb_substr') ? mb_substr($prompt_details['text'], 0, 50) : substr($prompt_details['text'], 0, 50);
                             $actorPhotoURL = $data['userPhotoURL'] ?? null;
                             
                             $notification_stmt->bind_param(

@@ -9,8 +9,12 @@ use PHPMailer\PHPMailer\Exception;
  */
 function get_smtp_config() {
     global $conn;
+    if (!$conn) return null;
+
     $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'smtpConfig'");
-    $config_json = $result ? $result->fetch_assoc()['setting_value'] : null;
+    if (!$result) return null;
+
+    $config_json = $result->fetch_assoc()['setting_value'] ?? null;
     
     if ($config_json) {
         return json_decode($config_json, true);
@@ -36,15 +40,33 @@ function send_mail_custom($to, $subject, $body) {
             $mail->SMTPAuth   = true;
             $mail->Username   = $config['username'];
             $mail->Password   = $config['password'];
-            $mail->SMTPSecure = $config['encryption'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = (int)$config['port'];
+            
+            // Enhanced Encryption Logic
+            $encryption = $config['encryption'] ?? 'tls';
+            if ($encryption === 'ssl') {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } elseif ($encryption === 'tls') {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            } else {
+                $mail->SMTPSecure = '';
+                $mail->SMTPAutoTLS = false;
+            }
+
+            $port = $config['port'] ?? 587;
+            $mail->Port = (int)$port;
             
             // Charset settings
             $mail->CharSet = 'UTF-8';
             $mail->Encoding = 'base64';
 
-            // Recipients
+            // Sender Logic
             $fromEmail = !empty($config['fromEmail']) ? $config['fromEmail'] : $config['username'];
+            // Fallback if username is not an email (e.g. API keys)
+            if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+                 $domain = $_SERVER['SERVER_NAME'] ?? 'localhost';
+                 $fromEmail = "no-reply@$domain";
+            }
+
             $fromName = !empty($config['fromName']) ? $config['fromName'] : 'Prompthub';
             
             $mail->setFrom($fromEmail, $fromName);
@@ -60,8 +82,7 @@ function send_mail_custom($to, $subject, $body) {
             return true;
         } catch (Exception $e) {
             error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
-            // Fallback to native mail() if SMTP fails? 
-            // Usually better to fail loudly or log, but let's try native as last resort if configured.
+            // Fallback to native mail() if SMTP fails
             return send_mail_native($to, $subject, $body);
         }
     } else {
@@ -72,7 +93,13 @@ function send_mail_custom($to, $subject, $body) {
 
 function send_mail_native($to, $subject, $body) {
     $appName = 'Prompthub';
-    $senderEmail = 'no-reply@prompthub.today';
+    
+    // Determine a safe sender email based on the current domain
+    $domain = $_SERVER['SERVER_NAME'] ?? 'prompthub.today';
+    $domain = preg_replace('/[^a-zA-Z0-9.-]/', '', $domain);
+    if (empty($domain)) $domain = 'localhost';
+    
+    $senderEmail = "no-reply@$domain";
 
     $headers = "MIME-Version: 1.0" . "\r\n";
     $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";

@@ -33,7 +33,7 @@ function update_comment_timestamp($conn, $userId) {
 function handle_post_comments($conn, $method, $id, $get_params, $post_data) {
     global $current_user_uid, $is_admin_request, $redis;
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-    require_once 'api/posts.md';
+    require_once 'api/posts.php';
 
     try {
         switch ($method) {
@@ -119,6 +119,49 @@ function handle_post_comments($conn, $method, $id, $get_params, $post_data) {
                     
                     $conn->commit();
                     
+                    if ($current_user_uid && !empty($data['userId'])) {
+                         // Reply Notification
+                        if ($parentId) {
+                            $parent_stmt = $conn->prepare("SELECT userId, text FROM post_comments WHERE id = ?");
+                            $parent_stmt->bind_param("s", $parentId);
+                            $parent_stmt->execute();
+                            $parent_comment = $parent_stmt->get_result()->fetch_assoc();
+                            $parent_stmt->close();
+                            if ($parent_comment && $parent_comment['userId'] !== $data['userId']) {
+                                $notification_stmt = $conn->prepare("INSERT INTO notifications (recipientId, actorId, actorName, actorPhotoURL, type, promptId, commentId, commentText, is_read, createdAt) VALUES (?, ?, ?, ?, 'comment-reply', ?, ?, ?, 0, NOW())");
+                                // Fallback for mb_substr
+                                $comment_text_snippet = function_exists('mb_substr') ? mb_substr($parent_comment['text'], 0, 50) : substr($parent_comment['text'], 0, 50);
+                                
+                                // For post comments, we reuse promptId field for postId as they share ID space in notifications generally, or handle by type
+                                // assuming notifications handle both prompts and posts by ID
+                                $notification_stmt->bind_param("sssssss", $parent_comment['userId'], $data['userId'], $data['username'], $userPhotoURL, $postId, $newId, $comment_text_snippet);
+                                $notification_stmt->execute();
+                                $notification_stmt->close();
+                            }
+                        }
+                        // Mention Notification
+                        preg_match_all('/@(\w+)/', $data['text'], $matches);
+                        $mentioned_usernames = array_unique($matches[1]);
+                        if (!empty($mentioned_usernames)) {
+                            $placeholders = implode(',', array_fill(0, count($mentioned_usernames), '?'));
+                            $types = str_repeat('s', count($mentioned_usernames));
+                            $user_stmt = $conn->prepare("SELECT uid FROM users WHERE username IN ($placeholders)");
+                            $user_stmt->bind_param($types, ...$mentioned_usernames);
+                            $user_stmt->execute();
+                            $result = $user_stmt->get_result();
+                            while ($mentioned_user = $result->fetch_assoc()) {
+                                if ($mentioned_user['uid'] !== $data['userId']) {
+                                    $notification_stmt = $conn->prepare("INSERT INTO notifications (recipientId, actorId, actorName, actorPhotoURL, type, promptId, commentId, commentText, is_read, createdAt) VALUES (?, ?, ?, ?, 'comment-mention', ?, ?, ?, 0, NOW())");
+                                    $comment_text_snippet = function_exists('mb_substr') ? mb_substr($data['text'], 0, 50) : substr($data['text'], 0, 50);
+                                    $notification_stmt->bind_param("sssssss", $mentioned_user['uid'], $data['userId'], $data['username'], $userPhotoURL, $postId, $newId, $comment_text_snippet);
+                                    $notification_stmt->execute();
+                                    $notification_stmt->close();
+                                }
+                            }
+                            $user_stmt->close();
+                        }
+                    }
+
                     $res_stmt = $conn->prepare("SELECT * FROM post_comments WHERE id=?");
                     $res_stmt->bind_param("s", $newId);
                     $res_stmt->execute();
@@ -144,7 +187,10 @@ function handle_post_comments($conn, $method, $id, $get_params, $post_data) {
                 $comment_to_edit = $stmt_check->get_result()->fetch_assoc();
                 $stmt_check->close();
 
-                if (!$comment_to_edit) { send_error('Comment not found', 404); return; }
+                if (!$comment_to_edit) {
+                    send_error('Comment not found', 404);
+                    return;
+                }
 
                 if (!$is_admin_request && $comment_to_edit['userId'] !== $current_user_uid) {
                     send_error('Permission denied to edit this comment', 403);

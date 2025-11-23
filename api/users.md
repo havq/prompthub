@@ -64,8 +64,8 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
                         // SECURITY: Filter sensitive info
                         unset($row['email'], $row['notificationSettings'], $row['following'], $row['password_hash']);
                         $row['profileBannerUrl'] = $row['profileBannerUrl'] ?? null;
-                        $row['badges'] = json_decode($row['badges']);
-                        $row['socialLinks'] = json_decode($row['socialLinks']);
+                        $row['badges'] = json_decode($row['badges'] ?: '[]');
+                        $row['socialLinks'] = json_decode($row['socialLinks'] ?: '[]');
                         $users[] = $row;
                     }
                     $response = $users;
@@ -92,10 +92,10 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
 
                         $user['profileBannerUrl'] = $user['profileBannerUrl'] ?? null;
                         
-                        if (isset($user['notificationSettings'])) $user['notificationSettings'] = json_decode($user['notificationSettings'], true);
-                        if (isset($user['following'])) $user['following'] = json_decode($user['following'], true);
-                        $user['badges'] = json_decode($user['badges']);
-                        $user['socialLinks'] = json_decode($user['socialLinks']);
+                        if (isset($user['notificationSettings'])) $user['notificationSettings'] = json_decode($user['notificationSettings'] ?: '{}', true);
+                        if (isset($user['following'])) $user['following'] = json_decode($user['following'] ?: '{}', true);
+                        $user['badges'] = json_decode($user['badges'] ?: '[]');
+                        $user['socialLinks'] = json_decode($user['socialLinks'] ?: '[]');
                      }
                      $response = $user;
                 } elseif (isset($get_params['username'])) {
@@ -121,17 +121,16 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
 
                         $user['profileBannerUrl'] = $user['profileBannerUrl'] ?? null;
                         
-                        if (isset($user['notificationSettings'])) $user['notificationSettings'] = json_decode($user['notificationSettings'], true);
-                        if (isset($user['following'])) $user['following'] = json_decode($user['following'], true);
-                        $user['badges'] = json_decode($user['badges']);
-                        $user['socialLinks'] = json_decode($user['socialLinks']);
+                        if (isset($user['notificationSettings'])) $user['notificationSettings'] = json_decode($user['notificationSettings'] ?: '{}', true);
+                        if (isset($user['following'])) $user['following'] = json_decode($user['following'] ?: '{}', true);
+                        $user['badges'] = json_decode($user['badges'] ?: '[]');
+                        $user['socialLinks'] = json_decode($user['socialLinks'] ?: '[]');
                      }
                     $response = $user;
                 } else {
                     // List all users
                     if (!$is_admin_request) {
                         // Public view: Only show limited info of users who have public prompts
-                        // Use proper escaping for column names
                         $is_private_column_exists = $conn->query("SHOW COLUMNS FROM `prompts` LIKE 'isPrivate'")->num_rows > 0;
                         $where_clause = $is_private_column_exists ? "WHERE p.isPrivate = 0" : "";
                         
@@ -155,9 +154,9 @@ function handle_users($conn, $method, $uid, $get_params, $post_data) {
 
                             $row['profileBannerUrl'] = $row['profileBannerUrl'] ?? null;
                             $row['notificationSettings'] = isset($row['notificationSettings']) ? json_decode($row['notificationSettings'], true) : null;
-                            $row['badges'] = json_decode($row['badges']);
-                            $row['following'] = json_decode($row['following'], true);
-                            $row['socialLinks'] = json_decode($row['socialLinks']);
+                            $row['badges'] = json_decode($row['badges'] ?: '[]');
+                            $row['following'] = json_decode($row['following'] ?: '{}', true);
+                            $row['socialLinks'] = json_decode($row['socialLinks'] ?: '[]');
                             $users[] = $row;
                         }
                         $response = $users;

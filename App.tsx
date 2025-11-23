@@ -28,6 +28,7 @@ const PostDetailPage = lazy(() => import('./pages/PostDetailPage').then(module =
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 // FIX: ProfilePage is a named export
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(module => ({ default: module.ProfilePage })));
 // FIX: CommunityPage is a named export, updated import logic
@@ -174,6 +175,7 @@ const AppContent: React.FC = () => {
               <Route path="/go-pro" element={<GoProPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path={communityPath} element={<CommunityPage />} />
               <Route path="/page/:slug" element={<StaticPage />} />
               <Route path="/payment-status" element={<PaymentStatusPage />} />

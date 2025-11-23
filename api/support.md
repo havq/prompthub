@@ -135,6 +135,7 @@ function handle_support_tickets($conn, $method, $id, $get_params, $post_data) {
             case 'PUT':
                 if (!$id) send_error('Missing ID', 400);
                 
+                // Update Status
                 $status = $post_data['status'] ?? null;
                 if (!$status) { send_error('Status is required', 400); return; }
                 
@@ -292,7 +293,10 @@ function handle_support_messages($conn, $method, $id, $get_params, $post_data) {
                 $senderPhoto = $u_res['photoURL'] ?? null;
                 $u_stmt->close();
 
-                $snippet = mb_substr($text, 0, 50) . (mb_strlen($text) > 50 ? '...' : '');
+                // Fallback for mb_substr
+                $sub = (function_exists('mb_substr') ? mb_substr($text, 0, 50) : substr($text, 0, 50));
+                $len = (function_exists('mb_strlen') ? mb_strlen($text) : strlen($text));
+                $snippet = $sub . ($len > 50 ? '...' : '');
 
                 if ($isAdminReply) {
                     // Admin reply -> Notify User

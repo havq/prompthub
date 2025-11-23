@@ -1,4 +1,3 @@
-
 import { UserProfile, TopContributor, AnalyticsData, Notification } from '../../types';
 import { fetchApi, mapItems } from './core';
 import { createNotification } from './social';
@@ -65,5 +64,12 @@ export const sendPasswordResetEmail = (email: string): Promise<void> => {
     return fetchApi<void>('auth', '&action=forgot_password', { 
         method: 'POST', 
         body: JSON.stringify({ email }) 
+    });
+};
+
+export const resetPassword = (uid: string, token: string, newPassword: string): Promise<void> => {
+    return fetchApi<void>('auth', '&action=reset_password', { 
+        method: 'POST', 
+        body: JSON.stringify({ uid, token, newPassword }) 
     });
 };
