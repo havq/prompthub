@@ -1,5 +1,3 @@
-
-
 import * as externalApi from './externalApi';
 // All functions now point to the live API for posts and categories.
 import * as mockApi from './mockFirebase';
@@ -182,11 +180,8 @@ export const capturePaypalOrder = (orderID: string): Promise<{ success: boolean 
 
 
 // --- Password Reset ---
-export const sendPasswordResetEmail = (email: string): Promise<void> => {
-    const auth = getAuth();
-    if (!auth) throw new Error("Firebase Auth not configured");
-    return auth.sendPasswordResetEmail(email);
-};
+export const sendPasswordResetEmail = (email: string): Promise<void> => externalApi.sendPasswordResetEmail(email);
+export const resetPassword = (uid: string, token: string, newPassword: string): Promise<void> => externalApi.resetPassword(uid, token, newPassword);
 
 // --- Comment Functions ---
 export const getAllComments = (): Promise<Comment[]> => externalApi.getAllComments();
