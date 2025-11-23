@@ -1,6 +1,8 @@
 {
   "version": 1,
-  "include": ["dist/*"],
+  "include": [
+    "/*",
+    "/api/*"
+  ],
   "exclude": []
 }
-

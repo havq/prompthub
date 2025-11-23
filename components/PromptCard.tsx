@@ -125,7 +125,7 @@ const PromptCard: React.FC<PromptCardProps> = (props) => {
                             title={t('promptCard.referenceImageTooltip')}
                         >
                             <img 
-                                src={transformCloudinaryUrl(prompt.referenceImageUrl, 'w_50,h_70,c_fill,g_auto')} 
+                                src={transformCloudinaryUrl(prompt.referenceImageUrl, 'w_120,h_160,c_fill,g_auto')} 
                                 alt="Ref"
                                 className="w-full h-full object-cover"
                             />

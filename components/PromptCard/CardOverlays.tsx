@@ -100,7 +100,7 @@ const CardOverlays: React.FC<CardOverlaysProps> = ({
                     title={t('promptCard.referenceImageTooltip')}
                 >
                     <img 
-                        src={transformCloudinaryUrl(prompt.referenceImageUrl, 'w_60,h_80,c_fill,g_auto') || prompt.referenceImageUrl} 
+                        src={transformCloudinaryUrl(prompt.referenceImageUrl, 'w_120,h_160,c_fill,g_auto') || prompt.referenceImageUrl} 
                         alt={t('promptCard.referenceImageTooltip')}
                         className="w-full h-full object-cover"
                         loading="lazy"
