@@ -1,11 +1,11 @@
 {
   "version": 1,
   "include": [
+    "/*",
     "/api/*"
   ],
   "exclude": [
     "/assets/*",
-    "/index.html",
     "/favicon.ico",
     "/*.js",
     "/*.css"
