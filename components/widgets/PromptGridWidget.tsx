@@ -19,13 +19,34 @@ interface PromptGridWidgetProps {
 const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, onOpenDetail, cardProps }) => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeSlide, setActiveSlide] = useState(0);
+  
+  const { title, categoryId, tag, sort, limit, viewMode, desktopCols, tabletCols, mobileCols, customLink } = data;
+  
+  // Determine current columns based on window width to calculate dots
+  const getResponsiveCols = () => {
+      if (typeof window === 'undefined') return desktopCols || 4;
+      const width = window.innerWidth;
+      if (width >= 1024) return desktopCols || 4; // lg breakpoint
+      if (width >= 768) return tabletCols || 3;   // md breakpoint
+      return mobileCols || 1;                     // default/mobile
+  };
+
+  const [currentCols, setCurrentCols] = useState(getResponsiveCols());
   const { t } = useLanguage();
   const { currentUser, isAdmin } = useAuth();
   const navigate = useNavigate();
   
-  const { title, categoryId, tag, sort, limit, viewMode, desktopCols, tabletCols, mobileCols, customLink } = data;
-  
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+      const handleResize = () => {
+          setCurrentCols(getResponsiveCols());
+      };
+      
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+  }, [desktopCols, tabletCols, mobileCols]);
 
   useEffect(() => {
     const fetchWidgetPrompts = async () => {
@@ -49,15 +70,67 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
     fetchWidgetPrompts();
   }, [categoryId, tag, sort, limit]);
 
+  const isSlider = viewMode === 'slider-1' || viewMode === 'slider-2';
+
+  useEffect(() => {
+    const handleScroll = () => {
+        if (scrollContainerRef.current) {
+            const container = scrollContainerRef.current;
+            const containerWidth = container.clientWidth;
+            
+            // Calculate active page index based on container scroll position
+            // We round to the nearest whole page
+            if (containerWidth > 0) {
+                const index = Math.round(container.scrollLeft / containerWidth);
+                setActiveSlide(index);
+            }
+        }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container && isSlider) {
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [isSlider, prompts.length, viewMode]);
+
   const scroll = (direction: 'left' | 'right') => {
       if (scrollContainerRef.current) {
-          const { clientWidth } = scrollContainerRef.current;
-          const scrollAmount = clientWidth * 0.8; // Scroll 80% of view
-          scrollContainerRef.current.scrollBy({ 
-              left: direction === 'left' ? -scrollAmount : scrollAmount, 
-              behavior: 'smooth' 
-          });
+          const container = scrollContainerRef.current;
+          const { scrollLeft, scrollWidth, clientWidth } = container;
+          const scrollAmount = clientWidth; // Scroll one full page
+          const maxScrollLeft = scrollWidth - clientWidth;
+          const tolerance = 10; // Tolerance for float math or rounding
+
+          if (direction === 'right') {
+              // Check if we are at the end (or close to it)
+              if (scrollLeft >= maxScrollLeft - tolerance) {
+                  // Loop back to start
+                  container.scrollTo({ left: 0, behavior: 'smooth' });
+              } else {
+                  container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+              }
+          } else {
+              // Check if we are at start
+              if (scrollLeft <= tolerance) {
+                  // Loop to end
+                  container.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
+              } else {
+                  container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+              }
+          }
       }
+  };
+
+  const scrollToSlide = (pageIndex: number) => {
+    if (scrollContainerRef.current) {
+        const container = scrollContainerRef.current;
+        // Scroll to the start of the specific page
+        container.scrollTo({ 
+            left: pageIndex * container.clientWidth, 
+            behavior: 'smooth' 
+        });
+    }
   };
 
   // Function to generate Tailwind class strings based on column counts for grid
@@ -100,10 +173,8 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
       return null; 
   }
   
-  const isSlider = viewMode === 'slider-1' || viewMode === 'slider-2';
-  
   // Prepare content for Slider Mode
-  let sliderContent: React.ReactNode;
+  let sliderContent: React.ReactNode[] = [];
   if (isSlider) {
       // Use configured columns to determine item width
       // Default to 1 for mobile, 3 for tablet, 4 for desktop if not set
@@ -166,6 +237,10 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
           ));
       }
   }
+
+  // Calculate total pages for dots
+  // Total items divided by items visible per row
+  const totalPages = Math.ceil(sliderContent.length / currentCols);
 
   // Default classes if no custom cols are provided (for standard Grid view)
   let containerClasses = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6';
@@ -230,6 +305,24 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
+
+                {/* Dots Navigation (Pages) */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center gap-2 mt-2">
+                        {Array.from({ length: totalPages }).map((_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => scrollToSlide(idx)}
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                    activeSlide === idx 
+                                    ? 'w-6 bg-indigo-600 dark:bg-indigo-400' 
+                                    : 'w-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                                }`}
+                                aria-label={`Go to page ${idx + 1}`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         ) : (
             <div className={containerClasses}>

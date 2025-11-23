@@ -148,12 +148,12 @@ const PromptCard: React.FC<PromptCardProps> = (props) => {
 
                     {/* Overlay for Compact Mode */}
                     {isMediaReady && !mediaError && (
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-2 text-white z-30">
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-2 text-white z-30 pointer-events-none">
                             <div className="flex items-center gap-2">
-                                <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(prompt); }} className={`p-1.5 rounded-full transition-colors ${isFavorite ? 'bg-red-500/80 text-white' : 'bg-gray-900/60 text-gray-300 hover:bg-red-500/80 hover:text-white'}`} title={isFavorite ? t('promptCard.removeFromFavorites') : t('promptCard.addToFavorites')}>
+                                <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(prompt); }} className={`p-1.5 rounded-full transition-colors pointer-events-auto ${isFavorite ? 'bg-red-500/80 text-white' : 'bg-gray-900/60 text-gray-300 hover:bg-red-500/80 hover:text-white'}`} title={isFavorite ? t('promptCard.removeFromFavorites') : t('promptCard.addToFavorites')}>
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" /></svg>
                                 </button>
-                                <ShareButton prompt={prompt} className="p-1.5 rounded-full bg-gray-900/60 text-gray-300 hover:bg-green-600/80 hover:text-white transition-colors">
+                                <ShareButton prompt={prompt} className="p-1.5 rounded-full bg-gray-900/60 text-gray-300 hover:bg-green-600/80 hover:text-white transition-colors pointer-events-auto">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367 2.684z" /></svg>
                                 </ShareButton>
                             </div>
