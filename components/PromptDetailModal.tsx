@@ -14,6 +14,7 @@ import MediaViewer from './PromptDetail/MediaViewer';
 import PromptInfo from './PromptDetail/PromptInfo';
 import CommentsTab from './PromptDetail/CommentsTab';
 import ShowcaseTab from './PromptDetail/ShowcaseTab';
+import ReferenceImageViewer from './PromptCard/ReferenceImageViewer';
 
 // Re-export for backward compatibility if needed by other files (e.g. CommentsModal)
 export { commentRateLimiter } from './PromptDetail/utils';
@@ -390,17 +391,11 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, ca
             {deletingComment && <ConfirmModal isOpen={!!deletingComment} onClose={() => setDeletingComment(null)} onConfirm={handleConfirmDeleteComment} title={t('common.delete')} message={t('promptDetail.deleteCommentConfirm')} confirmText={t('common.delete')} confirmButtonClass="bg-red-600 hover:bg-red-700" isConfirming={isDeletingComment} />}
             {galleryState.open && <PhotoGalleryModal images={showcaseImages} startIndex={galleryState.index} onClose={() => setGalleryState({open: false, index: 0})} />}
             
-            {/* Reference Image Modal handled separately as an overlay */}
-            {isReferenceImageOpen && prompt.referenceImageUrl && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4" onClick={() => setIsReferenceImageOpen(false)} role="dialog" aria-modal="true">
-                    <div className="relative max-w-full max-h-full">
-                        <button onClick={(e) => { e.stopPropagation(); setIsReferenceImageOpen(false); }} className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 bg-black/30 rounded-full z-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                        <img src={prompt.referenceImageUrl} alt="Reference" className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
-                    </div>
-                </div>
-            )}
+            <ReferenceImageViewer 
+                isOpen={isReferenceImageOpen} 
+                imageUrl={prompt.referenceImageUrl} 
+                onClose={() => setIsReferenceImageOpen(false)} 
+            />
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-8xl h-[90vh] relative flex flex-col" onClick={e => e.stopPropagation()}>
                 <div className="absolute -top-5 -right-4 z-50">
