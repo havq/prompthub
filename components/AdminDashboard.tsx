@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
 // @ts-ignore
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -173,6 +174,7 @@ const AdminDashboard: React.FC = () => {
     const [isUserFormOpen, setIsUserFormOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
     const [deletingUser, setDeletingUser] = useState<UserProfile | null>(null);
+    const [userFormError, setUserFormError] = useState('');
 
     // Category state
     const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
@@ -290,8 +292,8 @@ const AdminDashboard: React.FC = () => {
     };
     
     // User handlers
-    const handleAddUser = () => { setEditingUser(null); setIsUserFormOpen(true); };
-    const handleEditUser = (user: UserProfile) => { setEditingUser(user); setIsUserFormOpen(true); };
+    const handleAddUser = () => { setEditingUser(null); setUserFormError(''); setIsUserFormOpen(true); };
+    const handleEditUser = (user: UserProfile) => { setEditingUser(user); setUserFormError(''); setIsUserFormOpen(true); };
     const handleDeleteUser = (user: UserProfile) => { setDeletingUser(user); };
     const handleConfirmDeleteUser = async () => {
         if (!deletingUser) return;
@@ -304,6 +306,7 @@ const AdminDashboard: React.FC = () => {
     };
     const handleUserFormSubmit = async (formData: UserProfile | Omit<UserProfile, 'uid'>) => {
         setIsActionLoading(true);
+        setUserFormError('');
         try {
             if ('uid' in formData) {
                 await apiUpdateUserProfile(formData.uid, formData);
@@ -312,7 +315,20 @@ const AdminDashboard: React.FC = () => {
             }
             refreshData();
             setIsUserFormOpen(false);
-        } catch (error) { console.error(error); }
+            setEditingUser(null);
+        } catch (error: any) { 
+            let errorMessage = error.message || "An unexpected error occurred. Please try again.";
+            if (typeof errorMessage === 'string' && errorMessage.includes('Duplicate entry')) {
+                if (errorMessage.includes("for key 'email'")) {
+                    errorMessage = 'A user with this email address already exists.';
+                } else if (errorMessage.includes("for key 'username'")) {
+                    errorMessage = 'This username is already taken. Please choose another one.';
+                } else {
+                    errorMessage = 'A user with this email or username already exists.';
+                }
+            }
+            setUserFormError(errorMessage);
+        }
         finally { setIsActionLoading(false); }
     };
 
@@ -415,7 +431,18 @@ const AdminDashboard: React.FC = () => {
         {deletingReel && <ConfirmModal isOpen={!!deletingReel} onClose={() => setDeletingReel(null)} onConfirm={handleConfirmDeleteReel} title={t('modals.confirmDeleteTitle')} message={t('admin.reels.deleteConfirm')} confirmText={t('common.delete')} confirmButtonClass="bg-red-600 hover:bg-red-700" isConfirming={isActionLoading} />}
         {deletingShowcaseImage && <ConfirmModal isOpen={!!deletingShowcaseImage} onClose={() => setDeletingShowcaseImage(null)} onConfirm={handleConfirmDeleteShowcaseImage} title={t('admin.showcase.title')} message={t('admin.showcase.deleteConfirm', { username: deletingShowcaseImage.username })} confirmText={t('common.delete')} confirmButtonClass="bg-red-600 hover:bg-red-700" isConfirming={isActionLoading} />}
         {deletingReport && <ConfirmModal isOpen={!!deletingReport} onClose={() => setDeletingReport(null)} onConfirm={handleConfirmDeleteReport} title="Delete Report" message="Are you sure you want to delete this report?" confirmText="Delete" confirmButtonClass="bg-red-600 hover:bg-red-700" isConfirming={isActionLoading} />}
-        {isUserFormOpen && <UserForm initialData={editingUser} onSubmit={handleUserFormSubmit} onClose={() => setIsUserFormOpen(false)} isSubmitting={isActionLoading} />}
+        {isUserFormOpen && <UserForm 
+            initialData={editingUser} 
+            onSubmit={handleUserFormSubmit} 
+            onClose={() => { 
+                setIsUserFormOpen(false); 
+                setEditingUser(null);
+                setUserFormError(''); 
+            }} 
+            isSubmitting={isActionLoading} 
+            error={userFormError}
+            clearError={() => setUserFormError('')}
+        />}
         {deletingUser && <ConfirmModal isOpen={!!deletingUser} onClose={() => setDeletingUser(null)} onConfirm={handleConfirmDeleteUser} title="Delete User" message={`Are you sure you want to delete user ${deletingUser.username}? This cannot be undone.`} confirmText="Delete" confirmButtonClass="bg-red-600 hover:bg-red-700" isConfirming={isActionLoading} />}
         {deletingCategory && <ConfirmModal isOpen={!!deletingCategory} onClose={() => setDeletingCategory(null)} onConfirm={handleConfirmDeleteCategory} title="Delete Category" message={`Are you sure you want to delete category "${deletingCategory.name}"? Prompts will be unassigned.`} confirmText="Delete" confirmButtonClass="bg-red-600 hover:bg-red-700" isConfirming={isActionLoading} />}
         {deletingPostCategory && <ConfirmModal isOpen={!!deletingPostCategory} onClose={() => setDeletingPostCategory(null)} onConfirm={handleConfirmDeletePostCategory} title="Delete Post Category" message={`Are you sure you want to delete category "${deletingPostCategory.name}"? Posts will be unassigned.`} confirmText="Delete" confirmButtonClass="bg-red-600 hover:bg-red-700" isConfirming={isActionLoading} />}

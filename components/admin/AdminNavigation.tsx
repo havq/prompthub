@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { NavigationLink, BottomTabNavigationLink, Category, StaticPage, PostCategory, CategoryWithCount, PostCategoryWithCount, BottomTabNavigationStyle } from '../../utils/types';
+import { NavigationLink, BottomTabNavigationLink, Category, StaticPage, PostCategory, CategoryWithCount, PostCategoryWithCount, BottomTabNavigationStyle } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import ConfirmModal from '../ConfirmModal';
 import { getSettings, saveSettings } from '../../services/settingsService';

@@ -12,6 +12,8 @@ interface UserFormProps {
   onSubmit: (data: UserProfile | Omit<UserProfile, 'uid'>) => void;
   onClose: () => void;
   isSubmitting: boolean;
+  error?: string;
+  clearError?: () => void;
 }
 
 const INPUT_STYLE = "block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500";
@@ -43,7 +45,7 @@ const validateImageFile = (file: File, t: (key: string, options?: any) => string
     return { isValid: true };
 };
 
-const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isSubmitting }) => {
+const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isSubmitting, error, clearError }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -160,19 +162,26 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onClose, isS
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{initialData ? t('admin.userForm.editTitle') : t('admin.userForm.addTitle')}</h2>
+            
+            {error && (
+                <div className="bg-red-100 dark:bg-red-900/50 p-3 rounded-md text-center">
+                    <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>
+                </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="user-username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.userForm.usernameLabel')}</label>
-                    <input id="user-username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required className={`mt-1 ${INPUT_STYLE}`} />
+                    <input id="user-username" type="text" value={username} onChange={(e) => { setUsername(e.target.value); clearError?.(); }} required className={`mt-1 ${INPUT_STYLE}`} />
                 </div>
                 <div>
                     <label htmlFor="user-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.userForm.emailLabel')}</label>
-                    <input id="user-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={!!initialData} className={`mt-1 disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-gray-700/50 ${INPUT_STYLE}`} />
+                    <input id="user-email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); clearError?.(); }} required disabled={!!initialData} className={`mt-1 disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-gray-700/50 ${INPUT_STYLE}`} />
                 </div>
                 {!initialData && (
                     <div>
                         <label htmlFor="user-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.userForm.passwordLabel')}</label>
-                        <input id="user-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className={`mt-1 ${INPUT_STYLE}`} />
+                        <input id="user-password" type="password" value={password} onChange={(e) => { setPassword(e.target.value); clearError?.(); }} required minLength={6} className={`mt-1 ${INPUT_STYLE}`} />
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('admin.userForm.passwordHint')}</p>
                     </div>
                 )}
