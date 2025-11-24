@@ -157,7 +157,6 @@ function handle_comments($conn, $method, $id, $get_params, $post_data) {
             case 'POST':
                 if (!$current_user_uid) send_error('Authentication required', 401);
                 check_comment_rate_limit($conn, $current_user_uid);
-                define('POINTS_COMMENT_RECEIVED', 1);
 
                 $data = $post_data;
                 $promptId = $data['promptId'];
@@ -260,7 +259,10 @@ function handle_comments($conn, $method, $id, $get_params, $post_data) {
                         $prompt_details = $prompt_stmt->get_result()->fetch_assoc();
                         $prompt_stmt->close();
                         if ($prompt_details && !empty($prompt_details['authorId']) && $prompt_details['authorId'] !== $data['userId']) {
-                            add_points_to_user($conn, $prompt_details['authorId'], POINTS_COMMENT_RECEIVED);
+                            $settings_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'gamificationSettings'");
+                            $gamification_settings = json_decode($settings_res->fetch_assoc()['setting_value'] ?? '{}', true);
+                            $points_comment = $gamification_settings['commentReceived'] ?? 1;
+                            add_points_to_user($conn, $prompt_details['authorId'], $points_comment);
                             
                             // Create notification for the prompt author
                             $notification_stmt = $conn->prepare(

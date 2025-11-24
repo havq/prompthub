@@ -90,7 +90,6 @@ function handle_favorites($conn, $method, $get_params, $post_data) {
                 $stmt->close();
 
                 if ($was_inserted) {
-                    define('POINTS_FAVORITED', 1);
                     $prompt_stmt = $conn->prepare("SELECT authorId, text FROM prompts WHERE id = ?");
                     $prompt_stmt->bind_param("i", $promptId);
                     $prompt_stmt->execute();
@@ -98,7 +97,10 @@ function handle_favorites($conn, $method, $get_params, $post_data) {
                     $prompt_stmt->close();
                     
                     if ($prompt_details && !empty($prompt_details['authorId']) && $prompt_details['authorId'] !== $userId) {
-                        add_points_to_user($conn, $prompt_details['authorId'], POINTS_FAVORITED);
+                        $settings_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'gamificationSettings'");
+                        $gamification_settings = json_decode($settings_res->fetch_assoc()['setting_value'] ?? '{}', true);
+                        $points_favorited = $gamification_settings['promptFavorited'] ?? 1;
+                        add_points_to_user($conn, $prompt_details['authorId'], $points_favorited);
 
                         // Create notification
                         $actor_stmt = $conn->prepare("SELECT username, photoURL FROM users WHERE uid = ?");

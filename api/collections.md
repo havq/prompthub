@@ -104,13 +104,16 @@ function handle_collections($conn, $method, $id, $get_params, $post_data) {
                         $promptIds = json_decode($collection['promptIds'] ?: '{}', true);
                         if ($data['action'] === 'add' && !isset($promptIds[$data['promptId']])) {
                             $promptIds[$data['promptId']] = true;
-                            define('POINTS_COLLECTED', 2);
+                            
                             $prompt_stmt = $conn->prepare("SELECT authorId, text FROM prompts WHERE id = ?");
                             $prompt_stmt->bind_param("s", $data['promptId']);
                             $prompt_stmt->execute();
                             $prompt_details = $prompt_stmt->get_result()->fetch_assoc();
                             if ($prompt_details && !empty($prompt_details['authorId']) && $prompt_details['authorId'] !== $userId) {
-                                add_points_to_user($conn, $prompt_details['authorId'], POINTS_COLLECTED);
+                                $settings_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'gamificationSettings'");
+                                $gamification_settings = json_decode($settings_res->fetch_assoc()['setting_value'] ?? '{}', true);
+                                $points_collected = $gamification_settings['promptCollected'] ?? 2;
+                                add_points_to_user($conn, $prompt_details['authorId'], $points_collected);
 
                                 // Create notification
                                 $actor_stmt = $conn->prepare("SELECT username, photoURL FROM users WHERE uid = ?");

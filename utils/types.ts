@@ -1,4 +1,5 @@
 
+
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -56,6 +57,14 @@ export interface RewardPackage {
   days: number;
   label: string;
   enabled: boolean;
+}
+
+export interface GamificationSettings {
+  promptFavorited: number;
+  promptCollected: number;
+  promptRemixed: number;
+  rating5Star: number;
+  commentReceived: number;
 }
 
 export interface AppSettings {
@@ -131,6 +140,7 @@ export interface AppSettings {
   homeLayout?: HomeWidget[]; // New field for homepage builder
   rewardPackages: RewardPackage[]; // New field for reward packages configuration
   smtpConfig?: SmtpConfig;
+  gamificationSettings?: GamificationSettings;
 }
 
 export interface SmtpConfig {

@@ -359,8 +359,12 @@ function handle_prompts($conn, $method, $id, $get_params, $post_data) {
                             );
                             $notif_stmt->execute();
                             $notif_stmt->close();
-
-                            $conn->query("UPDATE users SET points = IFNULL(points, 0) + 5 WHERE uid = '{$orig_prompt['authorId']}'");
+                            
+                            $settings_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'gamificationSettings'");
+                            $gamification_settings = json_decode($settings_res->fetch_assoc()['setting_value'] ?? '{}', true);
+                            $points_for_remix = $gamification_settings['promptRemixed'] ?? 5; // fallback to 5
+                            
+                            $conn->query("UPDATE users SET points = IFNULL(points, 0) + {$points_for_remix} WHERE uid = '{$orig_prompt['authorId']}'");
                         }
                     }
 

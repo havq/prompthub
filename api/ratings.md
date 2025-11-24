@@ -186,14 +186,16 @@ function handle_post_ratings($conn, $post_data) {
         }
         $stmt->execute();
 
-        define('POINTS_RATING_5_STAR', 2);
         if ($rating === 5 && $old_rating !== 5) {
             $prompt_stmt = $conn->prepare("SELECT authorId FROM prompts WHERE id = ?");
             $prompt_stmt->bind_param("i", $promptId);
             $prompt_stmt->execute();
             $prompt_author = $prompt_stmt->get_result()->fetch_assoc();
             if ($prompt_author && !empty($prompt_author['authorId']) && $prompt_author['authorId'] !== $userId) {
-                add_points_to_user($conn, $prompt_author['authorId'], POINTS_RATING_5_STAR);
+                $settings_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'gamificationSettings'");
+                $gamification_settings = json_decode($settings_res->fetch_assoc()['setting_value'] ?? '{}', true);
+                $points_5_star = $gamification_settings['rating5Star'] ?? 2;
+                add_points_to_user($conn, $prompt_author['authorId'], $points_5_star);
             }
         }
         $conn->commit();

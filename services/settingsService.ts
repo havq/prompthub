@@ -195,6 +195,13 @@ const fallbackSettings: AppSettings = {
       { id: 'pro_7_days', points: 1000, days: 7, label: '7 Days Pro', enabled: true },
       { id: 'pro_30_days', points: 3000, days: 30, label: '30 Days Pro', enabled: true },
   ],
+  gamificationSettings: {
+    promptFavorited: 1,
+    promptCollected: 2,
+    promptRemixed: 5,
+    rating5Star: 2,
+    commentReceived: 1,
+  },
 };
 
 export const loadSettings = async (): Promise<AppSettings> => {
@@ -240,6 +247,7 @@ export const loadSettings = async (): Promise<AppSettings> => {
             'watermarkSettings',
             'homeLayout',
             'rewardPackages',
+            'gamificationSettings',
         ];
 
         for (const key of keysToParse) {
@@ -326,6 +334,7 @@ export const loadSettings = async (): Promise<AppSettings> => {
     settings.watermarkSettings = { ...fallbackSettings.watermarkSettings, ...settings.watermarkSettings };
     settings.homeLayout = settings.homeLayout || [];
     settings.rewardPackages = settings.rewardPackages || fallbackSettings.rewardPackages;
+    settings.gamificationSettings = { ...fallbackSettings.gamificationSettings, ...settings.gamificationSettings };
 
     window.dispatchEvent(new Event('storage'));
     return settings;
@@ -352,7 +361,7 @@ export const saveSettings = async (newSettings: Partial<Omit<AppSettings, 'fireb
   const keysToStringify: (keyof AppSettings)[] = [
     'footerSocialLinks', 'footerLinks', 'navigationMenu', 'bottomTabMenu',
     'adSettings', 'overlayAdSettings', 'topBannerAdSettings', 'bottomBannerAdSettings',
-    'promptDetailAdSettings', 'customBadgeIcons', 'homeLayout', 'rewardPackages'
+    'promptDetailAdSettings', 'customBadgeIcons', 'homeLayout', 'rewardPackages', 'gamificationSettings'
   ];
 
   keysToStringify.forEach(key => {

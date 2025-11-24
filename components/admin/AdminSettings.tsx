@@ -1,6 +1,7 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod } from '../../types';
+import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod, GamificationSettings } from '../../types';
 import { getSettings, saveSettings } from '../../services/settingsService';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage, Language } from '../../context/LanguageContext';
@@ -12,6 +13,7 @@ import DesignSection from './settings/DesignSection';
 import ContentSection from './settings/ContentSection';
 import IntegrationSection from './settings/IntegrationSection';
 import SecuritySection from './settings/SecuritySection';
+import GamificationSection from './settings/GamificationSection';
 
 const allBadges: Badge[] = [
   'first-contribution', 'prolific-creator', 'master-creator',
@@ -281,6 +283,15 @@ const AdminSettings: React.FC = () => {
         finally { setIsActionLoading(false); }
     };
 
+    const handleGamificationSettingChange = (field: keyof GamificationSettings, value: number) => {
+        handleSettingsChange('gamificationSettings', {
+            ...(localSettings.gamificationSettings || {
+                promptFavorited: 1, promptCollected: 2, promptRemixed: 5, rating5Star: 2, commentReceived: 1
+            }),
+            [field]: value
+        });
+    };
+
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -292,7 +303,7 @@ const AdminSettings: React.FC = () => {
                         onChange={handleSettingsChange}
                         t={t}
                         isUploadingLogo={isUploadingLogo}
-                        handleLogoChange={handleLogoChange}
+                        handleLogoChange={handleLogoChange as any}
                         allBadges={allBadges}
                         handleBadgeIconUploadClick={handleBadgeIconUploadClick}
                         handleRemoveBadgeIcon={handleRemoveBadgeIcon}
@@ -331,6 +342,11 @@ const AdminSettings: React.FC = () => {
                         onChange={handleSettingsChange}
                         t={t}
                         handlePromptCardSettingChange={handlePromptCardSettingChange}
+                    />
+                    <GamificationSection
+                        settings={localSettings.gamificationSettings || { promptFavorited: 1, promptCollected: 2, promptRemixed: 5, rating5Star: 2, commentReceived: 1 }}
+                        onChange={handleGamificationSettingChange}
+                        t={t}
                     />
                     <IntegrationSection
                         settings={localSettings}

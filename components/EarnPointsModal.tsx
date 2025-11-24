@@ -1,6 +1,7 @@
 
+
 import React from 'react';
-import { POINTS } from '../services/gamificationService';
+import { getPointsConfig } from '../services/gamificationService';
 import { useLanguage } from '../context/LanguageContext';
 
 interface EarnPointsModalProps {
@@ -9,11 +10,12 @@ interface EarnPointsModalProps {
 
 const EarnPointsModal: React.FC<EarnPointsModalProps> = ({ onClose }) => {
     const { t } = useLanguage();
+    const POINTS = getPointsConfig();
 
     const pointItems = [
         {
             key: 'PROMPT_REMIXED',
-            points: POINTS.PROMPT_REMIXED,
+            points: POINTS.promptRemixed,
             icon: '🎨',
             title: t('profile.earnPoints.items.promptRemixed.title'),
             desc: t('profile.earnPoints.items.promptRemixed.desc'),
@@ -21,7 +23,7 @@ const EarnPointsModal: React.FC<EarnPointsModalProps> = ({ onClose }) => {
         },
         {
             key: 'PROMPT_COLLECTED',
-            points: POINTS.PROMPT_COLLECTED,
+            points: POINTS.promptCollected,
             icon: '📂',
             title: t('profile.earnPoints.items.promptCollected.title'),
             desc: t('profile.earnPoints.items.promptCollected.desc'),
@@ -29,7 +31,7 @@ const EarnPointsModal: React.FC<EarnPointsModalProps> = ({ onClose }) => {
         },
         {
             key: 'RATING_5_STAR',
-            points: POINTS.RATING_5_STAR,
+            points: POINTS.rating5Star,
             icon: '⭐',
             title: t('profile.earnPoints.items.rating5Star.title'),
             desc: t('profile.earnPoints.items.rating5Star.desc'),
@@ -37,7 +39,7 @@ const EarnPointsModal: React.FC<EarnPointsModalProps> = ({ onClose }) => {
         },
         {
             key: 'PROMPT_FAVORITED',
-            points: POINTS.PROMPT_FAVORITED,
+            points: POINTS.promptFavorited,
             icon: '❤️',
             title: t('profile.earnPoints.items.promptFavorited.title'),
             desc: t('profile.earnPoints.items.promptFavorited.desc'),
@@ -45,7 +47,7 @@ const EarnPointsModal: React.FC<EarnPointsModalProps> = ({ onClose }) => {
         },
         {
             key: 'COMMENT_RECEIVED',
-            points: POINTS.COMMENT_RECEIVED,
+            points: POINTS.commentReceived,
             icon: '💬',
             title: t('profile.earnPoints.items.commentReceived.title'),
             desc: t('profile.earnPoints.items.commentReceived.desc'),

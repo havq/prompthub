@@ -1,9 +1,16 @@
-export const POINTS = {
-    PROMPT_FAVORITED: 1,
-    PROMPT_COLLECTED: 2,
-    PROMPT_REMIXED: 5,
-    RATING_5_STAR: 2,
-    COMMENT_RECEIVED: 1,
+import { getSettings } from './settingsService';
+import { GamificationSettings } from '../types';
+
+export const getPointsConfig = (): Required<GamificationSettings> => {
+    const settings = getSettings();
+    return {
+        promptFavorited: 1,
+        promptCollected: 2,
+        promptRemixed: 5,
+        rating5Star: 2,
+        commentReceived: 1,
+        ...settings.gamificationSettings
+    };
 };
 
 export const BADGE_THRESHOLDS: Record<string, number> = {
