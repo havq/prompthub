@@ -1,6 +1,4 @@
 
-
-
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 

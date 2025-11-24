@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { NavigationLink, Category, PostCategory, StaticPage, BottomTabNavigationLink } from '../../../types';
+import { NavigationLink, Category, PostCategory, StaticPage, BottomTabNavigationLink } from '../../../utils/types';
 import { useLanguage } from '../../../context/LanguageContext';
 import { buildUrl } from '../../../utils/permalinks';
 

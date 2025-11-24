@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShowcaseImage } from '../../types';
+import { ShowcaseImage } from '../../utils/types';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import { useLanguage } from '../../context/LanguageContext';
 

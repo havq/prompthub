@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getSettings, saveSettings } from '../../services/settingsService';
-import { PermalinkSettings } from '../../types';
+import { PermalinkSettings } from '../../utils/types';
 import Spinner from '../Spinner';
 
 const AdminPermalinks: React.FC = () => {
@@ -54,10 +54,10 @@ const AdminPermalinks: React.FC = () => {
 
             <div className="space-y-6">
                 {fields.map(({ key, label, variables }) => (
-                    <div key={key}>
-                        <label htmlFor={key} className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
+                    <div key={String(key)}>
+                        <label htmlFor={String(key)} className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
                         <input
-                            id={key}
+                            id={String(key)}
                             type="text"
                             value={settings[key] || ''}
                             onChange={(e) => handleChange(key, e.target.value)}

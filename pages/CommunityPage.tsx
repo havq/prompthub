@@ -20,7 +20,7 @@ import {
     saveRating
 } from '../services/api';
 import { getFavorites, toggleFavorite } from '../services/favoriteService';
-import { Prompt, UserProfile, Badge, CategoryWithCount, Collection, TopContributor } from '../types';
+import { Prompt, UserProfile, Badge, CategoryWithCount, Collection, TopContributor } from '../utils/types';
 import Spinner from '../components/Spinner';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';

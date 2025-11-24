@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAllShowcaseImages, getPrompts } from '../services/api';
-import { ShowcaseImage, Prompt } from '../types';
+import { ShowcaseImage, Prompt } from '../utils/types';
 import Spinner from '../components/Spinner';
 import { useLanguage } from '../context/LanguageContext';
 import PhotoGalleryModal from '../components/PhotoGalleryModal';

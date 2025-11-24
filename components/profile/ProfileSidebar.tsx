@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserProfile, Badge } from '../../types';
+import { UserProfile, Badge } from '../../utils/types';
 import BadgeIcon from '../BadgeIcon';
 import SocialIcon from '../SocialIcon';
 import { calculateLevel, LevelInfo } from '../../services/gamificationService';

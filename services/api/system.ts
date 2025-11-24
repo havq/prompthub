@@ -1,5 +1,5 @@
 
-import { AppSettings, StaticPage } from '../../types';
+import { AppSettings, StaticPage } from '../../utils/types';
 import { fetchApi, mapItem, mapItems } from './core';
 
 // --- App Settings ---
@@ -17,8 +17,9 @@ export const saveAppSettings = (settings: Partial<Omit<AppSettings, 'firebaseCon
     ];
 
     keysToStringify.forEach(key => {
-        if (key in settingsToSend && typeof settingsToSend[key] === 'object' && settingsToSend[key] !== null) {
-            settingsToSend[key] = JSON.stringify(settingsToSend[key]);
+        const keyString = key as string;
+        if (keyString in settingsToSend && typeof settingsToSend[keyString] === 'object' && settingsToSend[keyString] !== null) {
+            settingsToSend[keyString] = JSON.stringify(settingsToSend[keyString]);
         }
     });
 

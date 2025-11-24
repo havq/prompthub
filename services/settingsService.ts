@@ -1,6 +1,4 @@
-
-
-import { AppSettings, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig } from '../types';
+import { AppSettings, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig } from '../utils/types';
 import { saveAppSettings as saveExternalSettings, getAppSettings as getExternalSettings } from './externalApi';
 
 let settings: AppSettings | null = null;
@@ -358,8 +356,10 @@ export const saveSettings = async (newSettings: Partial<Omit<AppSettings, 'fireb
   ];
 
   keysToStringify.forEach(key => {
-      if (key in settingsForApi && typeof settingsForApi[key] === 'object' && settingsForApi[key] !== null) {
-          settingsForApi[key] = JSON.stringify(settingsForApi[key]);
+      // Explicit conversion to string to avoid TS error with symbols
+      const keyString = key as string;
+      if (keyString in settingsForApi && typeof settingsForApi[keyString] === 'object' && settingsForApi[keyString] !== null) {
+          settingsForApi[keyString] = JSON.stringify(settingsForApi[keyString]);
       }
   });
 

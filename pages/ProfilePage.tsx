@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 // @ts-ignore
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Prompt, CategoryWithCount, Collection, ShowcaseImage, UserProfile } from '../types';
+import { Prompt, CategoryWithCount, Collection, ShowcaseImage, UserProfile } from '../utils/types';;
 import {
     getUserProfile, getPrompts, getCategories, getAllComments, getCollections, getAllShowcaseImageCounts, addShowcaseImage,
     getAllShowcaseImages, updatePrompt, deletePrompt as apiDeletePrompt, deleteShowcaseImage as apiDeleteShowcaseImage,
@@ -31,6 +31,7 @@ import { uploadImage } from '../services/imageUploadService';
 import { useLanguage } from '../context/LanguageContext';
 import { getFavorites, toggleFavorite } from '../services/favoriteService';
 import LoginSuggestionModal from '../components/LoginSuggestionModal';
+import EarnPointsModal from '../components/EarnPointsModal';
 
 export const ProfilePage: React.FC = () => {
     const { authorId } = useParams() as { authorId?: string };
@@ -49,6 +50,7 @@ export const ProfilePage: React.FC = () => {
     const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [isEarnPointsModalOpen, setIsEarnPointsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'prompts' | 'pending' | 'favorites' | 'collections' | 'showcase' | 'analytics' | 'settings' | 'private'>('prompts');
 
     // Data State
@@ -311,6 +313,7 @@ export const ProfilePage: React.FC = () => {
     return (
         <>
             {/* Modals */}
+            {isEarnPointsModalOpen && <EarnPointsModal onClose={() => setIsEarnPointsModalOpen(false)} />}
             {isEditModalOpen && <EditProfileModal onClose={() => setIsEditModalOpen(false)} onCameraOpen={() => { setIsEditModalOpen(false); setIsCameraModalOpen(true); }} />}
             {isPasswordModalOpen && <ChangePasswordModal onClose={() => setIsPasswordModalOpen(false)} />}
             {isCameraModalOpen && <CameraCaptureModal onClose={() => setIsCameraModalOpen(false)} onCapture={handleCaptureProfilePhoto} />}
@@ -358,6 +361,7 @@ export const ProfilePage: React.FC = () => {
                     onChangePassword={() => setIsPasswordModalOpen(true)}
                     onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
                     onSettingsClick={() => setIsSettingsModalOpen(true)}
+                    onShowEarnPoints={() => setIsEarnPointsModalOpen(true)}
                 />
                 
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 lg:gap-8">

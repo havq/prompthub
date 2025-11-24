@@ -668,6 +668,19 @@
       "redeemSuccess": "Pro 멤버십 교환 성공!",
       "redeemError": "포인트 교환에 실패했습니다. 다시 시도해 주세요.",
       "footerNote": "포인트는 양도할 수 없으며 현금으로 교환할 수 없습니다."
+    },
+    "earnPoints": {
+      "title": "포인트 적립 방법",
+      "subtitle": "포인트를 모아 레벨업하고 보상으로 교환하세요!",
+      "items": {
+        "promptRemixed": { "title": "프롬프트 리믹스됨", "desc": "누군가 귀하의 프롬프트를 리믹스하면 포인트를 얻습니다." },
+        "promptCollected": { "title": "프롬프트 수집됨", "desc": "귀하의 프롬프트가 컬렉션에 추가되면 포인트를 얻습니다." },
+        "rating5Star": { "title": "별 5개 평점", "desc": "귀하의 프롬프트가 별 5개 평점을 받으면 포인트를 얻습니다." },
+        "promptFavorited": { "title": "프롬프트 좋아요 받음", "desc": "누군가 귀하의 프롬프트를 좋아하면 포인트를 얻습니다." },
+        "commentReceived": { "title": "댓글 받음", "desc": "누군가 귀하의 프롬프트에 댓글을 달면 포인트를 얻습니다." }
+      },
+      "footerNote": "포인트는 커뮤니티가 콘텐츠와 상호 작용할 때 자동으로 업데이트됩니다. 계속해서 고품질 프롬프트를 만드세요!",
+      "gotIt": "알겠습니다"
     }
   },
   "authorPage": {

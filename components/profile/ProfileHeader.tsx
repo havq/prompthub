@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { UserProfile } from '../../types';
+import { UserProfile } from '../../utils/types';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import { calculateLevel } from '../../services/gamificationService';
 import Spinner from '../Spinner';
@@ -16,6 +17,7 @@ interface ProfileHeaderProps {
     onChangePassword?: () => void;
     onToggleSidebar?: () => void;
     onSettingsClick?: () => void;
+    onShowEarnPoints?: () => void;
 }
 
 const formatCount = (count: number | undefined): string => {
@@ -40,7 +42,7 @@ const formatCount = (count: number | undefined): string => {
 };
 
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile, isCurrentUser, promptsCount, isFollowing, isFollowLoading, onFollowToggle, onEdit, onChangePassword, onToggleSidebar, onSettingsClick }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile, isCurrentUser, promptsCount, isFollowing, isFollowLoading, onFollowToggle, onEdit, onChangePassword, onToggleSidebar, onSettingsClick, onShowEarnPoints }) => {
     const { t } = useLanguage();
     const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
     const settingsMenuRef = useRef<HTMLDivElement>(null);
@@ -120,12 +122,21 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile, isCurrentUse
                                     </div>
 
                             </div>
-                             <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 flex flex-wrap justify-center md:justify-start items-center gap-x-4 gap-y-1">
+                             <div className="mt-4 flex flex-wrap justify-center md:justify-start items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
                                 <span><strong className="text-gray-900 dark:text-white">{formatCount(promptsCount)}</strong> {t('profile.promptsStat')}</span>
-                                <span><strong className="text-gray-900 dark:text-white">{formatCount(userProfile.points)}</strong> {t('profile.pointsStat')}</span>
+                                <span className="flex items-center gap-1">
+                                    <strong className="text-gray-900 dark:text-white">{formatCount(userProfile.points)}</strong> {t('profile.pointsStat')}
+                                    {onShowEarnPoints && (
+                                        <button onClick={onShowEarnPoints} className="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 ml-1" aria-label="How to earn points">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </span>
                                 <span><strong className="text-gray-900 dark:text-white">{formatCount(userProfile.followerCount)}</strong> {t('profile.followersStat')}</span>
                                 <span><strong className="text-gray-900 dark:text-white">{formatCount(Object.keys(userProfile.following || {}).length)}</strong> {t('profile.followingStat')}</span>
-                            </p>
+                            </div>
 
                         </div>
                         <div className="mt-4 md:mt-0">

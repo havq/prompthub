@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavigationLink } from '../../../types';
+import { NavigationLink } from '../../../utils/types';
 import { useLanguage } from '../../../context/LanguageContext';
 
 export interface TreeItem extends NavigationLink {

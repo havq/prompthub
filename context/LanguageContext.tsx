@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { getSettings } from '../services/settingsService';
 import { Language } from '../types';
@@ -49,6 +50,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     useEffect(() => {
         const fetchTranslations = async () => {
             try {
+                // Removed cache buster query param to avoid routing/404 issues on some static hosts
                 const response = await fetch(`/locales/${language}.json`);
                 if (!response.ok) {
                     throw new Error(`Could not load ${language} translations`);

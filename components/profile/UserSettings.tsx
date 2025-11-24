@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NotificationSettings, NotificationType } from '../../types';
+import { NotificationSettings, NotificationType } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import Spinner from '../Spinner';
 
@@ -73,7 +73,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ initialSettings, onSave, on
             <div className="space-y-4">
                 {notificationOptions.map(opt => (
                     <ToggleSwitch
-                        key={opt.key} id={`toggle-${opt.key}`}
+                        key={String(opt.key)} id={`toggle-${opt.key}`}
                         checked={settings[opt.key]}
                         onChange={(value) => handleSettingChange(opt.key, value)}
                         label={t(`profile.notificationSettings.${opt.type}.label`)}

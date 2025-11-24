@@ -668,6 +668,19 @@
       "redeemSuccess": "成功兑换 Pro 会员资格！",
       "redeemError": "兑换积分失败。请重试。",
       "footerNote": "积分不可转让，不可兑换现金。"
+    },
+    "earnPoints": {
+      "title": "如何赚取积分",
+      "subtitle": "累积积分以升级并兑换奖励！",
+      "items": {
+        "promptRemixed": { "title": "提示被混音", "desc": "当有人混音您的提示时赚取积分。" },
+        "promptCollected": { "title": "提示被收藏", "desc": "当您的提示被添加到收藏集时赚取积分。" },
+        "rating5Star": { "title": "5星评价", "desc": "当您的提示收到5星评价时赚取积分。" },
+        "promptFavorited": { "title": "提示被点赞", "desc": "当有人点赞您的提示时赚取积分。" },
+        "commentReceived": { "title": "收到评论", "desc": "当有人评论您的提示时赚取积分。" }
+      },
+      "footerNote": "积分会随着社区与您内容的互动而自动更新。继续创作高质量的提示吧！",
+      "gotIt": "知道了"
     }
   },
   "authorPage": {
