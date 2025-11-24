@@ -1,5 +1,5 @@
 import React from 'react';
-import { NotificationSettings } from '../../types';
+import { NotificationSettings } from '../../utils/types';
 import UserSettings from './UserSettings';
 import { useLanguage } from '../../context/LanguageContext';
 

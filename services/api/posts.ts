@@ -1,4 +1,4 @@
-import { Post, PostComment, PostCategory, PostCategoryWithCount } from '../../types';
+import { Post, PostComment, PostCategory, PostCategoryWithCount } from '../../utils/types';
 import { fetchApi, mapItem, mapItems } from './core';
 import { GetPromptsParams } from './prompts';
 

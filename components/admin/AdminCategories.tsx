@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { CategoryWithCount } from '../../types';
+import { CategoryWithCount } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { addCategory, updateCategory } from '../../services/api';
 import Spinner from '../Spinner';

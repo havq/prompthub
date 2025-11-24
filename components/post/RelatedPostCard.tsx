@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Post } from '../../types';
+import { Post } from '../../utils/types';
 import { buildUrl } from '../../utils/permalinks';
 import { formatCount } from '../../utils/formatters';
 

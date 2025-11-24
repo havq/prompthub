@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { getPrompts, getCategories, getCommentCounts, getCollections, createCollection, togglePromptInCollection, getAllShowcaseImageCounts, addShowcaseImage, updatePrompt, deletePrompt as apiDeletePrompt, addPrompt as apiAddPrompt, getCombinedRatings, saveRating } from '../services/api';
-import { Prompt, CategoryWithCount, Collection, UserProfile } from '../types';
+import { Prompt, CategoryWithCount, Collection, UserProfile } from '../utils/types';
 import { getSettings } from '../services/settingsService';
 import { getFavorites, toggleFavorite } from '../services/favoriteService';
 import { useAuth } from '../context/AuthContext';

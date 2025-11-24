@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Prompt, Collection } from '../types';
+import { Prompt, Collection } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import Spinner from './Spinner';
 

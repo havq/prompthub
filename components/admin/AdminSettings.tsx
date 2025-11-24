@@ -1,7 +1,7 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod, GamificationSettings } from '../../types';
+import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod, GamificationSettings } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage, Language } from '../../context/LanguageContext';

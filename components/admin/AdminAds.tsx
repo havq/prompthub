@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AdSettings, OverlayAdSettings, BannerAdSettings } from '../../types';
+import { AdSettings, OverlayAdSettings, BannerAdSettings } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
 import { useLanguage } from '../../context/LanguageContext';
 import Spinner from '../Spinner';

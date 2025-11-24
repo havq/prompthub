@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getSettings } from '../../services/settingsService';
-import { AppSettings } from '../../types';
+import { AppSettings } from '../../utils/types';
 import SocialIcon from '../SocialIcon';
 import { Link } from 'react-router-dom';
 

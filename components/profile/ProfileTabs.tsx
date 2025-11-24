@@ -1,11 +1,12 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { UserProfile, Prompt, Collection, ShowcaseImage } from '../../types';
+import { UserProfile, Prompt, Collection, ShowcaseImage } from '../../utils/types';
 import UserPrompts from './UserPrompts';
 import UserFavorites from './UserFavorites';
 import UserCollections from './UserCollections';
 import UserShowcase from './UserShowcase';
 //import UserSettings from './UserSettings';
+import PromptCardSkeleton from '../PromptCardSkeleton';
 import { useLanguage } from '../../context/LanguageContext';
 import Spinner from '../Spinner';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -168,15 +169,23 @@ const ProfileTabs: React.FC<ProfileTabsProps> = ({
             </div>
             
             <div className="mt-6">
-                 {isGalleryLoading && !allPrompts.length ? (
-                    <div className="text-center py-8"><Spinner size="lg" /><p className="mt-4 text-gray-600 dark:text-gray-400">{t('profile.galleryLoading')}</p></div>
+                 {isGalleryLoading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
+                        {Array.from({ length: 6 }).map((_, i) => <PromptCardSkeleton key={i} />)}
+                    </div>
                  ) : (
                     <>
                         <div className={activeTab === 'prompts' ? 'block' : 'hidden'}>
                             <UserPrompts prompts={myPublicPrompts} cardProps={cardProps} isOwner={isCurrentUserPage} username={userProfile.username} />
                         </div>
                         <div className={activeTab === 'showcase' ? 'block' : 'hidden'}>
-                            <UserShowcase images={myShowcaseImages} setGalleryState={setGalleryState} onDelete={setDeletingShowcaseImageId} isOwner={isCurrentUserPage} username={userProfile.username}/>
+                            <UserShowcase
+                                images={myShowcaseImages}
+                                setGalleryState={setGalleryState}
+                                onDelete={setDeletingShowcaseImageId}
+                                isOwner={isCurrentUserPage}
+                                username={userProfile.username}
+                            />
                         </div>
 
                         {isCurrentUserPage && (

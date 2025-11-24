@@ -1,4 +1,4 @@
-import { Prompt, Category } from '../../types';
+import { Prompt, Category } from '../../utils/types';
 
 export interface PromptCardProps {
   prompt: Prompt;

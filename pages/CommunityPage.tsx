@@ -19,8 +19,7 @@ import {
     getCombinedRatings,
     saveRating
 } from '../services/api';
-import { getFavorites, toggleFavorite } from '../services/favoriteService';
-import { Prompt, UserProfile, Badge, CategoryWithCount, Collection, TopContributor } from '../utils/types';
+import { Prompt, UserProfile, Badge, CategoryWithCount, Collection, TopContributor } from '../types';
 import Spinner from '../components/Spinner';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -37,16 +36,18 @@ import ShowcaseUploadModal from '../components/ShowcaseUploadModal';
 import { PromptForm } from '../components/PromptForm';
 import ConfirmModal from '../components/ConfirmModal';
 import LoginSuggestionModal from '../components/LoginSuggestionModal';
+import { getFavorites, toggleFavorite } from '../services/favoriteService';
 
 
-interface PopularPrompt extends Prompt {
+// FIX: Changed interfaces to types to fix property lookup issues.
+type PopularPrompt = Prompt & {
     collectionCount: number;
-}
+};
 
-interface RatedPrompt extends Prompt {
+type RatedPrompt = Prompt & {
     averageRating: number;
     ratingCount: number;
-}
+};
 
 const formatCount = (count: number | undefined): string => {
     const num = Number(count || 0);
@@ -105,6 +106,24 @@ const getImageUrls = (imageUrlValue: string | undefined): string[] => {
     }
     return [imageUrlValue];
 };
+
+const LeaderboardCardSkeleton: React.FC = () => (
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg animate-pulse">
+        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-6"></div>
+        <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4 p-2">
+                    <div className="h-8 w-8 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                    <div className="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-5/6"></div>
+                        <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
 
 
 export const CommunityPage: React.FC = () => {
@@ -283,7 +302,7 @@ export const CommunityPage: React.FC = () => {
     };
 
     const handleToggleFavorite = async (prompt: Prompt) => {
-        const newFavorites = await toggleFavorite(prompt.id, currentUser, prompt.authorId);
+        const newFavorites = await toggleFavorite(prompt.id, currentUser, prompt.authorId, favorites);
         setFavorites(newFavorites);
     };
 
@@ -361,9 +380,16 @@ export const CommunityPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                <Spinner size="lg" />
-                <p className="text-xl text-gray-700 dark:text-gray-300">{t('common.loading')}</p>
+            <div className="space-y-8 animate-pulse">
+                 <div>
+                    <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mx-auto mb-3"></div>
+                    <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <LeaderboardCardSkeleton />
+                    <LeaderboardCardSkeleton />
+                    <LeaderboardCardSkeleton />
+                </div>
             </div>
         );
     }
@@ -410,7 +436,7 @@ export const CommunityPage: React.FC = () => {
                         {popularPrompts.length > 0 ? popularPrompts.map((prompt, index) => (
                             <button onClick={() => setSelectedPrompt(prompt)} key={prompt.id} className="w-full text-left flex items-center space-x-4 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                 <RankIcon rank={index + 1} />
-                                <img src={transformCloudinaryUrl(getImageUrls(prompt.imageUrl)[0] || '', 'w_150,h_150,c_fill,g_auto')} alt={prompt.text.substring(0,20)} className="w-12 h-12 rounded-md object-cover flex-shrink-0"/>
+                                <img src={transformCloudinaryUrl(getImageUrls(prompt.imageUrl)[0] || '', 'w_150,h_150,c_fill,g_auto')} alt={(prompt.text || '').substring(0,20)} className="w-12 h-12 rounded-md object-cover flex-shrink-0"/>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm text-gray-800 dark:text-white truncate-2-lines">{prompt.text}</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">{t('community.views', { count: formatCount(prompt.viewCount) })}</p>
@@ -426,7 +452,7 @@ export const CommunityPage: React.FC = () => {
                         {promptsToDisplayInTopRated.length > 0 ? promptsToDisplayInTopRated.map((prompt, index) => (
                             <button onClick={() => setSelectedPrompt(prompt)} key={prompt.id} className="w-full text-left flex items-center space-x-4 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                 <RankIcon rank={index + 1} />
-                                <img src={transformCloudinaryUrl(getImageUrls(prompt.imageUrl)[0] || '', 'w_150,h_150,c_fill,g_auto')} alt={prompt.text.substring(0,20)} className="w-12 h-12 rounded-md object-cover flex-shrink-0"/>
+                                <img src={transformCloudinaryUrl(getImageUrls(prompt.imageUrl)[0] || '', 'w_150,h_150,c_fill,g_auto')} alt={(prompt.text || '').substring(0,20)} className="w-12 h-12 rounded-md object-cover flex-shrink-0"/>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm text-gray-800 dark:text-white truncate-2-lines">{prompt.text}</p>
                                     <p className="text-xs text-yellow-500 dark:text-yellow-400 font-semibold">{t('community.rating', { rating: prompt.averageRating.toFixed(2), count: formatCount(prompt.ratingCount) })}</p>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSettings } from '../services/settingsService';
-import { NotificationBarSettings } from '../types';
+import { NotificationBarSettings } from '../utils/types';
 import { Link } from 'react-router-dom';
 import { sanitizeHtml } from '../utils/sanitize';
 

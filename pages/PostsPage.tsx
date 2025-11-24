@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getPosts, getPostCategories } from '../services/api';
-import { Post, PostCategoryWithCount } from '../types';
+import { Post, PostCategoryWithCount } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import Spinner from '../components/Spinner';
 import Pagination from '../components/Pagination';

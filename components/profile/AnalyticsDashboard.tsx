@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getAnalyticsData } from '../../services/api';
-import { AnalyticsData, Prompt } from '../../types';
+import { AnalyticsData, Prompt } from '../../utils/types';
 import Spinner from '../Spinner';
 import { useLanguage } from '../../context/LanguageContext';
 import Pagination from '../Pagination';

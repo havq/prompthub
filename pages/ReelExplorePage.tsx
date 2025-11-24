@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { getReels, getReelCategories } from '../services/api';
-import { Reel, ReelCategoryWithCount } from '../types';
+import { Reel, ReelCategoryWithCount } from '../utils/types';
 import Spinner from '../components/Spinner';
 import ReelThumbnail from '../components/ReelThumbnail';
 import { useLanguage } from '../context/LanguageContext';
@@ -22,6 +22,10 @@ function useDebounce<T>(value: T, delay?: number): T {
 
   return debouncedValue;
 }
+
+const ReelThumbnailSkeleton: React.FC = () => {
+    return <div className="relative aspect-[9/16] bg-gray-300 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+};
 
 const AdReelPlaceholder: React.FC<{ adCode: string }> = ({ adCode }) => {
     const { t } = useLanguage();
@@ -273,7 +277,11 @@ const ReelExplorePage: React.FC = () => {
                 totalPrompts={totalReels}
             />
 
-            {itemsWithAds.length > 0 ? (
+            {isLoading && reels.length === 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {Array.from({ length: 10 }).map((_, index) => <ReelThumbnailSkeleton key={index} />)}
+                </div>
+            ) : itemsWithAds.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {itemsWithAds.map((item, index) => {
                         if (item.type === 'reel') {

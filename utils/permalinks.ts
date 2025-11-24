@@ -1,5 +1,5 @@
 import { getSettings } from '../services/settingsService';
-import { PermalinkSettings } from '../types';
+import { PermalinkSettings } from '../utils/types';
 
 const defaultPermalinks: Required<PermalinkSettings> = {
     prompt: 'prompt/%{promptId}%',

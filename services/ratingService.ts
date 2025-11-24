@@ -6,7 +6,7 @@ import {
     getAllAverageRatings as apiGetAllAverageRatings,
     getRatings as apiGetRatings
 } from './api';
-import { Prompt, UserProfile, AuthUser } from '../types';
+import { Prompt, UserProfile, AuthUser } from '../utils/types';
 
 /**
  * Retrieves the ratings given by the current logged-in user. Guests will not have ratings.

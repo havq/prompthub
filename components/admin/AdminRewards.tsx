@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppSettings, RewardPackage, UserProfile } from '../../types';
+import { AppSettings, RewardPackage, UserProfile } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
 import { findUserByUsername, updateUserProfile } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';

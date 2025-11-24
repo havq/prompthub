@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffe
 // @ts-ignore
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getReels, toggleReelLike, getReel, getReelCategories } from '../services/api';
-import { Reel, BannerAdSettings, ReelCategory } from '../types';
+import { Reel, BannerAdSettings, ReelCategory } from '../utils/types';
 import Spinner from '../components/Spinner';
 import ReelPlayer from '../components/ReelPlayer';
 import { useLanguage } from '../context/LanguageContext';

@@ -1,8 +1,9 @@
+
 import * as externalApi from './externalApi';
 // All functions now point to the live API for posts and categories.
 import * as mockApi from './mockFirebase';
 // FIX: Add Suggestion to import
-import { Prompt, Category, UserProfile, Comment, Report, ShowcaseImage, Notification, StaticPage, Collection, CategoryWithCount, TopContributor, AnalyticsData, Suggestion, Reel, ReelComment, Post, PostComment, PostCategory, PostCategoryWithCount, ReelCategory, ReelCategoryWithCount, SupportTicket, TicketMessage, AuthUser } from '../types';
+import { Prompt, Category, UserProfile, Comment, Report, ShowcaseImage, Notification, StaticPage, Collection, CategoryWithCount, TopContributor, AnalyticsData, Suggestion, Reel, ReelComment, Post, PostComment, PostCategory, PostCategoryWithCount, ReelCategory, ReelCategoryWithCount, SupportTicket, TicketMessage, AuthUser } from '../utils/types';
 import { getAuth } from './firebaseConfig';
 import { getSettings } from './settingsService';
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { UserProfile } from '../../types';
+import { UserProfile } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import BadgeIcon from '../BadgeIcon';
 import Pagination from '../Pagination';

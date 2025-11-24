@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppSettings, RecaptchaSettings } from '../../../types';
+import { AppSettings, RecaptchaSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 import Spinner from '../../Spinner';

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,12 +16,55 @@ import PostCommentItem from '../components/post/PostCommentItem';
 import RelatedPostsSection from '../components/post/RelatedPostsSection';
 import MentionInput from '../components/MentionInput';
 
+const PostDetailSkeleton: React.FC = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-pulse">
+        <main className="lg:col-span-9 space-y-6">
+            <div className="h-5 w-32 bg-gray-300 dark:bg-gray-700 rounded"></div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden -mx-4 md:-mx-0">
+                <div className="w-full h-72 md:h-96 bg-gray-300 dark:bg-gray-700"></div>
+                <div className="p-4 md:p-6 lg:p-8">
+                    <div className="h-10 w-3/4 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+                        <div className="space-y-2">
+                            <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-5/6"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <aside className="hidden lg:block lg:col-span-3 space-y-6">
+            <div className="h-64 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+                 <div className="h-6 w-1/2 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+                 <div className="space-y-4">
+                     {[...Array(3)].map((_, i) => (
+                         <div key={i} className="flex items-start gap-4">
+                            <div className="w-16 h-16 bg-gray-300 dark:bg-gray-700 rounded-md"></div>
+                            <div className="flex-1 space-y-2 py-1">
+                                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+                                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+                            </div>
+                        </div>
+                     ))}
+                 </div>
+            </div>
+            <div className="h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md"></div>
+        </aside>
+    </div>
+);
+
 export const PostDetailPage: React.FC = () => {
     const { postId } = useParams<{ postId: string }>();
     const { t } = useLanguage();
     
     const {
-        post, categories, comments, isLoading, error, authorProfile, relatedPosts,
+        post, categories, comments, isLoading, error, authorProfile, relatedPosts, isLoadingComments,
         newComment, setNewComment, isPosting, commentError, countdown,
         replyingTo, setReplyingTo, deletingComment, setDeletingComment, isDeleting,
         currentUser, userProfile, isAdmin, allUsers,
@@ -41,7 +85,7 @@ export const PostDetailPage: React.FC = () => {
     
     const totalPages = Math.ceil(comments.length / COMMENTS_PER_PAGE);
 
-    if (isLoading) return <div className="flex justify-center items-center py-20"><Spinner size="lg" /></div>;
+    if (isLoading) return <PostDetailSkeleton />;
     if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
     if (!post) return <div className="text-center py-20">Post not found.</div>;
 
@@ -136,7 +180,9 @@ export const PostDetailPage: React.FC = () => {
                                 <p className="text-center text-sm text-gray-500 dark:text-gray-400">{t(!commentsGloballyEnabled ? 'promptDetail.commentsDisabledGlobal' : 'postDetail.commentsDisabled')}</p>
                             )}
                             
-                            {paginatedComments.length > 0 ? (
+                            {isLoadingComments ? (
+                                <div className="flex justify-center py-8"><Spinner /></div>
+                            ) : paginatedComments.length > 0 ? (
                                 <ul className="space-y-6">
                                     {paginatedComments.map(comment => (
                                         <PostCommentItem 

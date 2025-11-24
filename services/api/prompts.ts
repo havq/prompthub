@@ -1,5 +1,5 @@
 
-import { Prompt, Category, CategoryWithCount } from '../../types';
+import { Prompt, Category, CategoryWithCount } from '../../utils/types';
 import { fetchApi, mapItem, mapItems } from './core';
 
 export interface GetPromptsParams {

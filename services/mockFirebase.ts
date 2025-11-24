@@ -1,7 +1,8 @@
 
 
 
-import { Prompt, Category, Comment, Report, UserProfile, Collection, ShowcaseImage, Notification, Badge, StaticPage, NotificationType, NotificationSettings, CategoryWithCount, TopContributor, Post, PostComment, PostCategory, PostCategoryWithCount } from '../types';
+
+import { Prompt, Category, Comment, Report, UserProfile, Collection, ShowcaseImage, Notification, Badge, StaticPage, NotificationType, NotificationSettings, CategoryWithCount, TopContributor, Post, PostComment, PostCategory, PostCategoryWithCount } from '../utils/types';
 import firebase from 'firebase/compat/app';
 // FIX: Add import for GetPromptsParams and GetPromptsResponse to support paginated/filtered prompt fetching.
 import { GetPromptsParams, GetPromptsResponse } from './externalApi';

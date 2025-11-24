@@ -3,7 +3,7 @@ import { uploadToImgbb } from './imgbbService';
 import { uploadToCloudinary } from './cloudinaryService';
 import { uploadToServer } from './serverUploadService';
 import { uploadToTumblr } from './tumblrService';
-import { UploadMethod, WatermarkSettings } from '../types';
+import { UploadMethod, WatermarkSettings } from '../utils/types';
 
 interface UploadResult {
     imageUrl: string;

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BannerWidgetData } from '../../types';
+import { BannerWidgetData } from '../../utils/types';
 import { Link } from 'react-router-dom';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 

@@ -1,6 +1,6 @@
 
 import { getUserFavorites, setUserFavorite } from './api';
-import { AuthUser } from '../types';
+import { AuthUser } from '../utils/types';
 
 const GUEST_FAVORITES_KEY = 'promptGalleryGuestFavorites';
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { Prompt } from '../types';
+import { Prompt } from '../utils/types';
 import PromptCard from '../components/PromptCard';
 import CategoryTabs from '../components/CategoryTabs';
 import Pagination from '../components/Pagination';

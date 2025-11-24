@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getSettings, saveSettings } from '../../services/settingsService';
-import { CookieConsentSettings } from '../../types';
+import { CookieConsentSettings } from '../../utils/types';
 import Spinner from '../Spinner';
 
 const AdminConsent: React.FC = () => {

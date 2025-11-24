@@ -1,9 +1,10 @@
 
+
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 // @ts-ignore
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Prompt, CategoryWithCount, Collection, ShowcaseImage, UserProfile } from '../utils/types';;
+import { Prompt, CategoryWithCount, Collection, ShowcaseImage, UserProfile } from '../utils/types';
 import {
     getUserProfile, getPrompts, getCategories, getAllComments, getCollections, getAllShowcaseImageCounts, addShowcaseImage,
     getAllShowcaseImages, updatePrompt, deletePrompt as apiDeletePrompt, deleteShowcaseImage as apiDeleteShowcaseImage,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StaticPage } from '../types';
+import { StaticPage } from '../utils/types';
 import Spinner from './Spinner';
 import { useLanguage } from '../context/LanguageContext';
 

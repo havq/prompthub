@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Prompt, CategoryWithCount, UserProfile, UploadMethod } from '../types';
+import { Prompt, CategoryWithCount, UserProfile, UploadMethod } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import Spinner from './Spinner';
 import PromptBasicDetails from './prompt-form/PromptBasicDetails';

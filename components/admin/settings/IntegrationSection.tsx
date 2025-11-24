@@ -1,7 +1,6 @@
 
-
 import React from 'react';
-import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig } from '../../../types';
+import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 import Spinner from '../../Spinner';

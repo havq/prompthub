@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Reel, ReelComment, UserProfile } from '../types';
+import { Reel, ReelComment, UserProfile } from '../utils/types';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getReelComments, addReelComment, deleteReelComment, updateReelComment, getAllUsers } from '../services/api';

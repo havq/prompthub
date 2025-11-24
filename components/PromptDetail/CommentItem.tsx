@@ -7,7 +7,7 @@ import { updateComment } from '../../services/api';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import { buildUrl } from '../../utils/permalinks';
 import Spinner from '../Spinner';
-import { Comment, UserProfile } from '../../types';
+import { Comment, UserProfile } from '../../utils/types';
 import { formatTimeAgo } from './utils';
 import { renderTextWithMentions } from '../../utils/textFormatting';
 import MentionInput from '../MentionInput';

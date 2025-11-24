@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { UploadMethod } from '../../types';
+import { UploadMethod } from '../../utils/types';
 import Spinner from '../Spinner';
 import CircularProgress from '../CircularProgress';
 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Post, Category, UserProfile } from '../../types';
+import { Post, Category, UserProfile } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { deletePost as apiDeletePost, updatePost } from '../../services/api';
 import ConfirmModal from '../ConfirmModal';

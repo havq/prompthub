@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 // @ts-ignore
 import { useLocation, useNavigate } from 'react-router-dom';
-import { StaticPage } from '../../types';
+import { StaticPage } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAdminContext } from '../../context/AdminContext';
 import { addStaticPage, updateStaticPage, deleteStaticPage as apiDeleteStaticPage } from '../../services/api';

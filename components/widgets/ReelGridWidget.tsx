@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Reel, ReelCategoryWithCount } from '../../types';
+import { Reel, ReelCategoryWithCount } from '../../utils/types';
 import { getReels, getReelCategories } from '../../services/api';
 import ReelThumbnail from '../ReelThumbnail';
 import Spinner from '../Spinner';

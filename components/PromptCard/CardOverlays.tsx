@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Prompt, Category } from '../../types';
+import { Prompt, Category } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import ShareButton from '../ShareButton';

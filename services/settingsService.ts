@@ -12,15 +12,6 @@ const fallbackSettings: AppSettings = {
   relatedPostsCount: 5,
   appLogoLight: null,
   appLogoDark: null,
-  firebaseConfig: {
-    apiKey: "AIzaSyA8yI4rnsXrilR2YTF9Dzs9aBdsqGi9iIM",
-    authDomain: "prompthub-today.firebaseapp.com",
-    projectId: "prompthub-today",
-    storageBucket: "prompthub-today.firebasestorage.app",
-    messagingSenderId: "104073095550",
-    appId: "1:104073095550:web:0cca0b6c6981004636ab2f",
-    measurementId: "G-V0FDVXQGM1"
-  },
   imageUploadMethod: ['server'],
   userImageUploadMethod: ['server'],
   proImageUploadMethod: ['server'],

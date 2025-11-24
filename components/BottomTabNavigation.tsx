@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { getSettings } from '../services/settingsService';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { BottomTabNavigationLink, BottomTabNavigationStyle } from '../types';
+import { BottomTabNavigationLink, BottomTabNavigationStyle } from '../utils/types';
 import { buildUrl } from '../utils/permalinks';
 
 const getFinalPath = (item: BottomTabNavigationLink): string => {

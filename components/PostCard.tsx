@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Post, PostCategoryWithCount } from '../types';
+import { Post, PostCategoryWithCount } from '../utils/types';
 import PostCardSkeleton from './PostCardSkeleton';
 import { transformCloudinaryUrl } from '../services/cloudinaryUtils';
 import ShareButton from './ShareButton';

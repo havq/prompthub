@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { RichTextWidgetData } from '../../types';
+import { RichTextWidgetData } from '../../utils/types';
 import { sanitizeHtml } from '../../utils/sanitize';
 
 interface RichTextWidgetProps {

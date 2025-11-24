@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 // @ts-ignore
 import { Link } from 'react-router-dom';
-import { CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount } from '../types';
+import { CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import { buildUrl } from '../utils/permalinks';
 

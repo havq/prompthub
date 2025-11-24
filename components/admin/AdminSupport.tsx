@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { SupportTicket } from '../../types';
+import { SupportTicket } from '../../utils/types';
 import { getTickets, deleteTicket } from '../../services/api';
 import Spinner from '../Spinner';
 import { formatTimeAgo } from '../../utils/formatters';

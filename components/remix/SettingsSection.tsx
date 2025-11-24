@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { Category, UserProfile } from '../../types';
+import { Category, UserProfile } from '../../utils/types';
 
 interface SettingsSectionProps {
     categories: Category[];

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ReelCategoryWithCount } from '../../types';
+import { ReelCategoryWithCount } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { addReelCategory, updateReelCategory } from '../../services/api';
 import Spinner from '../Spinner';

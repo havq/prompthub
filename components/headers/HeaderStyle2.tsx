@@ -6,7 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import LanguageSwitcher from '../LanguageSwitcher';
 import NotificationPopover from '../NotificationPopover';
-import { AppSettings, NavigationLink } from '../../types';
+import { AppSettings, NavigationLink } from '../../utils/types';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import { buildUrl } from '../../utils/permalinks';
 

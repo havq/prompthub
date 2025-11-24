@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppSettings, Badge, SocialLink, NotificationBarSettings, LanguageSettings, Language } from '../../../types';
+import { AppSettings, Badge, SocialLink, NotificationBarSettings, LanguageSettings, Language } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 import Spinner from '../../Spinner';

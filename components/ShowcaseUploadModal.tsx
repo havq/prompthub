@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { uploadImage } from '../services/imageUploadService';
 import Spinner from './Spinner';
 import CircularProgress from './CircularProgress';
-import { Prompt } from '../types';
+import { Prompt } from '../utils/types';
 import ImageCropModal from './ImageCropModal';
 import { getSettings } from '../services/settingsService';
 import { useAuth } from '../context/AuthContext';

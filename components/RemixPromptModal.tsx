@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Prompt, Category, UserProfile, UploadMethod, CategoryWithCount } from '../types';
+import { Prompt, Category, UserProfile, UploadMethod, CategoryWithCount } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import { remixPrompt } from '../services/api';
 import Spinner from './Spinner';

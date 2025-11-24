@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 // @ts-ignore
 import { Link } from 'react-router-dom';
-import { Prompt, Category, UserProfile, CategoryWithCount } from '../../types';
+import { Prompt, Category, UserProfile, CategoryWithCount } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { deletePrompt as apiDeletePrompt, updatePrompt, getAllAverageRatings } from '../../services/api';
 import ConfirmModal from '../ConfirmModal';

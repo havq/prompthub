@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Post } from '../../types';
+import { Post } from '../../utils/types';
 import RelatedPostCard from './RelatedPostCard';
 
 const RelatedPostsSection: React.FC<{ relatedPosts: Post[] }> = ({ relatedPosts }) => {

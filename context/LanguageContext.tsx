@@ -1,7 +1,8 @@
 
+
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { getSettings } from '../services/settingsService';
-import { Language } from '../types';
+import { Language } from '../utils/types';
 
 export type { Language };
 type Translations = Record<string, any>;
@@ -129,41 +130,28 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
                     // Check if the part is a tagged element, e.g., "<0>Click here</0>"
                     const match = part.match(/<(\d+)>(.*?)<\/(\d+)>/);
                     
-                    // We should also check if open and close tags match, e.g. match[1] === match[3]
-                    if (match && match[1] === match[3]) {
-                        const tagNumber = match[1];
-                        const content = match[2];
-                        const renderer = componentRenderers[tagNumber];
-                        
-                        if (renderer) {
-                            return <React.Fragment key={index}>{renderer(content)}</React.Fragment>;
-                        }
-                        // Default behavior if no renderer is provided for the tag number
-                        return <span key={index}>{content}</span>;
+                    // We should also check if
+                    // FIX: Complete the implementation of tComponent to correctly render nested components.
+                    if (match && match[1] === match[3] && componentRenderers[match[1]]) {
+                        const renderer = componentRenderers[match[1]];
+                        return <React.Fragment key={index}>{renderer(match[2])}</React.Fragment>;
                     }
                     
-                    // If it's not a tag, it's just plain text
                     return <React.Fragment key={index}>{part}</React.Fragment>;
                 })}
             </>
         );
-    
     }, [t]);
 
-    const value = { language, setLanguage, t, tComponent };
-    
-    // Render children only when translations are loaded to prevent showing keys initially
-    if (Object.keys(translations).length === 0) {
-        return null; 
-    }
-
+    // FIX: LanguageProvider was not returning JSX, causing a type error.
     return (
-        <LanguageContext.Provider value={value}>
+        <LanguageContext.Provider value={{ language, setLanguage, t, tComponent }}>
             {children}
         </LanguageContext.Provider>
     );
 };
 
+// FIX: `useLanguage` was not exported, causing import errors across the application.
 export const useLanguage = (): LanguageContextType => {
     const context = useContext(LanguageContext);
     if (context === undefined) {

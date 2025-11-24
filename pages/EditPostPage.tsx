@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getPost, getPostCategories, getAllUsers, updatePost } from '../services/api';
-import { Post, PostCategory as Category, UserProfile } from '../types';
+import { Post, PostCategory as Category, UserProfile } from '../utils/types';
 import Spinner from '../components/Spinner';
 import PostForm from '../components/PostForm';
 

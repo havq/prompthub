@@ -11,9 +11,10 @@ import { getFavorites, toggleFavorite } from '../services/favoriteService';
 import { useLanguage } from '../context/LanguageContext';
 
 // FIX: Changed 'Category' to 'CategoryWithCount' to match data structure from API and satisfy child component props.
-import { Prompt, CategoryWithCount, Collection, UserProfile } from '../types';
+import { Prompt, CategoryWithCount, Collection, UserProfile } from '../utils/types';
 
 import PromptCard from '../components/PromptCard';
+import PromptCardSkeleton from '../components/PromptCardSkeleton';
 import { PromptDetailModal } from '../components/PromptDetailModal';
 import SimilarPromptsModal from '../components/SimilarPromptsModal';
 import ReportModal from '../components/ReportModal';
@@ -24,6 +25,29 @@ import ConfirmModal from '../components/ConfirmModal';
 import Spinner from '../components/Spinner';
 import { PromptForm } from '../components/PromptForm';
 import LoginSuggestionModal from '../components/LoginSuggestionModal';
+
+const CollectionsPageSkeleton: React.FC = () => (
+    <div className="space-y-8 animate-pulse">
+        <div>
+            <div className="h-10 w-1/2 bg-gray-300 dark:bg-gray-700 rounded mx-auto mb-3"></div>
+            <div className="h-6 w-3/4 bg-gray-300 dark:bg-gray-700 rounded mx-auto"></div>
+        </div>
+        <div className="max-w-6xl mx-auto space-y-6">
+            <div className="h-10 w-1/3 bg-gray-300 dark:bg-gray-700 rounded mx-auto"></div>
+            <div className="flex justify-center gap-4 h-12">
+                <div className="w-32 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+                <div className="w-24 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+                <div className="w-28 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+            </div>
+            <div className="mt-6">
+                <div className="h-8 w-1/4 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {Array.from({ length: 3 }).map((_, i) => <PromptCardSkeleton key={i} />)}
+                </div>
+            </div>
+        </div>
+    </div>
+);
 
 const CollectionsPage: React.FC = () => {
     // FIX: Removed `ratePrompt` as it does not exist on the AuthContext.
@@ -267,12 +291,7 @@ const CollectionsPage: React.FC = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                <Spinner size="lg" />
-                <p className="text-xl text-gray-700 dark:text-gray-300">{t('common.loading')}</p>
-            </div>
-        );
+        return <CollectionsPageSkeleton />;
     }
 
     return (

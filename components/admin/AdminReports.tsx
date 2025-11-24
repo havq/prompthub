@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Report, Prompt } from '../../types';
+import { Report, Prompt } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { updateReport } from '../../services/api';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppSettings, PromptCardSettings } from '../../../types';
+import { AppSettings, PromptCardSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 

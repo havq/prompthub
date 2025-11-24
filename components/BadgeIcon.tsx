@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge } from '../types';
+import { Badge } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import { getSettings } from '../services/settingsService';
 

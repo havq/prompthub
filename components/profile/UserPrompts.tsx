@@ -1,5 +1,5 @@
 import React from 'react';
-import { Prompt } from '../../types';
+import { Prompt } from '../../utils/types';
 import PromptCard from '../PromptCard';
 import { useLanguage } from '../../context/LanguageContext';
 

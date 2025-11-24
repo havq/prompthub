@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { Prompt, Post, Reel, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount, Report, UserProfile, StaticPage, ShowcaseImage, SupportTicket } from '../types';
+import { Prompt, Post, Reel, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount, Report, UserProfile, StaticPage, ShowcaseImage, SupportTicket } from '../utils/types';
 
 export interface AdminContextType {
     prompts: Prompt[];

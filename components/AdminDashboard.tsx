@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
 // @ts-ignore
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -26,7 +27,7 @@ import {
   deleteShowcaseImage as apiDeleteShowcaseImage,
   getTickets
 } from '../services/api';
-import { Prompt, Post, Category, Report, UserProfile, StaticPage, Reel, PostCategory, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount, ReelCategory, ShowcaseImage, SupportTicket } from '../types';
+import { Prompt, Post, Category, Report, UserProfile, StaticPage, Reel, PostCategory, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount, ReelCategory, ShowcaseImage, SupportTicket } from '../utils/types';
 import Spinner from './Spinner';
 import { useLanguage } from '../context/LanguageContext';
 

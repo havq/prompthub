@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 // @ts-ignore
@@ -8,12 +9,15 @@ import { useLanguage } from '../context/LanguageContext';
 import { getSettings } from '../services/settingsService';
 import { verifyRecaptcha } from '../services/api';
 
+/*
+// FIX: Removed duplicate global declaration to resolve conflict with LoginPage.
 declare global {
     interface Window {
         grecaptcha: any;
         recaptchaScriptLoaded: boolean;
     }
 }
+*/
 
 const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState('');

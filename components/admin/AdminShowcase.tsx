@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShowcaseImage, Prompt } from '../../types';
+import { ShowcaseImage, Prompt } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import Pagination from '../Pagination';
 import Spinner from '../Spinner';

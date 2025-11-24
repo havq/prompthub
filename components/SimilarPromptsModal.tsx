@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Prompt, Category } from '../types';
+import { Prompt, Category } from '../utils/types';
 import { findSimilarPrompts } from '../services/similarityService';
 import PromptCard from './PromptCard';
 import { useLanguage } from '../context/LanguageContext';

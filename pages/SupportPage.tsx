@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { SupportTicket } from '../types';
+import { SupportTicket } from '../utils/types';
 import { getTickets } from '../services/api';
 import Spinner from '../components/Spinner';
 import { formatTimeAgo } from '../utils/formatters';

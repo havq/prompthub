@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Prompt } from '../types';
+import { Prompt } from '../utils/types';
 import { useAuth } from '../context/AuthContext';
 import { addReport } from '../services/api';
 import Spinner from './Spinner';

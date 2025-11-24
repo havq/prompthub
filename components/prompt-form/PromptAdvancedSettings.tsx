@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { CategoryWithCount, UserProfile } from '../../types';
+import { CategoryWithCount, UserProfile } from '../../utils/types';
 import Spinner from '../Spinner';
 
 interface PromptAdvancedSettingsProps {

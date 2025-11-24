@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { UserProfile } from '../types';
+import { UserProfile } from '../utils/types';
 
 interface MentionInputProps {
     value: string;
@@ -135,7 +135,7 @@ const MentionInput: React.FC<MentionInputProps> = ({ value, onChange, users, pla
                             }`}
                         >
                             <img 
-                                src={user.photoURL || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(user.username)}`} 
+                                src={user.photoURL || `https://api.dicebear.com/8.x/initials/svg?size=60&seed=${encodeURIComponent(user.username)}`} 
                                 alt={user.username} 
                                 className="w-6 h-6 rounded-full object-cover"
                             />

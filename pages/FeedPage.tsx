@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 // FIX: Replaced 'getFolders' with 'getCategories' and imported `getAllComments`.
 import { getPrompts, getCategories, getCollections, createCollection, togglePromptInCollection, getAllComments, getAllShowcaseImageCounts, addShowcaseImage, updatePrompt, deletePrompt as apiDeletePrompt, addPrompt as apiAddPrompt, getCombinedRatings, saveRating, getCommentCounts } from '../services/api';
 // FIX: Changed 'Folder' type with 'Category' and then to 'CategoryWithCount' for compatibility with `PromptForm`.
-import { Prompt, CategoryWithCount, Collection } from '../types';
+import { Prompt, CategoryWithCount, Collection } from '../utils/types';
 import PromptCard from '../components/PromptCard';
 import { getFavorites, toggleFavorite } from '../services/favoriteService';
 import { PromptDetailModal } from '../components/PromptDetailModal';

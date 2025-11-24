@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, ChangeEvent, useMemo } from 'react'
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { uploadImage } from '../../services/imageUploadService';
-import { SocialLink, SocialPlatform, UserProfile } from '../../types';
+import { SocialLink, SocialPlatform, UserProfile } from '../../utils/types';
 import Spinner from '../Spinner';
 import CircularProgress from '../CircularProgress';
 

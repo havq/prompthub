@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import { useParams, useNavigate } from 'react-router-dom';
 import { getStaticPages } from '../services/api';
-import { StaticPage as StaticPageType } from '../types';
+import { StaticPage as StaticPageType } from '../utils/types';
 import Spinner from '../components/Spinner';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';

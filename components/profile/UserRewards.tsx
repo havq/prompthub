@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserProfile, RewardPackage } from '../../types';
+import { UserProfile, RewardPackage } from '../../utils/types';
 import { redeemPro } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Spinner from '../Spinner';

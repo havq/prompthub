@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Reel, ReelCategory } from '../types';
+import { Reel, ReelCategory } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import { incrementReelViewCount } from '../services/api';
 import ShareButton from './ShareButton';

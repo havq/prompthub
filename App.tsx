@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 // @ts-ignore
 import { BrowserRouter, HashRouter, Routes, Route, useLocation } from 'react-router-dom';
@@ -10,7 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Footer from './components/Footer';
 import OverlayAd from './components/OverlayAd';
 import BannerAd from './components/BannerAd';
-import { AppSettings } from './types';
+import { AppSettings } from './utils/types';
 import { getSettings } from './services/settingsService';
 import Spinner from './components/Spinner';
 import { buildRoutePath } from './utils/permalinks';
@@ -43,7 +44,7 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const ReelExplorePage = lazy(() => import('./pages/ReelExplorePage'));
 // FIX: SubmitPromptPage is a named export
 const SubmitPromptPage = lazy(() => import('./pages/SubmitPromptPage').then(module => ({ default: module.SubmitPromptPage })));
-const SubmitPostPage = lazy(() => import('./pages/SubmitPostPage').then(module => ({ default: module.SubmitPostPage })));
+const SubmitPostPage = lazy(() => import('./pages/SubmitPostPage'));
 const EditPostPage = lazy(() => import('./pages/EditPostPage').then(module => ({ default: module.EditPostPage })));
 // NEW: Support Pages
 const SupportPage = lazy(() => import('./pages/SupportPage'));

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Post } from '../../types';
+import { Post } from '../../utils/types';
 import { getPosts, getPostCategories } from '../../services/api';
 import PostCard from '../PostCard';
 import Spinner from '../Spinner';

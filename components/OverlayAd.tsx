@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getSettings } from '../services/settingsService';
 import { useLanguage } from '../context/LanguageContext';
-import { OverlayAdSettings } from '../types';
+import { OverlayAdSettings } from '../utils/types';
 import { useAuth } from '../context/AuthContext';
 
 const OverlayAd: React.FC = () => {

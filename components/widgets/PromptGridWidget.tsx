@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PromptGridWidgetData, Prompt, CategoryWithCount } from '../../types';
+import { PromptGridWidgetData, Prompt, CategoryWithCount } from '../../utils/types';
 import { getPrompts } from '../../services/api';
 import PromptCard from '../PromptCard';
 import Spinner from '../Spinner';

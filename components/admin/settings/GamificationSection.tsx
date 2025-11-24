@@ -1,5 +1,5 @@
 import React from 'react';
-import { GamificationSettings } from '../../../types';
+import { GamificationSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 
 interface GamificationSectionProps {

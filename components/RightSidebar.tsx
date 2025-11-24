@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getPostSidebarData, getPostCategories } from '../services/api';
 import { getSettings } from '../services/settingsService';
-import { Post, PostCategoryWithCount, AppSettings } from '../types';
+import { Post, PostCategoryWithCount, AppSettings } from '../utils/types';
 import { Link } from 'react-router-dom';
 import Spinner from './Spinner';
 import BannerAd from './BannerAd';

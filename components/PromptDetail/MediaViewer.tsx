@@ -1,7 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { Prompt } from '../../types';
+import { Prompt } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import Spinner from '../Spinner';

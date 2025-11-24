@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { addPrompt, getCategories, getAllUsers } from '../services/api';
-import { Prompt, CategoryWithCount, UserProfile } from '../types';
+import { Prompt, CategoryWithCount, UserProfile } from '../utils/types';
 import Spinner from '../components/Spinner';
 import { PromptForm } from '../components/PromptForm';
 

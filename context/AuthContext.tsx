@@ -1,6 +1,7 @@
 
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { UserProfile, Notification, AuthUser } from '../types';
+import { UserProfile, Notification, AuthUser } from '../utils/types';
 import { fetchApi } from '../services/api/core';
 import { listenForNotifications, markNotificationAsRead, markAllNotificationsAsRead as apiMarkAllNotificationsAsRead, deleteNotification as apiDeleteNotification, deleteAllNotifications as apiDeleteAllNotifications } from '../services/api';
 import Spinner from '../components/Spinner';

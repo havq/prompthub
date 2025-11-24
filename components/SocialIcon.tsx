@@ -1,5 +1,5 @@
 import React from 'react';
-import { SocialPlatform } from '../types';
+import { SocialPlatform } from '../utils/types';
 
 interface SocialIconProps {
   platform: SocialPlatform;

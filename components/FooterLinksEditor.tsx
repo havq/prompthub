@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { FooterLink } from '../types';
+import { FooterLink } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
-import Spinner from './Spinner';
+//import Spinner from './Spinner';
 
 interface FooterLinksEditorProps {
     footerLinks: FooterLink[];

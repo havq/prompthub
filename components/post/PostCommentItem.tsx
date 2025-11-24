@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PostComment, UserProfile } from '../../types';
+import { PostComment, UserProfile } from '../../utils/types';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { updatePostComment } from '../../services/api';

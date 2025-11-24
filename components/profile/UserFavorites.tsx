@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Prompt, Category } from '../../types';
+import { Prompt, Category } from '../../utils/types';
 import PromptCard from '../PromptCard';
 import { useLanguage } from '../../context/LanguageContext';
 // @ts-ignore

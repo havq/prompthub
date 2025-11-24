@@ -1,7 +1,7 @@
 
 // components/profile/UserCollections.tsx
 import React, { useState, useMemo } from 'react';
-import { Collection, Prompt } from '../../types';
+import { Collection, Prompt } from '../../utils/types';
 import { useAuth } from '../../context/AuthContext';
 import { createCollection, updateCollection, deleteCollection, togglePromptInCollection } from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';

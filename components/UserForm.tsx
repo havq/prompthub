@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { UserProfile, Badge, SocialLink } from '../types';
+import { UserProfile, Badge, SocialLink } from '../utils/types';
 import Spinner from './Spinner';
 import { uploadImage } from '../services/imageUploadService';
 import { useLanguage } from '../context/LanguageContext';

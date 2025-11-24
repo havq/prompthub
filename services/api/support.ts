@@ -1,5 +1,5 @@
 
-import { SupportTicket, TicketMessage } from '../../types';
+import { SupportTicket, TicketMessage } from '../../utils/types';
 import { fetchApi, mapItem, mapItems } from './core';
 
 export const getTickets = (userId?: string): Promise<SupportTicket[]> => {

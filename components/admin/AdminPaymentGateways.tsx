@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SepayConfig, PaypalConfig } from '../../types';
+import { SepayConfig, PaypalConfig } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
 import { useLanguage } from '../../context/LanguageContext';
 import Spinner from '../Spinner';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Prompt, UserProfile, Category, BannerAdSettings } from '../../types';
+import { Prompt, UserProfile, Category, BannerAdSettings } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { buildUrl } from '../../utils/permalinks';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';

@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getPost, getPostComments, addPostComment, deletePostComment, getUserProfile, getPosts, incrementPostViewCount, getPostCategories, getAllUsers } from '../services/api';
-import { Post, PostComment, UserProfile, PostCategoryWithCount } from '../types';
+import { Post, PostComment, UserProfile, PostCategoryWithCount } from '../utils/types';
 import { useAuth } from '../context/AuthContext';
 import { getSettings } from '../services/settingsService';
 import { commentRateLimiter } from '../components/PromptDetail/utils';
@@ -12,6 +12,7 @@ export const usePostDetail = (postId: string | undefined) => {
     const [comments, setComments] = useState<PostComment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [isLoadingComments, setIsLoadingComments] = useState(true);
     const [authorProfile, setAuthorProfile] = useState<UserProfile | null>(null);
     const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
     const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
@@ -45,11 +46,14 @@ export const usePostDetail = (postId: string | undefined) => {
 
     const fetchComments = useCallback(async () => {
         if (!postId) return;
+        setIsLoadingComments(true);
         try {
             const commentsData = await getPostComments(postId);
             setComments(commentsData);
         } catch (error) {
             console.error("Failed to fetch post comments:", error);
+        } finally {
+            setIsLoadingComments(false);
         }
     }, [postId]);
 
@@ -149,7 +153,7 @@ export const usePostDetail = (postId: string | undefined) => {
 
     return {
         post, categories, comments, isLoading, error, authorProfile, relatedPosts,
-        newComment, setNewComment, isPosting, commentError, countdown,
+        newComment, setNewComment, isPosting, commentError, countdown, isLoadingComments,
         replyingTo, setReplyingTo, deletingComment, setDeletingComment, isDeleting,
         currentUser, userProfile, isAdmin, allUsers,
         handlePostComment, handleDeleteComment, fetchComments,

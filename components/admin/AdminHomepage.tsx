@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HomeWidget, WidgetType, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount } from '../../types';
+import { HomeWidget, WidgetType, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAdminContext } from '../../context/AdminContext';

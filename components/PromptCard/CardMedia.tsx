@@ -1,5 +1,5 @@
 import React, { useRef, useMemo } from 'react';
-import { Prompt } from '../../types';
+import { Prompt } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { getRotationClass, getImageUrls, parseYouTubeUrl } from './utils';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';

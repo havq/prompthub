@@ -1,4 +1,4 @@
-import { UserProfile, TopContributor, AnalyticsData, Notification } from '../../types';
+import { UserProfile, TopContributor, AnalyticsData, Notification } from '../../utils/types';
 import { fetchApi, mapItems } from './core';
 import { createNotification } from './social';
 

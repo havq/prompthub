@@ -1,5 +1,5 @@
 
-import { Collection } from '../../types';
+import { Collection } from '../../utils/types';
 import { fetchApi, mapItems } from './core';
 
 export const getCollectionsForUser = (userId: string): Promise<Collection[]> => fetchApi<Collection[]>('collections', `&userId=${userId}`).then(mapItems);

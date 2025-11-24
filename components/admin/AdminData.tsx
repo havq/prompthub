@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Prompt, Category, CategoryWithCount } from '../../types';
+import { Prompt, Category, CategoryWithCount } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { addPrompt, addCategory } from '../../services/api';
 import ConfirmModal from '../ConfirmModal';

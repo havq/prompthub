@@ -1,12 +1,8 @@
-
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 // @ts-ignore
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Notification } from '../types';
+import { Notification } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import ConfirmModal from './ConfirmModal';
 

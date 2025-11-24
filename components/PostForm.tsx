@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Post, Category, UserProfile, UploadMethod } from '../types';
+import { Post, Category, UserProfile, UploadMethod } from '../utils/types';
 import Spinner from './Spinner';
 import CircularProgress from './CircularProgress';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';

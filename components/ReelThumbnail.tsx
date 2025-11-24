@@ -1,6 +1,6 @@
 
 import React, { useRef, useMemo } from 'react';
-import { Reel, ReelCategory } from '../types';
+import { Reel, ReelCategory } from '../utils/types';
 
 const parseYouTubeUrl = (url: string): { videoId: string | null } => {
     if (!url) {

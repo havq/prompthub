@@ -1,5 +1,5 @@
 
-import { Prompt } from '../types';
+import { Prompt } from '../utils/types';
 
 // A small list of common English and Vietnamese words to ignore during similarity calculation.
 // This helps focus on more meaningful keywords.

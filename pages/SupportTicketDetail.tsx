@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getTicket, getTicketMessages, sendTicketMessage, updateTicketStatus } from '../services/api';
-import { SupportTicket, TicketMessage } from '../types';
+import { SupportTicket, TicketMessage } from '../utils/types';
 import Spinner from '../components/Spinner';
 import { formatTimeAgo } from '../utils/formatters';
 import { useLanguage } from '../context/LanguageContext';

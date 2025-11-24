@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import Spinner from '../Spinner';
-import { ShowcaseImage } from '../../types';
+import { ShowcaseImage } from '../../utils/types';
 import { buildUrl } from '../../utils/permalinks';
 
 interface ShowcaseTabProps {

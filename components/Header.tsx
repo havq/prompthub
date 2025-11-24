@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { getSettings } from '../services/settingsService';
 import Spinner from './Spinner';
-import { HeaderStyle } from '../types';
+import { HeaderStyle } from '../utils/types';
 
 const HeaderStyle1 = lazy(() => import('./headers/HeaderStyle1'));
 const HeaderStyle2 = lazy(() => import('./headers/HeaderStyle2'));

@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Prompt, Category, Comment, ShowcaseImage, AppSettings, UserProfile } from '../types';
+import { Prompt, Category, Comment, ShowcaseImage, AppSettings, UserProfile } from '../utils/types';
 import { useAuth } from '../context/AuthContext';
 import { getCommentsForPrompt, addComment, deleteComment, getShowcaseImagesForPrompt, addShowcaseImage, deleteShowcaseImage as apiDeleteShowcaseImage, getUserProfile, incrementViewCount } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
@@ -13,8 +14,9 @@ import { parseYouTubeUrl, getImageUrls, formatCount } from './PromptDetail/utils
 import MediaViewer from './PromptDetail/MediaViewer';
 import PromptInfo from './PromptDetail/PromptInfo';
 import CommentsTab from './PromptDetail/CommentsTab';
-import ShowcaseTab from './PromptDetail/ShowcaseTab';
 import ReferenceImageViewer from './PromptCard/ReferenceImageViewer';
+// FIX: Import ShowcaseTab to resolve 'Cannot find name' error.
+import ShowcaseTab from './PromptDetail/ShowcaseTab';
 
 // Re-export for backward compatibility if needed by other files (e.g. CommentsModal)
 export { commentRateLimiter } from './PromptDetail/utils';

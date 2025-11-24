@@ -1,5 +1,5 @@
 
-import { Reel, ReelComment, PostCategory, PostCategoryWithCount, ReelCategory, ReelCategoryWithCount } from '../../types';
+import { Reel, ReelComment, PostCategory, PostCategoryWithCount, ReelCategory, ReelCategoryWithCount } from '../../utils/types';
 import { fetchApi, mapItem, mapItems } from './core';
 
 export interface GetReelsParams {

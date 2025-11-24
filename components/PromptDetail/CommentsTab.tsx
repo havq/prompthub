@@ -5,7 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import Spinner from '../Spinner';
 import CommentItem from './CommentItem';
 import Pagination from '../Pagination';
-import { AppSettings, Comment, UserProfile, Prompt } from '../../types';
+import { AppSettings, Comment, UserProfile, Prompt } from '../../utils/types';
 import { commentRateLimiter } from './utils';
 import MentionInput from '../MentionInput';
 import { getAllUsers } from '../../services/api';

@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { UploadMethod } from '../../types';
+import { UploadMethod } from '../../utils/types';
 import Spinner from '../Spinner';
 import CircularProgress from '../CircularProgress';
 import { Link } from 'react-router-dom';

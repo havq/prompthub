@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppSettings } from '../../../types';
+import { AppSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Prompt, Post } from '../types';
+import { Prompt, Post } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import { getSettings } from '../services/settingsService';
 import { buildUrl } from '../utils/permalinks';

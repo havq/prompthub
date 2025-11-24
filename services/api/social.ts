@@ -1,5 +1,5 @@
 
-import { Comment, Report, ShowcaseImage, Notification, Suggestion, Prompt, UserProfile } from '../../types';
+import { Comment, Report, ShowcaseImage, Notification, Suggestion, Prompt, UserProfile } from '../../utils/types';
 import { fetchApi, mapItem, mapItems } from './core';
 import { getPrompts } from './prompts';
 import { getUserProfile } from './users';

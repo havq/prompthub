@@ -1,5 +1,5 @@
 import { getSettings } from './settingsService';
-import { GamificationSettings } from '../types';
+import { GamificationSettings } from '../utils/types';
 
 export const getPointsConfig = (): Required<GamificationSettings> => {
     const settings = getSettings();
