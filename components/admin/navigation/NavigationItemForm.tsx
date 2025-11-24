@@ -48,7 +48,7 @@ const NavigationItemForm: React.FC<NavigationItemFormProps> = ({ item, allItems,
             linkType: linkType as any,
             linkedId: (linkType !== 'custom') ? linkedId : undefined,
             target: target as '_self' | '_blank',
-            parentId: (parentId === 'null') ? null : parentId, 
+            parentId: (parentId === 'null' || parentId === '') ? null : parentId, 
             requiresAuth, 
             requiresGuest
         };
@@ -57,7 +57,7 @@ const NavigationItemForm: React.FC<NavigationItemFormProps> = ({ item, allItems,
             ? { ...commonData, svgIcon }
             : commonData;
         
-        onSubmit({ ...(item || {}), ...itemData });
+        onSubmit({ ...(item || {} as any), ...itemData });
     };
 
     return (

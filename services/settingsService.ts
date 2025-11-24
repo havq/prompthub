@@ -12,6 +12,8 @@ const fallbackSettings: AppSettings = {
   relatedPostsCount: 5,
   appLogoLight: null,
   appLogoDark: null,
+  // FIX: Add missing 'firebaseConfig' property to satisfy the AppSettings type.
+  firebaseConfig: {},
   imageUploadMethod: ['server'],
   userImageUploadMethod: ['server'],
   proImageUploadMethod: ['server'],

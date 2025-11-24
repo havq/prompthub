@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Prompt, Collection, UserProfile, CategoryWithCount } from '../../utils/types';
-//import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/LanguageContext';
 import AIPromptGeneratorModal from '../AIPromptGeneratorModal';
 import LoginSuggestionModal from '../LoginSuggestionModal';
 import RemixPromptModal from '../RemixPromptModal';
