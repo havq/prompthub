@@ -391,12 +391,12 @@ function handle_prompts($conn, $method, $id, $get_params, $post_data) {
                     $authorName = $user_res['username'] ?? 'Unknown';
                     $user_stmt->close();
 
-                    // Sanitize text inputs
+                    // Sanitize title, but not text (which is JSON)
                     $sanitized_title = htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8');
-                    $sanitized_text = htmlspecialchars($data['text'] ?? '', ENT_QUOTES, 'UTF-8');
+                    $text_json = $data['text'] ?? '[]'; // Do not sanitize JSON string
 
                     $params = [
-                        $sanitized_title, $sanitized_text, $data['imageUrl'], $data['videoUrl'] ?? null, 
+                        $sanitized_title, $text_json, $data['imageUrl'], $data['videoUrl'] ?? null, 
                         $categoryIds, $tags, $authorId, $authorName, $remixedFrom, 
                         isset($data['commentsEnabled']) ? (int)$data['commentsEnabled'] : 1, $data['referenceImageUrl'] ?? null, isset($data['requiresUserImage']) ? (int)$data['requiresUserImage'] : 0,
                         isset($data['rotation']) ? (int)$data['rotation'] : 0
@@ -499,14 +499,14 @@ function handle_prompts($conn, $method, $id, $get_params, $post_data) {
                     send_error('Forbidden: You do not own this prompt', 403);
                 }
                 
-                // Sanitize
+                // Sanitize title, but not text (which is JSON)
                 $sanitized_title = htmlspecialchars($data['title'] ?? '', ENT_QUOTES, 'UTF-8');
-                $sanitized_text = htmlspecialchars($data['text'] ?? '', ENT_QUOTES, 'UTF-8');
+                $text_json = $data['text'] ?? '[]'; // Do not sanitize JSON string
 
                 $sql_fields_arr = ["title=?", "text=?", "imageUrl=?", "videoUrl=?", "categoryIds=?", "tags=?", "commentsEnabled=?", "referenceImageUrl=?", "requiresUserImage=?", "rotation=?"];
                 $types = "ssssssisii";
                 $params = [
-                    $sanitized_title, $sanitized_text, $data['imageUrl'], $data['videoUrl'] ?? null, 
+                    $sanitized_title, $text_json, $data['imageUrl'], $data['videoUrl'] ?? null, 
                     $categoryIds, $tags, 
                     isset($data['commentsEnabled']) ? (int)$data['commentsEnabled'] : 1, $data['referenceImageUrl'] ?? null, isset($data['requiresUserImage']) ? (int)$data['requiresUserImage'] : 0,
                     isset($data['rotation']) ? (int)$data['rotation'] : 0

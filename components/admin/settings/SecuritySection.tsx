@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AppSettings, RecaptchaSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
@@ -47,7 +48,7 @@ const SecuritySection: React.FC<SecuritySectionProps> = ({
                                 </div>
                                 <div>
                                     <label htmlFor="recaptcha-v2-secret" className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">v2 Secret Key (Private)</label>
-                                    <input type="password" id="recaptcha-v2-secret" value={settings.recaptchaSettings?.v2SecretKey || ''} onChange={e => handleRecaptchaChange('v2SecretKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                    <input type="text" id="recaptcha-v2-secret" value={settings.recaptchaSettings?.v2SecretKey || ''} onChange={e => handleRecaptchaChange('v2SecretKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
                                 </div>
                             </div>
                                 <div className="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg space-y-4">
@@ -58,7 +59,7 @@ const SecuritySection: React.FC<SecuritySectionProps> = ({
                                 </div>
                                 <div>
                                     <label htmlFor="recaptcha-v3-secret" className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">v3 Secret Key (Private)</label>
-                                    <input type="password" id="recaptcha-v3-secret" value={settings.recaptchaSettings?.v3SecretKey || ''} onChange={e => handleRecaptchaChange('v3SecretKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                    <input type="text" id="recaptcha-v3-secret" value={settings.recaptchaSettings?.v3SecretKey || ''} onChange={e => handleRecaptchaChange('v3SecretKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
                                 </div>
                             </div>
                         </>

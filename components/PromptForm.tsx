@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Prompt, CategoryWithCount, UserProfile, UploadMethod } from '../utils/types';
+import { Prompt, CategoryWithCount, UserProfile, UploadMethod, PromptTextEntry } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import Spinner from './Spinner';
 import PromptBasicDetails from './prompt-form/PromptBasicDetails';
@@ -36,7 +36,8 @@ export const PromptForm: React.FC<PromptFormProps> = ({
 
     // Basic Details
     const [title, setTitle] = useState('');
-    const [text, setText] = useState('');
+    const [promptTexts, setPromptTexts] = useState<PromptTextEntry[]>([{ lang: 'Tiếng Việt', text: '' }]);
+    const [activeLangIndex, setActiveLangIndex] = useState(0);
     const [promptNote, setPromptNote] = useState('');
     const [promptSource, setPromptSource] = useState('');
     const [tagsInput, setTagsInput] = useState('');
@@ -93,7 +94,25 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     useEffect(() => {
         if (initialData) {
             setTitle(initialData.title || '');
-            setText(initialData.text || '');
+            
+            let initialTexts: PromptTextEntry[] = [{ lang: 'Tiếng Việt', text: '' }];
+            if (initialData.text) {
+                try {
+                    const parsed = JSON.parse(initialData.text);
+                    if (Array.isArray(parsed) && parsed.length > 0 && 'lang' in parsed[0] && 'text' in parsed[0]) {
+                        initialTexts = parsed;
+                    } else if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && Object.keys(parsed).length > 0) {
+                        initialTexts = Object.entries(parsed).map(([lang, text]) => ({ lang, text: String(text) }));
+                    } else if (typeof parsed === 'string') {
+                         initialTexts = [{ lang: 'Tiếng Việt', text: parsed }];
+                    }
+                } catch (e) {
+                    initialTexts = [{ lang: 'Tiếng Việt', text: initialData.text }];
+                }
+            }
+            setPromptTexts(initialTexts);
+            setActiveLangIndex(0);
+
             setPromptNote(initialData.promptNote || '');
             setPromptSource(initialData.promptSource || '');
             setTagsInput(initialData.tags?.join(', ') || '');
@@ -123,7 +142,9 @@ export const PromptForm: React.FC<PromptFormProps> = ({
             setStatus(initialData.status || 'approved');
             setAuthorId(initialData.authorId || '');
         } else {
-            // Defaults
+            // Defaults for new prompt
+            setPromptTexts([{ lang: 'Tiếng Việt', text: '' }]);
+            setActiveLangIndex(0);
             setStatus(isUserAdmin ? 'approved' : 'pending');
             // Auto-select current user as author for new prompts if admin/user
             if (currentUser) {
@@ -137,7 +158,8 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     }, []);
 
     const handleSuggestTags = async () => {
-        if (!text.trim() || isSuggestingTags) return;
+        const currentText = promptTexts[activeLangIndex]?.text || '';
+        if (!currentText.trim() || isSuggestingTags) return;
         if (!process.env.API_KEY) {
             setSuggestTagsError("AI API Key not configured.");
             return;
@@ -148,7 +170,7 @@ export const PromptForm: React.FC<PromptFormProps> = ({
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const result = await ai.models.generateContent({
               model: 'gemini-2.5-flash',
-              contents: `Suggest 5 relevant tags for this prompt, separated by commas: "${text}"`,
+              contents: `Suggest 5 relevant tags for this prompt, separated by commas: "${currentText}"`,
             });
             const tags = result.text.split(',').map(t => t.trim()).join(', ');
             setTagsInput(prev => prev ? `${prev}, ${tags}` : tags);
@@ -298,8 +320,14 @@ export const PromptForm: React.FC<PromptFormProps> = ({
         e.preventDefault();
         if (isSubmitting || isUploading || isUploadingVideo || isUploadingReference) return;
 
+        const hasText = promptTexts.some(entry => entry.text.trim() !== '');
+        if (!hasText) {
+            alert("Please enter prompt text for at least one language.");
+            return;
+        }
+
         const promptData: any = {
-            title, text, promptNote: promptNote || undefined, promptSource: promptSource || undefined,
+            title, text: JSON.stringify(promptTexts), promptNote: promptNote || undefined, promptSource: promptSource || undefined,
             imageUrl: JSON.stringify(imageUrls),
             videoUrl: videoUrl || undefined,
             referenceImageUrl: requiresUserImage ? referenceImageUrl : undefined,
@@ -328,7 +356,10 @@ export const PromptForm: React.FC<PromptFormProps> = ({
                 <div className="space-y-4">
                     <PromptBasicDetails
                         title={title} setTitle={setTitle}
-                        text={text} setText={setText}
+                        promptTexts={promptTexts}
+                        setPromptTexts={setPromptTexts}
+                        activeLangIndex={activeLangIndex}
+                        setActiveLangIndex={setActiveLangIndex}
                         promptNote={promptNote} setPromptNote={setPromptNote}
                         promptSource={promptSource} setPromptSource={setPromptSource}
                         tagsInput={tagsInput} setTagsInput={setTagsInput}

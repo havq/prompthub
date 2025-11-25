@@ -1,6 +1,8 @@
 
 
 
+
+
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -58,6 +60,11 @@ export interface RewardPackage {
   days: number;
   label: string;
   enabled: boolean;
+}
+
+export interface PromptTextEntry {
+  lang: string;
+  text: string;
 }
 
 export interface GamificationSettings {
