@@ -37,6 +37,23 @@ const LoginPage: React.FC = () => {
   const from = location.state?.from?.pathname || "/";
 
   useEffect(() => {
+    const scriptId = 'google-gsi-script';
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    return () => {
+      const scriptTag = document.getElementById(scriptId);
+      if (scriptTag) {
+        document.head.removeChild(scriptTag);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (recaptchaSettings?.enabled && !window.recaptchaScriptLoaded) {
         const script = document.createElement('script');
         script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSettings.version === 'v3' ? recaptchaSettings.v3SiteKey : 'explicit'}`;

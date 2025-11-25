@@ -126,7 +126,7 @@ const PromptInfo: React.FC<PromptInfoProps> = ({
         const dropdownButtonText = isDropdownTabActive ? promptTexts[activeLangIndex].lang : 'More';
     
         return (
-            <div className="border-b border-gray-200 dark:border-gray-700">
+            <div className="border-b border-gray-200 dark:border-gray-700 mb-2">
                 <nav className="-mb-px flex space-x-4" aria-label="Tabs">
                     {visibleTabs.map((entry, index) => (
                         <button

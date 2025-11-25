@@ -1,4 +1,26 @@
 <?php
+/**
+ * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
+ *
+ * Tương tự như wp_strip_all_tags nhưng không sử dụng các hàm của WordPress.
+ *
+ * @param mixed $text Văn bản đầu vào. Nên là string.
+ * @param bool $remove_breaks Nếu TRUE, sẽ thay thế các ngắt dòng, tab,
+ * và các khoảng trắng thừa bằng một khoảng trắng đơn.
+ * @return string Văn bản đã được làm sạch.
+ */
+function strip_all_tags_pure( $text, $remove_breaks = false ) {
+    if ( is_null( $text ) ) { return ''; }
+    if ( ! is_scalar( $text ) ) { return ''; }
+    $text = (string) $text;
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+    $text = strip_tags( $text );
+    if ( $remove_breaks ) {
+        $text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+    }
+    return trim( $text );
+}
+
 function notify_admins_support($conn, $type, $ticketId, $snippet, $actorId, $actorName, $actorPhotoURL) {
     // Get all admins
     $stmt = $conn->prepare("SELECT uid FROM users WHERE role = 'Admin'");
@@ -95,10 +117,10 @@ function handle_support_tickets($conn, $method, $id, $get_params, $post_data) {
                 $userId = $current_user_uid;
                 
                 // Sanitize inputs
-                $username = isset($post_data['username']) ? htmlspecialchars($post_data['username'], ENT_QUOTES, 'UTF-8') : 'Unknown';
-                $userEmail = isset($post_data['userEmail']) ? htmlspecialchars($post_data['userEmail'], ENT_QUOTES, 'UTF-8') : '';
-                $subject = isset($post_data['subject']) ? htmlspecialchars($post_data['subject'], ENT_QUOTES, 'UTF-8') : '';
-                $category = isset($post_data['category']) ? htmlspecialchars($post_data['category'], ENT_QUOTES, 'UTF-8') : '';
+                $username = isset($post_data['username']) ? strip_all_tags_pure($post_data['username']) : 'Unknown';
+                $userEmail = isset($post_data['userEmail']) ? strip_all_tags_pure($post_data['userEmail']) : '';
+                $subject = isset($post_data['subject']) ? strip_all_tags_pure($post_data['subject']) : '';
+                $category = isset($post_data['category']) ? strip_all_tags_pure($post_data['category']) : '';
                 $status = 'open';
                 
                 if (empty($subject) || empty($category)) {
@@ -273,9 +295,12 @@ function handle_support_messages($conn, $method, $id, $get_params, $post_data) {
                 if ($ticket['status'] === 'closed' && !$is_admin_request) {
                      send_error('Cannot reply to closed tickets.', 400); return;
                 }
+                
+                $sanitized_text = strip_all_tags_pure($text);
+                $sanitized_senderName = strip_all_tags_pure($senderName);
 
                 $stmt = $conn->prepare("INSERT INTO support_messages (ticketId, senderId, senderName, text, isAdminReply) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param("isssi", $ticketId, $senderId, $senderName, $text, $isAdminReply);
+                $stmt->bind_param("isssi", $ticketId, $senderId, $sanitized_senderName, $sanitized_text, $isAdminReply);
                 $stmt->execute();
                 $newId = $stmt->insert_id;
                 
@@ -294,8 +319,8 @@ function handle_support_messages($conn, $method, $id, $get_params, $post_data) {
                 $u_stmt->close();
 
                 // Fallback for mb_substr
-                $sub = (function_exists('mb_substr') ? mb_substr($text, 0, 50) : substr($text, 0, 50));
-                $len = (function_exists('mb_strlen') ? mb_strlen($text) : strlen($text));
+                $sub = (function_exists('mb_substr') ? mb_substr($sanitized_text, 0, 50) : substr($sanitized_text, 0, 50));
+                $len = (function_exists('mb_strlen') ? mb_strlen($sanitized_text) : strlen($sanitized_text));
                 $snippet = $sub . ($len > 50 ? '...' : '');
 
                 if ($isAdminReply) {
@@ -306,7 +331,7 @@ function handle_support_messages($conn, $method, $id, $get_params, $post_data) {
                         $ticketId, 
                         $snippet, 
                         $ticket['userId'], 
-                        $senderName, 
+                        $sanitized_senderName, 
                         $senderPhoto
                     );
                 } else {
@@ -317,7 +342,7 @@ function handle_support_messages($conn, $method, $id, $get_params, $post_data) {
                         $ticketId, 
                         $snippet, 
                         $senderId, 
-                        $senderName, 
+                        $sanitized_senderName, 
                         $senderPhoto
                     );
                 }

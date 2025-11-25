@@ -1,6 +1,28 @@
 <?php
 // api/auth.php
 
+/**
+ * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
+ *
+ * Tương tự như wp_strip_all_tags nhưng không sử dụng các hàm của WordPress.
+ *
+ * @param mixed $text Văn bản đầu vào. Nên là string.
+ * @param bool $remove_breaks Nếu TRUE, sẽ thay thế các ngắt dòng, tab,
+ * và các khoảng trắng thừa bằng một khoảng trắng đơn.
+ * @return string Văn bản đã được làm sạch.
+ */
+function strip_all_tags_pure( $text, $remove_breaks = false ) {
+    if ( is_null( $text ) ) { return ''; }
+    if ( ! is_scalar( $text ) ) { return ''; }
+    $text = (string) $text;
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+    $text = strip_tags( $text );
+    if ( $remove_breaks ) {
+        $text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+    }
+    return trim( $text );
+}
+
 function create_jwt($uid, $email, $role, $is_admin) {
     $secret = JWT_SECRET_KEY; // Defined in api.php
     $issuedAt = time();
@@ -195,7 +217,7 @@ function handle_auth($conn, $method, $post_data) {
     } elseif ($action === 'google') {
         $access_token = $post_data['accessToken'] ?? '';
         if (!$access_token) {
-            send_error('Access token required.', 400);
+            send_error('Access token required.', 401);
         }
 
         // Verify with Google
@@ -286,6 +308,9 @@ function handle_auth($conn, $method, $post_data) {
         if (empty($username) || empty($email) || empty($password)) {
             send_error('All fields are required.', 400);
         }
+        
+        // Sanitize username
+        $username = strip_all_tags_pure($username);
 
         // Check existing
         $stmt = $conn->prepare("SELECT 1 FROM users WHERE email = ? OR username = ?");

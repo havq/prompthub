@@ -1,5 +1,26 @@
-
 <?php
+/**
+ * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
+ *
+ * Tương tự như wp_strip_all_tags nhưng không sử dụng các hàm của WordPress.
+ *
+ * @param mixed $text Văn bản đầu vào. Nên là string.
+ * @param bool $remove_breaks Nếu TRUE, sẽ thay thế các ngắt dòng, tab,
+ * và các khoảng trắng thừa bằng một khoảng trắng đơn.
+ * @return string Văn bản đã được làm sạch.
+ */
+function strip_all_tags_pure( $text, $remove_breaks = false ) {
+    if ( is_null( $text ) ) { return ''; }
+    if ( ! is_scalar( $text ) ) { return ''; }
+    $text = (string) $text;
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+    $text = strip_tags( $text );
+    if ( $remove_breaks ) {
+        $text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+    }
+    return trim( $text );
+}
+
 function clear_settings_cache($redis) {
     if (!$redis) return;
     $redis->del(['settings:public', 'settings:admin']);
@@ -136,6 +157,15 @@ function update_app_settings($conn, $new_settings) {
         $conn->begin_transaction();
         $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         
+        // Sanitize specific text fields before saving
+        if (isset($new_settings['appIntroduction']) && is_string($new_settings['appIntroduction'])) {
+            $new_settings['appIntroduction'] = strip_all_tags_pure($new_settings['appIntroduction']);
+        }
+        if (isset($new_settings['footerCopyrightText']) && is_string($new_settings['footerCopyrightText'])) {
+            $new_settings['footerCopyrightText'] = strip_all_tags_pure($new_settings['footerCopyrightText']);
+        }
+        // NOTE: footerDevelopedByText intentionally allows HTML, so it is NOT sanitized with strip_all_tags_pure.
+
         foreach ($new_settings as $key => $value) {
             $value_to_store = is_array($value) || is_object($value) ? json_encode($value) : ($value === false ? 'false' : ($value === true ? 'true' : $value));
             if ($value_to_store !== null) {

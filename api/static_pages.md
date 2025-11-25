@@ -1,5 +1,26 @@
-
 <?php
+/**
+ * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
+ *
+ * Tương tự như wp_strip_all_tags nhưng không sử dụng các hàm của WordPress.
+ *
+ * @param mixed $text Văn bản đầu vào. Nên là string.
+ * @param bool $remove_breaks Nếu TRUE, sẽ thay thế các ngắt dòng, tab,
+ * và các khoảng trắng thừa bằng một khoảng trắng đơn.
+ * @return string Văn bản đã được làm sạch.
+ */
+function strip_all_tags_pure( $text, $remove_breaks = false ) {
+    if ( is_null( $text ) ) { return ''; }
+    if ( ! is_scalar( $text ) ) { return ''; }
+    $text = (string) $text;
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+    $text = strip_tags( $text );
+    if ( $remove_breaks ) {
+        $text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+    }
+    return trim( $text );
+}
+
 function clear_static_pages_cache($redis) {
     if (!$redis) return;
     $redis->del('static_pages:all');
@@ -36,12 +57,14 @@ function handle_static_pages($conn, $method, $id, $get_params, $post_data) {
                 clear_static_pages_cache($redis);
                 $data = $post_data;
                 
-                // Sanitize HTML content
+                // Sanitize title and slug, but allow HTML in content for admin
+                $sanitized_title = strip_all_tags_pure($data['title']);
+                $sanitized_slug = strip_all_tags_pure($data['slug']);
                 $allowed_tags = '<p><a><b><i><u><ul><ol><li><blockquote><h1><h2><h3><h4><h5><h6><br><img><video><div><span>';
                 $sanitized_content = strip_tags($data['content'], $allowed_tags);
 
                 $stmt = $conn->prepare("INSERT INTO static_pages (title, slug, content) VALUES (?, ?, ?)");
-                $stmt->bind_param("sss", $data['title'], $data['slug'], $sanitized_content);
+                $stmt->bind_param("sss", $sanitized_title, $sanitized_slug, $sanitized_content);
                 $stmt->execute();
                 $newId = $stmt->insert_id;
                 $res_stmt = $conn->prepare("SELECT * FROM static_pages WHERE id=?");
@@ -54,12 +77,13 @@ function handle_static_pages($conn, $method, $id, $get_params, $post_data) {
                 if (!$id) send_error('Missing ID for PUT request', 400);
                 $data = $post_data;
                 
-                // Sanitize HTML content
+                $sanitized_title = strip_all_tags_pure($data['title']);
+                $sanitized_slug = strip_all_tags_pure($data['slug']);
                 $allowed_tags = '<p><a><b><i><u><ul><ol><li><blockquote><h1><h2><h3><h4><h5><h6><br><img><video><div><span>';
                 $sanitized_content = strip_tags($data['content'], $allowed_tags);
 
                 $stmt = $conn->prepare("UPDATE static_pages SET title=?, slug=?, content=?, updatedAt=NOW() WHERE id=?");
-                $stmt->bind_param("sssi", $data['title'], $data['slug'], $sanitized_content, $id);
+                $stmt->bind_param("sssi", $sanitized_title, $sanitized_slug, $sanitized_content, $id);
                 $stmt->execute();
                 send_json($data);
                 break;

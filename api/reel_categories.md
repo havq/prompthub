@@ -1,4 +1,26 @@
 <?php
+/**
+ * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
+ *
+ * Tương tự như wp_strip_all_tags nhưng không sử dụng các hàm của WordPress.
+ *
+ * @param mixed $text Văn bản đầu vào. Nên là string.
+ * @param bool $remove_breaks Nếu TRUE, sẽ thay thế các ngắt dòng, tab,
+ * và các khoảng trắng thừa bằng một khoảng trắng đơn.
+ * @return string Văn bản đã được làm sạch.
+ */
+function strip_all_tags_pure( $text, $remove_breaks = false ) {
+    if ( is_null( $text ) ) { return ''; }
+    if ( ! is_scalar( $text ) ) { return ''; }
+    $text = (string) $text;
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+    $text = strip_tags( $text );
+    if ( $remove_breaks ) {
+        $text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+    }
+    return trim( $text );
+}
+
 function clear_reel_categories_cache($redis) {
     if (!$redis) return;
     $keys = $redis->keys('reel_categories:*');
@@ -77,20 +99,22 @@ function handle_reel_categories($conn, $method, $id, $get_params, $post_data) {
                 $data = $post_data;
                 if (empty($data['name'])) send_error('Category name cannot be empty.', 400);
                 
+                $sanitized_name = strip_all_tags_pure($data['name']);
+
                 // Check if parentId column exists
                 $check_col = $conn->query("SHOW COLUMNS FROM `reel_categories` LIKE 'parentId'");
                 if ($check_col->num_rows > 0) {
                     $parentId = !empty($data['parentId']) ? (int)$data['parentId'] : null;
                     $stmt = $conn->prepare("INSERT INTO reel_categories (name, parentId) VALUES (?, ?)");
-                    $stmt->bind_param("si", $data['name'], $parentId);
+                    $stmt->bind_param("si", $sanitized_name, $parentId);
                 } else {
                     $stmt = $conn->prepare("INSERT INTO reel_categories (name) VALUES (?)");
-                    $stmt->bind_param("s", $data['name']);
+                    $stmt->bind_param("s", $sanitized_name);
                 }
                 
                 $stmt->execute();
                 $newId = $stmt->insert_id;
-                send_json(['id' => $newId, 'name' => $data['name'], 'parentId' => $data['parentId'] ?? null]);
+                send_json(['id' => $newId, 'name' => $sanitized_name, 'parentId' => $data['parentId'] ?? null]);
                 break;
             case 'PUT':
                 if (!$is_admin_request) send_error('Administrator access required.', 403);
@@ -99,6 +123,8 @@ function handle_reel_categories($conn, $method, $id, $get_params, $post_data) {
                 $data = $post_data;
                 if (empty($data['name'])) send_error('Category name cannot be empty.', 400);
                 
+                $sanitized_name = strip_all_tags_pure($data['name']);
+
                  // Check if parentId column exists
                 $check_col = $conn->query("SHOW COLUMNS FROM `reel_categories` LIKE 'parentId'");
                 if ($check_col->num_rows > 0) {
@@ -106,10 +132,10 @@ function handle_reel_categories($conn, $method, $id, $get_params, $post_data) {
                     if ($parentId == $id) $parentId = null; // Prevent self-parenting
 
                     $stmt = $conn->prepare("UPDATE reel_categories SET name=?, parentId=? WHERE id=?");
-                    $stmt->bind_param("sii", $data['name'], $parentId, $id);
+                    $stmt->bind_param("sii", $sanitized_name, $parentId, $id);
                 } else {
                     $stmt = $conn->prepare("UPDATE reel_categories SET name=? WHERE id=?");
-                    $stmt->bind_param("si", $data['name'], $id);
+                    $stmt->bind_param("si", $sanitized_name, $id);
                 }
                 
                 $stmt->execute();

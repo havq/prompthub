@@ -1,4 +1,26 @@
 <?php
+/**
+ * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
+ *
+ * Tương tự như wp_strip_all_tags nhưng không sử dụng các hàm của WordPress.
+ *
+ * @param mixed $text Văn bản đầu vào. Nên là string.
+ * @param bool $remove_breaks Nếu TRUE, sẽ thay thế các ngắt dòng, tab,
+ * và các khoảng trắng thừa bằng một khoảng trắng đơn.
+ * @return string Văn bản đã được làm sạch.
+ */
+function strip_all_tags_pure( $text, $remove_breaks = false ) {
+    if ( is_null( $text ) ) { return ''; }
+    if ( ! is_scalar( $text ) ) { return ''; }
+    $text = (string) $text;
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+    $text = strip_tags( $text );
+    if ( $remove_breaks ) {
+        $text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+    }
+    return trim( $text );
+}
+
 function handle_reports($conn, $method, $id, $get_params, $post_data) {
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     try {
@@ -10,7 +32,7 @@ function handle_reports($conn, $method, $id, $get_params, $post_data) {
             case 'POST':
                 $data = $post_data;
                 $stmt = $conn->prepare("INSERT INTO reports (promptId, promptText, reason, details, userId, username) VALUES (?, ?, ?, ?, ?, ?)");
-                $details = isset($data['details']) ? htmlspecialchars($data['details'], ENT_QUOTES, 'UTF-8') : null;
+                $details = isset($data['details']) ? strip_all_tags_pure($data['details']) : null;
                 $userId = $data['userId'] ?? null;
                 $username = $data['username'] ?? null;
                 $stmt->bind_param("isssss", $data['promptId'], $data['promptText'], $data['reason'], $details, $userId, $username);

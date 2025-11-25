@@ -1,4 +1,26 @@
 <?php
+/**
+ * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
+ *
+ * Tương tự như wp_strip_all_tags nhưng không sử dụng các hàm của WordPress.
+ *
+ * @param mixed $text Văn bản đầu vào. Nên là string.
+ * @param bool $remove_breaks Nếu TRUE, sẽ thay thế các ngắt dòng, tab,
+ * và các khoảng trắng thừa bằng một khoảng trắng đơn.
+ * @return string Văn bản đã được làm sạch.
+ */
+function strip_all_tags_pure( $text, $remove_breaks = false ) {
+    if ( is_null( $text ) ) { return ''; }
+    if ( ! is_scalar( $text ) ) { return ''; }
+    $text = (string) $text;
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+    $text = strip_tags( $text );
+    if ( $remove_breaks ) {
+        $text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+    }
+    return trim( $text );
+}
+
 function add_points_to_user($conn, $userId, $points) {
     if (!$userId || $points <= 0) return false;
     try {
@@ -153,21 +175,23 @@ function handle_collections($conn, $method, $id, $get_params, $post_data) {
                         send_error('Collection not found or permission denied', 404);
                     }
                 } else { // Create collection
+                    $sanitized_name = strip_all_tags_pure($data['name']);
                     $stmt = $conn->prepare("INSERT INTO collections (name, userId) VALUES (?, ?)");
-                    $stmt->bind_param("ss", $data['name'], $userId);
+                    $stmt->bind_param("ss", $sanitized_name, $userId);
                     $stmt->execute();
                     $newId = $stmt->insert_id;
-                    send_json(['id' => (string)$newId, 'name' => $data['name'], 'userId' => $userId, 'promptIds' => new stdClass()]);
+                    send_json(['id' => (string)$newId, 'name' => $sanitized_name, 'userId' => $userId, 'promptIds' => new stdClass()]);
                 }
                 break;
             case 'PUT':
                 clear_collections_cache($redis, $userId);
                 if (!$id) send_error('Missing ID for PUT request', 400);
                 $data = $post_data;
+                $sanitized_name = strip_all_tags_pure($data['name']);
                 $stmt = $conn->prepare("UPDATE collections SET name = ? WHERE id = ? AND userId = ?");
-                $stmt->bind_param("sis", $data['name'], $id, $userId);
+                $stmt->bind_param("sis", $sanitized_name, $id, $userId);
                 $stmt->execute();
-                send_json(['id' => (string)$id, 'name' => $data['name']]);
+                send_json(['id' => (string)$id, 'name' => $sanitized_name]);
                 break;
             case 'DELETE':
                 clear_collections_cache($redis, $userId);

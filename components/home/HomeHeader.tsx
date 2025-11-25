@@ -92,11 +92,11 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
                     </div>
                     <div className="grid grid-cols-2 sm:flex items-center sm:justify-end gap-2 w-full sm:w-auto">
                         {showAIPromptIdeasButton && (
-                            <button onClick={handleAIGeneratorClick} className="col-span-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-white hover:bg-indigo-200 dark:hover:bg-indigo-700">
+                            <button onClick={handleAIGeneratorClick} className="col-span-1 flex items-center justify-center gap-2 px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-white hover:bg-indigo-200 dark:hover:bg-indigo-700">
                                 💡 {t('home.generateWithAI')}
                             </button>
                         )}
-                        <button onClick={handleSubmitPromptClick} className={`col-span-1 flex items-center justify-center px-3 py-2.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 ${!showAIPromptIdeasButton ? 'col-span-2' : ''}`}>
+                        <button onClick={handleSubmitPromptClick} className={`col-span-1 flex items-center justify-center px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 ${!showAIPromptIdeasButton ? 'col-span-2' : ''}`}>
                             {t('home.submitPrompt')}
                         </button>
                         {/* Desktop Filter Button */}
