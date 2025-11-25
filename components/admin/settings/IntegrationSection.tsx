@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig } from '../../../utils/types';
+import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig, CloudflareR2Config } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 import Spinner from '../../Spinner';
@@ -23,6 +23,7 @@ const uploadOptions: { value: UploadMethod; label: string }[] = [
     { value: 'server', label: 'Server' },
     { value: 'imgbb', label: 'ImgBB' },
     { value: 'cloudinary', label: 'Cloudinary' },
+    { value: 'r2', label: 'Cloudflare R2' },
     { value: 'tumblr', label: 'Tumblr' },
     { value: 'base64', label: 'Base64' }
 ];
@@ -101,7 +102,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                                <input type="password" value={settings.smtpConfig?.password || ''} onChange={e => handleSmtpChange('password', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="App Password (if 2FA on)" />
+                                <input type="text" value={settings.smtpConfig?.password || ''} onChange={e => handleSmtpChange('password', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="App Password (if 2FA on)" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Encryption</label>
@@ -164,7 +165,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Apply to Services</label>
                                 <div className="mt-2 grid grid-cols-2 gap-2">
-                                    {(['cloudinary', 'tumblr', 'imgbb', 'server'] as UploadMethod[]).map(method => (
+                                    {(['cloudinary', 'tumblr', 'imgbb', 'server', 'r2'] as UploadMethod[]).map(method => (
                                         <label key={method} className="flex items-center gap-2">
                                             <input type="checkbox" checked={settings.watermarkSettings?.applyTo?.includes(method)} onChange={e => handleWatermarkApplyToChange(method, e.target.checked)} className="h-4 w-4 rounded" />
                                             <span className="text-sm capitalize">{method}</span>
@@ -219,7 +220,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             {(settings.imgbbApiKeys || []).map((item, index) => (
                                 <div key={item.id} className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
                                     <div className="flex items-center gap-2">
-                                        <input type="text" placeholder="API Key" value={item.key} onChange={e => handleRepeaterChange('imgbbApiKeys', index, 'key', e.target.value)} className="flex-grow bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                        <input type="text" placeholder="API Key" value={item.key || ''} onChange={e => handleRepeaterChange('imgbbApiKeys', index, 'key', e.target.value)} className="flex-grow bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
                                         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.enabled} onChange={e => handleRepeaterChange('imgbbApiKeys', index, 'enabled', e.target.checked)} className="h-4 w-4 rounded" /> Enabled</label>
                                         <button type="button" onClick={() => handleRemoveRepeaterItem('imgbbApiKeys', item.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg></button>
                                     </div>
@@ -235,8 +236,8 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                         <div className="space-y-2 mt-3">
                             {(settings.cloudinaryConfigs || []).map((item, index) => (
                                 <div key={item.id} className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
-                                    <input type="text" placeholder="Cloud Name" value={item.cloudName} onChange={e => handleRepeaterChange('cloudinaryConfigs', index, 'cloudName', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
-                                    <input type="text" placeholder="Upload Preset" value={item.uploadPreset} onChange={e => handleRepeaterChange('cloudinaryConfigs', index, 'uploadPreset', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
+                                    <input type="text" placeholder="Cloud Name" value={item.cloudName || ''} onChange={e => handleRepeaterChange('cloudinaryConfigs', index, 'cloudName', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
+                                    <input type="text" placeholder="Upload Preset" value={item.uploadPreset || ''} onChange={e => handleRepeaterChange('cloudinaryConfigs', index, 'uploadPreset', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
                                     <div className="flex items-center justify-between">
                                         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.enabled} onChange={e => handleRepeaterChange('cloudinaryConfigs', index, 'enabled', e.target.checked)} className="h-4 w-4 rounded" /> Enabled</label>
                                         <button type="button" onClick={() => handleRemoveRepeaterItem('cloudinaryConfigs', item.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg></button>
@@ -246,6 +247,27 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             <button type="button" onClick={() => handleAddRepeaterItem('cloudinaryConfigs')} className="w-full text-center py-2 border-2 border-dashed rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm font-medium text-gray-600 dark:text-gray-400">+ Add Cloudinary Config</button>
                         </div>
                     </div>
+                    {/* R2 REPEATER */}
+                    <div>
+                        <h4 className="font-semibold text-gray-800 dark:text-white">Cloudflare R2 Configurations</h4>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Configure R2 buckets for direct-from-browser uploads using presigned URLs. The backend needs corresponding credentials. <a href="https://developers.cloudflare.com/r2/api/s3/presigned-urls/" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline">Learn more</a>.</p>
+                        <div className="space-y-2 mt-3">
+                            {(settings.r2Configs || []).map((item, index) => (
+                                <div key={item.id} className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
+                                    <input type="text" placeholder="Account ID" value={item.accountId || ''} onChange={e => handleRepeaterChange('r2Configs', index, 'accountId', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
+                                    <input type="text" placeholder="Access Key ID" value={item.accessKeyId || ''} onChange={e => handleRepeaterChange('r2Configs', index, 'accessKeyId', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
+                                    <input type="text" placeholder="Secret Access Key" value={item.secretAccessKey || ''} onChange={e => handleRepeaterChange('r2Configs', index, 'secretAccessKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
+                                    <input type="text" placeholder="Bucket Name" value={item.bucketName || ''} onChange={e => handleRepeaterChange('r2Configs', index, 'bucketName', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
+                                    <input type="url" placeholder="Public URL (e.g., https://pub-....r2.dev)" value={item.publicUrl || ''} onChange={e => handleRepeaterChange('r2Configs', index, 'publicUrl', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm" />
+                                    <div className="flex items-center justify-between">
+                                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.enabled} onChange={e => handleRepeaterChange('r2Configs', index, 'enabled', e.target.checked)} className="h-4 w-4 rounded" /> Enabled</label>
+                                        <button type="button" onClick={() => handleRemoveRepeaterItem('r2Configs', item.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg></button>
+                                    </div>
+                                </div>
+                            ))}
+                            <button type="button" onClick={() => handleAddRepeaterItem('r2Configs')} className="w-full text-center py-2 border-2 border-dashed rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm font-medium text-gray-600 dark:text-gray-400">+ Add R2 Configuration</button>
+                        </div>
+                    </div>
                     {/* TUMBLR REPEATER */}
                     <div>
                         <h4 className="font-semibold text-gray-800 dark:text-white">Tumblr API Credentials</h4>
@@ -253,11 +275,11 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                         <div className="space-y-2 mt-3">
                             {(settings.tumblrConfigs || []).map((item, index) => (
                                 <div key={item.id} className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
-                                    <input type="text" placeholder="Consumer Key" value={item.consumerKey} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'consumerKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
-                                    <input type="password" placeholder="Consumer Secret" value={item.consumerSecret} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'consumerSecret', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
-                                    <input type="text" placeholder="Token" value={item.token} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'token', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
-                                    <input type="password" placeholder="Token Secret" value={item.tokenSecret} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'tokenSecret', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
-                                    <input type="text" placeholder="Blog Identifier (e.g., yourblog.tumblr.com)" value={item.blogIdentifier} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'blogIdentifier', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                    <input type="text" placeholder="Consumer Key" value={item.consumerKey || ''} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'consumerKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                    <input type="text" placeholder="Consumer Secret" value={item.consumerSecret || ''} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'consumerSecret', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                    <input type="text" placeholder="Token" value={item.token || ''} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'token', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                    <input type="text" placeholder="Token Secret" value={item.tokenSecret || ''} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'tokenSecret', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                    <input type="text" placeholder="Blog Identifier (e.g., yourblog.tumblr.com)" value={item.blogIdentifier || ''} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'blogIdentifier', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
                                     <div className="flex items-center justify-between">
                                         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.enabled} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'enabled', e.target.checked)} className="h-4 w-4 rounded" /> Enabled</label>
                                         <button type="button" onClick={() => handleRemoveRepeaterItem('tumblrConfigs', item.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg></button>

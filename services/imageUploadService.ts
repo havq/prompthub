@@ -4,11 +4,73 @@ import { uploadToCloudinary } from './cloudinaryService';
 import { uploadToServer } from './serverUploadService';
 import { uploadToTumblr } from './tumblrService';
 import { UploadMethod, WatermarkSettings } from '../utils/types';
+import { fetchApi } from './api/core';
 
 interface UploadResult {
     imageUrl: string;
     videoUrl?: string;
 }
+
+export const uploadToR2 = async (file: File): Promise<UploadResult> => {
+    const settings = getSettings();
+    const activeConfigs = (settings.r2Configs || []).filter(c => c.enabled);
+    
+    if (activeConfigs.length === 0) {
+        throw new Error("Cloudflare R2 is not configured or enabled in the admin settings.");
+    }
+    
+    // Use the first enabled config for simplicity.
+    const config = activeConfigs[0];
+    
+    try {
+        // Step 1: Request a presigned URL from the backend.
+        const presignedUrlResponse = await fetchApi<{ uploadUrl: string; finalUrl: string }>(
+            'upload', 
+            '&action=generate-r2-presigned-url', 
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    fileName: file.name,
+                    contentType: file.type,
+                    configId: config.id
+                })
+            }
+        );
+
+        if (!presignedUrlResponse.uploadUrl || !presignedUrlResponse.finalUrl) {
+            throw new Error("Failed to get a presigned URL from the server.");
+        }
+
+        // Step 2: Upload the file directly to R2 using the presigned URL.
+        const uploadResponse = await fetch(presignedUrlResponse.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'Content-Type': file.type
+            }
+        });
+
+        if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text();
+            throw new Error(`Failed to upload to Cloudflare R2: ${uploadResponse.status} ${errorText}`);
+        }
+        
+        // Step 3: Return the final public URL.
+        const isVideo = file.type.startsWith('video/');
+        return {
+            imageUrl: isVideo ? '' : presignedUrlResponse.finalUrl,
+            videoUrl: isVideo ? presignedUrlResponse.finalUrl : undefined
+        };
+
+    } catch (error) {
+        console.error("Error during Cloudflare R2 upload process:", error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error("An unknown error occurred during R2 upload.");
+    }
+};
+
 
 const applyWatermark = (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -254,6 +316,9 @@ export const uploadImage = async (file: File, methodOverride?: UploadMethod, rol
         }
     }
 
+    if (method === 'r2') {
+        return uploadToR2(fileToUpload);
+    }
 
     if (method === 'tumblr') {
         return uploadToTumblr(fileToUpload);

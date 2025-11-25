@@ -13,7 +13,6 @@ function handle_settings($conn, $method, $get_params, $post_data, $is_admin_requ
     switch ($method) {
         case 'GET': get_app_settings($conn, $is_admin_request); break;
         case 'PUT': 
-            // SECURITY: Only admins can update settings
             if (!$is_admin_request) {
                 send_error('Forbidden: Only administrators can update settings.', 403);
                 return;
@@ -48,7 +47,6 @@ function get_app_settings($conn, $is_admin_request) {
             }
         }
         
-        // Fallback to JSON if DB is empty (Initialization logic)
         if (empty($settings_from_db) && file_exists('../database/settings.json')) {
             $settings_from_json = json_decode(file_get_contents('../database/settings.json'), true);
             if (is_array($settings_from_json)) {
@@ -66,13 +64,32 @@ function get_app_settings($conn, $is_admin_request) {
         }
 
         $final_settings = [];
-        $json_keys = ['firebaseConfig', 'adSettings', 'reelsAdSettings', 'reelsBannerAdSettings', 'navigationMenu', 'bottomTabMenu', 'footerLinks', 'customBadgeIcons', 'cloudinaryUploadPresets', 'overlayAdSettings', 'topBannerAdSettings', 'bottomBannerAdSettings', 'sidebarTopAdSettings', 'sidebarBottomAdSettings', 'promptDetailAdSettings', 'promptCardSettings', 'footerSocialLinks', 'imageUploadMethod', 'userImageUploadMethod', 'proImageUploadMethod', 'videoUploadMethod', 'userVideoUploadMethod', 'proVideoUploadMethod', 'imgbbApiKeys', 'cloudinaryConfigs', 'tumblrConfigs', 'sepayConfig', 'paypalConfig', 'permalinkSettings', 'cookieConsentSettings', 'languageSettings', 'recaptchaSettings', 'notificationBarSettings', 'watermarkSettings', 'homeLayout', 'rewardPackages', 'smtpConfig'];
+        $json_keys = [
+            'footerSocialLinks', 'footerLinks', 'navigationMenu', 'bottomTabMenu', 'customBadgeIcons',
+            'adSettings', 'reelsAdSettings', 'reelsBannerAdSettings', 'overlayAdSettings',
+            'topBannerAdSettings', 'bottomBannerAdSettings', 'sidebarTopAdSettings',
+            'sidebarBottomAdSettings', 'promptDetailAdSettings', 'promptCardSettings',
+            'permalinkSettings',
+            'cookieConsentSettings',
+            'languageSettings',
+            'recaptchaSettings',
+            'imgbbApiKeys', 'cloudinaryConfigs', 'tumblrConfigs', 'r2Configs', 'sepayConfig', 'paypalConfig',
+            'imageUploadMethod', 'userImageUploadMethod', 'proImageUploadMethod',
+            'videoUploadMethod', 'userVideoUploadMethod', 'proVideoUploadMethod',
+            'notificationBarSettings',
+            'watermarkSettings',
+            'homeLayout',
+            'rewardPackages',
+            'gamificationSettings',
+            'smtpConfig'
+        ];
         
         foreach ($settings_from_db as $key => $value) {
             if ($value === null) continue;
-            if (in_array($key, $json_keys)) {
-                $decoded_value = json_decode($value, true);
-                if (json_last_error() === JSON_ERROR_NONE) $final_settings[$key] = $decoded_value;
+
+            $decoded_value = json_decode($value, true);
+            if (in_array($key, $json_keys) && json_last_error() === JSON_ERROR_NONE) {
+                $final_settings[$key] = $decoded_value;
             } elseif (is_numeric($value) && strpos($value, '.') !== false) { $final_settings[$key] = (float)$value; } 
             elseif (is_numeric($value)) { $final_settings[$key] = (int)$value; } 
             elseif ($value === 'true') { $final_settings[$key] = true; } 
@@ -80,42 +97,26 @@ function get_app_settings($conn, $is_admin_request) {
             else { $final_settings[$key] = $value; }
         }
         
-        // SECURITY: Filter sensitive data for non-admin users
         if (!$is_admin_request) {
-            // Do NOT unset firebaseConfig as it is needed for client-side auth
             unset($final_settings['adminPassword']);
-            unset($final_settings['externalApiUrl']); // Optionally hide if internal
-            unset($final_settings['smtpConfig']); // Hide entirely from public
-            
-            // NOTE: ImgBB and Cloudinary keys MUST be exposed to the frontend for 
-            // client-side uploads to work. Do not unset them here.
-            // Only unset Tumblr configs as Tumblr uses a server-side proxy.
+            unset($final_settings['externalApiUrl']);
+            unset($final_settings['smtpConfig']);
             unset($final_settings['tumblrConfigs']);
+            unset($final_settings['r2Configs']);
             
-            // For payment configs, remove secret keys but keep public IDs
+            if (isset($final_settings['imgbbApiKeys'])) {
+                $final_settings['imgbbApiKeys'] = array_map(function($item) { unset($item['key']); return $item; }, $final_settings['imgbbApiKeys']);
+            }
             if (isset($final_settings['sepayConfig']) && is_array($final_settings['sepayConfig'])) {
                 unset($final_settings['sepayConfig']['secretKey']);
             }
             if (isset($final_settings['paypalConfig']) && is_array($final_settings['paypalConfig'])) {
                 unset($final_settings['paypalConfig']['clientSecret']);
             }
-
-            // Hide Recaptcha Secret Keys
             if (isset($final_settings['recaptchaSettings']) && is_array($final_settings['recaptchaSettings'])) {
                 unset($final_settings['recaptchaSettings']['v2SecretKey']);
                 unset($final_settings['recaptchaSettings']['v3SecretKey']);
             }
-            
-            // Cleanup legacy keys if they exist in DB
-            unset($final_settings['imgbbApiKey']);
-            unset($final_settings['cloudinaryCloudName']);
-            unset($final_settings['cloudinaryUploadPresets']);
-            unset($final_settings['tumblrConsumerKey']);
-            unset($final_settings['tumblrConsumerSecret']);
-            unset($final_settings['tumblrToken']);
-            unset($final_settings['tumblrTokenSecret']);
-            unset($final_settings['paypal_access_token_live']);
-            unset($final_settings['paypal_access_token_sandbox']);
         }
         
         $jsonResponse = json_encode($final_settings, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
@@ -136,7 +137,6 @@ function update_app_settings($conn, $new_settings) {
         $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         
         foreach ($new_settings as $key => $value) {
-            // Sanitize or block certain keys if necessary
             $value_to_store = is_array($value) || is_object($value) ? json_encode($value) : ($value === false ? 'false' : ($value === true ? 'true' : $value));
             if ($value_to_store !== null) {
                 $stmt->bind_param("ss", $key, $value_to_store);

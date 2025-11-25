@@ -1,9 +1,10 @@
 
 
+
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
-export type UploadMethod = 'server' | 'imgbb' | 'cloudinary' | 'tumblr' | 'base64';
+export type UploadMethod = 'server' | 'imgbb' | 'cloudinary' | 'tumblr' | 'base64' | 'r2';
 
 export interface AuthUser {
   uid: string;
@@ -85,6 +86,7 @@ export interface AppSettings {
   imgbbApiKeys: ImgbbKey[];
   cloudinaryConfigs: CloudinaryConfig[];
   tumblrConfigs: TumblrConfig[];
+  r2Configs: CloudflareR2Config[];
   sepayConfig: SepayConfig;
   paypalConfig: PaypalConfig;
   proPriceVND: number;
@@ -174,6 +176,16 @@ export interface TumblrConfig {
   token: string;
   tokenSecret: string;
   blogIdentifier: string;
+  enabled: boolean;
+}
+
+export interface CloudflareR2Config {
+  id: string;
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucketName: string;
+  publicUrl: string;
   enabled: boolean;
 }
 

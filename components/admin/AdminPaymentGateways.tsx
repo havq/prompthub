@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SepayConfig, PaypalConfig } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
@@ -36,7 +37,7 @@ const AdminPaymentGateways: React.FC = () => {
             setIsActionLoading(false);
         }
     };
-    
+
     return (
         <div className="space-y-8">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -62,8 +63,8 @@ const AdminPaymentGateways: React.FC = () => {
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Configure SePay credentials to enable Pro account upgrades.</p>
                         <div className="space-y-2 mt-3">
                             <div className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
-                                <input type="text" placeholder="Store ID" value={sepayConfig.storeId} onChange={e => handleSepayChange('storeId', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
-                                <input type="password" placeholder="Secret Key" value={sepayConfig.secretKey} onChange={e => handleSepayChange('secretKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                <input type="text" placeholder="Store ID" value={sepayConfig.storeId || ''} onChange={e => handleSepayChange('storeId', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                <input type="text" placeholder="Secret Key" value={sepayConfig.secretKey || ''} onChange={e => handleSepayChange('secretKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
                                 <div className="flex items-center justify-between">
                                     <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={sepayConfig.enabled} onChange={e => handleSepayChange('enabled', e.target.checked)} className="h-4 w-4 rounded" /> Enabled</label>
                                 </div>
@@ -76,8 +77,8 @@ const AdminPaymentGateways: React.FC = () => {
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Configure PayPal credentials for international payments.</p>
                         <div className="space-y-2 mt-3">
                             <div className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
-                                <input type="text" placeholder="Client ID" value={paypalConfig.clientId} onChange={e => handlePaypalChange('clientId', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
-                                <input type="password" placeholder="Client Secret" value={paypalConfig.clientSecret} onChange={e => handlePaypalChange('clientSecret', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                <input type="text" placeholder="Client ID" value={paypalConfig.clientId || ''} onChange={e => handlePaypalChange('clientId', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
+                                <input type="text" placeholder="Client Secret" value={paypalConfig.clientSecret || ''} onChange={e => handlePaypalChange('clientSecret', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
                                 <select value={paypalConfig.mode} onChange={e => handlePaypalChange('mode', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm">
                                     <option value="sandbox">Sandbox (Testing)</option>
                                     <option value="live">Live (Production)</option>

@@ -1,7 +1,8 @@
 
 
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod, GamificationSettings } from '../../utils/types';
+import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod, GamificationSettings, CloudflareR2Config } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage, Language } from '../../context/LanguageContext';
@@ -144,8 +145,8 @@ const AdminSettings: React.FC = () => {
         }));
     };
     
-    const handleRepeaterChange = <T extends ImgbbKey | CloudinaryConfig | TumblrConfig | SepayConfig | PaypalConfig>(
-        key: 'imgbbApiKeys' | 'cloudinaryConfigs' | 'tumblrConfigs', 
+    const handleRepeaterChange = <T extends ImgbbKey | CloudinaryConfig | TumblrConfig | CloudflareR2Config>(
+        key: 'imgbbApiKeys' | 'cloudinaryConfigs' | 'tumblrConfigs' | 'r2Configs', 
         index: number, 
         field: string, 
         value: any
@@ -157,16 +158,23 @@ const AdminSettings: React.FC = () => {
         }
     };
     
-    const handleAddRepeaterItem = (key: 'imgbbApiKeys' | 'cloudinaryConfigs' | 'tumblrConfigs') => {
+    const handleAddRepeaterItem = (key: 'imgbbApiKeys' | 'cloudinaryConfigs' | 'tumblrConfigs' | 'r2Configs') => {
         const newItem: any = { id: `new-${Date.now()}`, enabled: true };
         if (key === 'imgbbApiKeys') newItem.key = '';
         if (key === 'cloudinaryConfigs') { newItem.cloudName = ''; newItem.uploadPreset = ''; }
         if (key === 'tumblrConfigs') { newItem.consumerKey = ''; newItem.consumerSecret = ''; newItem.token = ''; newItem.tokenSecret = ''; newItem.blogIdentifier = ''; }
+        if (key === 'r2Configs') {
+            newItem.accountId = '';
+            newItem.accessKeyId = '';
+            newItem.secretAccessKey = '';
+            newItem.bucketName = '';
+            newItem.publicUrl = '';
+        }
         
         handleSettingsChange(key, [...(localSettings[key] as any[] || []), newItem] as any);
     };
 
-    const handleRemoveRepeaterItem = (key: 'imgbbApiKeys' | 'cloudinaryConfigs' | 'tumblrConfigs', id: string) => {
+    const handleRemoveRepeaterItem = (key: 'imgbbApiKeys' | 'cloudinaryConfigs' | 'tumblrConfigs' | 'r2Configs', id: string) => {
         handleSettingsChange(key, (localSettings[key] as any[] || []).filter(item => item.id !== id) as any);
     };
 
@@ -357,9 +365,9 @@ const AdminSettings: React.FC = () => {
                         handleWatermarkApplyToChange={handleWatermarkApplyToChange}
                         isUploadingLogo={isUploadingLogo}
                         handleLogoChange={handleLogoChange}
-                        handleRepeaterChange={handleRepeaterChange}
-                        handleRemoveRepeaterItem={handleRemoveRepeaterItem}
-                        handleAddRepeaterItem={handleAddRepeaterItem}
+                        handleRepeaterChange={handleRepeaterChange as any}
+                        handleRemoveRepeaterItem={handleRemoveRepeaterItem as any}
+                        handleAddRepeaterItem={handleAddRepeaterItem as any}
                     />
                 </div>
             </div>

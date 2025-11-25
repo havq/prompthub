@@ -23,6 +23,7 @@ const fallbackSettings: AppSettings = {
   imgbbApiKeys: [],
   cloudinaryConfigs: [],
   tumblrConfigs: [],
+  r2Configs: [],
   sepayConfig: {
     storeId: '',
     secretKey: '',
@@ -195,6 +196,16 @@ const fallbackSettings: AppSettings = {
     rating5Star: 2,
     commentReceived: 1,
   },
+  smtpConfig: {
+      host: '',
+      port: 587,
+      username: '',
+      password: '',
+      encryption: 'tls',
+      fromEmail: '',
+      fromName: '',
+      enabled: false
+  }
 };
 
 export const loadSettings = async (): Promise<AppSettings> => {
@@ -233,7 +244,7 @@ export const loadSettings = async (): Promise<AppSettings> => {
             'cookieConsentSettings',
             'languageSettings',
             'recaptchaSettings',
-            'imgbbApiKeys', 'cloudinaryConfigs', 'tumblrConfigs', 'sepayConfig', 'paypalConfig',
+            'imgbbApiKeys', 'cloudinaryConfigs', 'tumblrConfigs', 'r2Configs', 'sepayConfig', 'paypalConfig',
             'imageUploadMethod', 'userImageUploadMethod', 'proImageUploadMethod',
             'videoUploadMethod', 'userVideoUploadMethod', 'proVideoUploadMethod',
             'notificationBarSettings',
@@ -241,6 +252,7 @@ export const loadSettings = async (): Promise<AppSettings> => {
             'homeLayout',
             'rewardPackages',
             'gamificationSettings',
+            'smtpConfig'
         ];
 
         for (const key of keysToParse) {
@@ -270,44 +282,12 @@ export const loadSettings = async (): Promise<AppSettings> => {
         console.error("Could not fetch settings from external API. Using local/fallback settings.", e);
     }
 
-    // --- MIGRATION LOGIC for old single-value keys ---
-    if ((settings as any).imgbbApiKey && (!settings.imgbbApiKeys || settings.imgbbApiKeys.length === 0)) {
-        settings.imgbbApiKeys = [{ id: 'migrated-1', key: (settings as any).imgbbApiKey, enabled: true }];
-    }
-    delete (settings as any).imgbbApiKey;
     
-    if ((settings as any).cloudinaryCloudName && (settings as any).cloudinaryUploadPresets && (!settings.cloudinaryConfigs || settings.cloudinaryConfigs.length === 0)) {
-        settings.cloudinaryConfigs = ((settings as any).cloudinaryUploadPresets as string[]).map((preset: string, index: number) => ({
-            id: `migrated-cld-${index}`,
-            cloudName: (settings as any).cloudinaryCloudName as string,
-            uploadPreset: preset,
-            enabled: true
-        }));
-    }
-    delete (settings as any).cloudinaryCloudName;
-    delete (settings as any).cloudinaryUploadPresets;
-
-    if ((settings as any).tumblrConsumerKey && (!settings.tumblrConfigs || settings.tumblrConfigs.length === 0)) {
-        settings.tumblrConfigs = [{
-            id: 'migrated-tmb-1',
-            consumerKey: (settings as any).tumblrConsumerKey,
-            consumerSecret: (settings as any).tumblrConsumerSecret || '',
-            token: (settings as any).tumblrToken || '',
-            tokenSecret: (settings as any).tumblrTokenSecret || '',
-            blogIdentifier: (settings as any).tumblrBlogIdentifier || '',
-            enabled: true
-        }];
-    }
-    delete (settings as any).tumblrConsumerKey;
-    delete (settings as any).tumblrConsumerSecret;
-    delete (settings as any).tumblrToken;
-    delete (settings as any).tumblrTokenSecret;
-    delete (settings as any).tumblrBlogIdentifier;
-
     // --- SANITIZATION: Ensure arrays/objects exist ---
     settings.imgbbApiKeys = settings.imgbbApiKeys || [];
     settings.cloudinaryConfigs = settings.cloudinaryConfigs || [];
     settings.tumblrConfigs = settings.tumblrConfigs || [];
+    settings.r2Configs = settings.r2Configs || [];
     settings.imageUploadMethod = settings.imageUploadMethod || [];
     settings.userImageUploadMethod = settings.userImageUploadMethod || [];
     settings.proImageUploadMethod = settings.proImageUploadMethod || [];
@@ -328,6 +308,7 @@ export const loadSettings = async (): Promise<AppSettings> => {
     settings.homeLayout = settings.homeLayout || [];
     settings.rewardPackages = settings.rewardPackages || fallbackSettings.rewardPackages;
     settings.gamificationSettings = { ...fallbackSettings.gamificationSettings, ...settings.gamificationSettings };
+    settings.smtpConfig = settings.smtpConfig || fallbackSettings.smtpConfig;
 
     window.dispatchEvent(new Event('storage'));
     return settings;
@@ -351,10 +332,18 @@ export const saveSettings = async (newSettings: Partial<Omit<AppSettings, 'fireb
   
   const settingsForApi: any = { ...newSettings };
 
+  // FIX: Added all complex object/array settings to this list to ensure they are
+  // consistently stringified before being sent to the backend. This prevents data
+  // loss caused by inconsistent type handling on the server.
   const keysToStringify: (keyof AppSettings)[] = [
     'footerSocialLinks', 'footerLinks', 'navigationMenu', 'bottomTabMenu',
-    'adSettings', 'overlayAdSettings', 'topBannerAdSettings', 'bottomBannerAdSettings',
-    'promptDetailAdSettings', 'customBadgeIcons', 'homeLayout', 'rewardPackages', 'gamificationSettings'
+    'adSettings', 'reelsAdSettings', 'reelsBannerAdSettings', 'overlayAdSettings', 
+    'topBannerAdSettings', 'bottomBannerAdSettings', 'sidebarTopAdSettings', 'sidebarBottomAdSettings',
+    'promptDetailAdSettings', 'customBadgeIcons', 'homeLayout', 'rewardPackages', 
+    'gamificationSettings', 'imgbbApiKeys', 'cloudinaryConfigs', 'tumblrConfigs',
+    'r2Configs', 'sepayConfig', 'paypalConfig', 'smtpConfig', 'recaptchaSettings',
+    'notificationBarSettings', 'watermarkSettings', 'permalinkSettings',
+    'cookieConsentSettings', 'languageSettings', 'promptCardSettings'
   ];
 
   keysToStringify.forEach(key => {

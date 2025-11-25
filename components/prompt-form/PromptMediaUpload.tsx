@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { UploadMethod } from '../../utils/types';
 import Spinner from '../Spinner';
@@ -71,6 +70,18 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const getMethodLabel = (method: UploadMethod) => {
+        switch (method) {
+            case 'base64': return t('admin.settings.base64');
+            case 'imgbb': return t('admin.settings.imgbb');
+            case 'cloudinary': return t('admin.settings.cloudinary');
+            case 'r2': return 'Cloudflare R2';
+            case 'tumblr': return 'Tumblr';
+            default: return 'Server';
+        }
+    };
+
+
     return (
         <>
             <div>
@@ -99,7 +110,7 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                                         className="absolute top-1 right-1 bg-red-600/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
                                         aria-label={`Remove image ${index + 1}`}
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
                                     </button>
                                 </div>
                             )
@@ -132,7 +143,7 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                                     <div className="py-1">
                                         {props.uploadOptions.map(method => (
                                             <button key={method} type="button" onClick={() => { props.handleUploadClick(method); setIsMainUploadDropdownOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 capitalize">
-                                                {method === 'base64' ? t('admin.settings.base64') : method === 'imgbb' ? t('admin.settings.imgbb') : method === 'cloudinary' ? t('admin.settings.cloudinary') : method === 'tumblr' ? 'Tumblr' : 'Server'}
+                                                {getMethodLabel(method)}
                                             </button>
                                         ))}
                                     </div>
@@ -171,7 +182,7 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                                     <div className="py-1">
                                         {props.videoUploadOptions.map(method => (
                                             <button key={method} type="button" onClick={() => { props.handleVideoUploadClick(method); setIsVideoUploadDropdownOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 capitalize">
-                                                {method === 'base64' ? t('admin.settings.base64') : method === 'imgbb' ? t('admin.settings.imgbb') : method === 'cloudinary' ? t('admin.settings.cloudinary') : method === 'tumblr' ? 'Tumblr' : 'Server'}
+                                                {getMethodLabel(method)}
                                             </button>
                                         ))}
                                     </div>
@@ -236,7 +247,7 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                                         <div className="py-1">
                                             {props.uploadOptions.map(method => (
                                                 <button key={method} type="button" onClick={() => { props.handleReferenceUploadClick(method); setIsRefUploadDropdownOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 capitalize">
-                                                    {method === 'base64' ? t('admin.settings.base64') : method === 'imgbb' ? t('admin.settings.imgbb') : method === 'cloudinary' ? t('admin.settings.cloudinary') : method === 'tumblr' ? 'Tumblr' : 'Server'}
+                                                    {getMethodLabel(method)}
                                                 </button>
                                             ))}
                                         </div>

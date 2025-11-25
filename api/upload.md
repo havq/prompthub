@@ -1,7 +1,8 @@
-
 <?php
 // api/upload.php
 
+use Aws\S3\S3Client;
+use Aws\S3\Exception\S3Exception;
 use GuzzleHttp\Client;
 
 // --- MIME TYPE HELPER (START) ---
@@ -74,10 +75,6 @@ function upload_to_tumblr($conn, $file) {
             continue;
         }
         
-        $caption = ''.time();
-        $tags = 'girls,girl,beautiful';
-        $is_adult = true;
-
         $client = new Client();
         try {
             $file_type = get_file_mime_type($file);
@@ -93,17 +90,16 @@ function upload_to_tumblr($conn, $file) {
                 'oauth_version' => '1.0',
             ];
             
-            $post_params = ['type' => $post_type];
-            $post_params['state'] = 'private'; 
-            if ($caption) $post_params['caption'] = $caption;
-            if ($tags) $post_params['tags'] = $tags;
-            if ($is_adult) {
-                $post_params['content_rating'] = 'nsfw';
-                $post_params['content_advisory'] = 'nudity';
-                $post_params['content_advisory'] = 'sexual_themes';
-            }
+            // Minimal required parameters for the post body
+            $post_params = [
+                'type' => $post_type,
+                'state' => 'private'
+            ];
 
-            $params_for_signature = array_merge($oauth_params, $post_params);
+            // FIX: For Tumblr's non-standard OAuth with multipart, we MUST include
+            // the non-file POST parameters in the signature base string.
+            $params_for_signature = array_merge($post_params, $oauth_params);
+            
             uksort($params_for_signature, 'strcmp');
             $param_string_parts = [];
             foreach ($params_for_signature as $k => $v) {
@@ -218,6 +214,89 @@ function upload_to_tumblr($conn, $file) {
 }
 
 function handle_upload($conn) {
+    // NEW: Handle Cloudflare R2 Presigned URL Generation
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'generate-r2-presigned-url') {
+        // 1. Get request data from frontend
+        $input = json_decode(file_get_contents('php://input'), true);
+        $fileName = $input['fileName'] ?? null;
+        $contentType = $input['contentType'] ?? null;
+        $configId = $input['configId'] ?? null;
+
+        if (!$fileName || !$contentType || !$configId) {
+            send_error('Missing required parameters: fileName, contentType, or configId.', 400);
+            return;
+        }
+        
+        // 2. Fetch R2 configurations from database
+        $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'r2Configs'");
+        $configs_json = $result ? $result->fetch_assoc()['setting_value'] : null;
+        $configs = $configs_json ? json_decode($configs_json, true) : [];
+        
+        $selected_config = null;
+        if (is_array($configs)) {
+            foreach ($configs as $config) {
+                if ($config['id'] === $configId && !empty($config['enabled'])) {
+                    $selected_config = $config;
+                    break;
+                }
+            }
+        }
+        
+        if (!$selected_config) {
+            send_error('Cloudflare R2 configuration not found or is disabled.', 404);
+            return;
+        }
+
+        // 3. Instantiate the S3 Client for R2
+        try {
+            $s3Client = new S3Client([
+                'region' => 'auto',
+                'version' => 'latest',
+                'endpoint' => "https://{$selected_config['accountId']}.r2.cloudflarestorage.com",
+                'credentials' => [
+                    'key'    => $selected_config['accessKeyId'],
+                    'secret' => $selected_config['secretAccessKey'],
+                ],
+                'use_path_style_endpoint' => false,
+            ]);
+
+            // 4. Generate the presigned URL
+            // Sanitize filename and create a unique name to prevent overwrites
+            $safe_filename = preg_replace("/[^a-zA-Z0-9-_\.]/", "", basename($fileName));
+            $unique_filename = uniqid() . '-' . $safe_filename;
+
+            $cmd = $s3Client->getCommand('PutObject', [
+                'Bucket' => $selected_config['bucketName'],
+                'Key'    => $unique_filename,
+                'ContentType' => $contentType,
+            ]);
+            
+            // Generate the request with a 15-minute expiration
+            $request = $s3Client->createPresignedRequest($cmd, '+15 minutes');
+            
+            // Get the actual presigned URL as a string
+            $presignedUrl = (string)$request->getUri();
+            
+            // 5. Construct the final public URL for storage in the DB
+            $publicUrlBase = rtrim($selected_config['publicUrl'], '/');
+            $finalUrl = $publicUrlBase . '/' . $unique_filename;
+            
+            // 6. Send the URLs back to the frontend
+            send_json([
+                'uploadUrl' => $presignedUrl,
+                'finalUrl' => $finalUrl
+            ]);
+
+        } catch (S3Exception $e) {
+            send_error('Could not generate R2 presigned URL: ' . $e->getAwsErrorMessage(), 500);
+        } catch (Exception $e) {
+            send_error('An unexpected error occurred: ' . $e->getMessage(), 500);
+        }
+        return; // Important: Stop execution here
+    }
+
+
+    // --- Existing File Upload Logic ---
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         send_error('Method not allowed', 405);
         return;
