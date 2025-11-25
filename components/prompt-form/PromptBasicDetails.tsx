@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Spinner from '../Spinner';
 import { PromptTextEntry } from '../../utils/types';
+import ConfirmModal from '../ConfirmModal';
 
 interface PromptBasicDetailsProps {
     title: string;
@@ -29,6 +30,7 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
     const [editingLangState, setEditingLangState] = useState<{ index: number | null, name: string }>({ index: null, name: '' });
     const [addLangError, setAddLangError] = useState('');
+    const [deletingLangIndex, setDeletingLangIndex] = useState<number | null>(null);
 
     const openLangModal = (index: number | null = null) => {
         if (index !== null && promptTexts[index]) {
@@ -63,23 +65,34 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
         setIsLangModalOpen(false);
     };
 
-    const handleRemoveLang = (indexToRemove: number) => {
-        if (promptTexts.length <= 1) {
-            alert("Cannot remove the last language.");
-            return;
+    const handleRemoveLangClick = (indexToRemove: number) => {
+        setDeletingLangIndex(indexToRemove);
+    };
+
+    const handleConfirmRemoveLang = () => {
+        if (deletingLangIndex === null) return;
+        
+        const newTexts = promptTexts.filter((_, index) => index !== deletingLangIndex);
+        setPromptTexts(newTexts);
+        if (activeLangIndex >= deletingLangIndex) {
+            setActiveLangIndex(Math.max(0, activeLangIndex - 1));
         }
-        const langToRemove = promptTexts[indexToRemove].lang;
-        if (window.confirm(`Are you sure you want to remove the "${langToRemove}" language text?`)) {
-            const newTexts = promptTexts.filter((_, index) => index !== indexToRemove);
-            setPromptTexts(newTexts);
-            if (activeLangIndex >= indexToRemove) {
-                setActiveLangIndex(Math.max(0, activeLangIndex - 1));
-            }
-        }
-    }
+        setDeletingLangIndex(null);
+    };
 
     return (
         <>
+            {deletingLangIndex !== null && promptTexts[deletingLangIndex] && (
+                <ConfirmModal
+                    isOpen={true}
+                    onClose={() => setDeletingLangIndex(null)}
+                    onConfirm={handleConfirmRemoveLang}
+                    title="Remove Language"
+                    message={`Are you sure you want to remove the "${promptTexts[deletingLangIndex].lang}" language and its text? This cannot be undone.`}
+                    confirmText="Remove"
+                    confirmButtonClass="bg-red-600 hover:bg-red-700"
+                />
+            )}
             <div>
                 <label htmlFor="prompt-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.titleLabel')}</label>
                 <input id="prompt-title" type="text" value={title} onChange={(e) => setTitle(e.target.value)}
@@ -96,11 +109,11 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => setActiveLangIndex(index)}
-                                    className={`pr-8 pl-4 py-2 text-sm font-medium border-b-2 -mb-px ${activeLangIndex === index ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                                    className={`p-4 py-2 text-sm font-medium border-b-2 -mb-px ${activeLangIndex === index ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
                                 >
                                     {entry.lang}
                                 </button>
-                                <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-950 flex items-center opacity-0 group-hover:opacity-100">
                                     <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); openLangModal(index); }}
@@ -112,7 +125,7 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                                     {promptTexts.length > 1 && (
                                         <button
                                             type="button"
-                                            onClick={(e) => { e.stopPropagation(); handleRemoveLang(index); }}
+                                            onClick={(e) => { e.stopPropagation(); handleRemoveLangClick(index); }}
                                             className="p-1 text-gray-400 hover:text-red-500 rounded-full"
                                             title={`Remove ${entry.lang}`}
                                         >
@@ -187,7 +200,7 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                                     if (addLangError) setAddLangError('');
                                 }}
                                 className={`mt-1 ${INPUT_STYLE}`}
-                                placeholder="e.g., English"
+                                placeholder="e.g., VN, EN, English"
                                 autoFocus
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
