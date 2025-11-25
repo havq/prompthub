@@ -7,7 +7,7 @@ import { buildUrl } from '../../utils/permalinks';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import { formatCount } from './utils';
 import StarRating from '../StarRating';
-import CopyPromptButton from '../CopyPromptButton';
+//import CopyPromptButton from '../CopyPromptButton';
 import BannerAd from '../BannerAd';
 import ShareButton from '../ShareButton';
 

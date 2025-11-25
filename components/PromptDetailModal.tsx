@@ -93,7 +93,10 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, ca
             }
         }
         
-        [...imageUrls].reverse().forEach((url, index) => {
+        // Conditionally reverse the images array based on video presence
+        const imagesToDisplay = prompt.videoUrl ? [...imageUrls].reverse() : imageUrls;
+        
+        imagesToDisplay.forEach((url, index) => {
             items.push({ type: 'image', url, id: `image-${index}` });
         });
 

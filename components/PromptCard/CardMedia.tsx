@@ -19,7 +19,7 @@ const CardMedia: React.FC<CardMediaProps> = ({ prompt, viewMode, isMediaReady, m
     const firstImageUrl = imageUrls[0] || '';
     const { videoId: youTubeVideoId } = useMemo(() => parseYouTubeUrl(prompt.videoUrl || ''), [prompt.videoUrl]);
     const isYouTube = !!youTubeVideoId;
-    const optimizedImageUrl = transformCloudinaryUrl(firstImageUrl, 'w_400,c_fill');
+    const optimizedImageUrl = transformCloudinaryUrl(firstImageUrl, 'w_800,c_fill');
     const thumbnail = isYouTube ? `https://img.youtube.com/vi/${youTubeVideoId}/hqdefault.jpg` : optimizedImageUrl;
 
     const handleMouseEnter = () => {
