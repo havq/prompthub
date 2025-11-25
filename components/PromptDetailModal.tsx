@@ -14,7 +14,7 @@ import { parseYouTubeUrl, getImageUrls, formatCount } from './PromptDetail/utils
 import MediaViewer from './PromptDetail/MediaViewer';
 import PromptInfo from './PromptDetail/PromptInfo';
 import CommentsTab from './PromptDetail/CommentsTab';
-import ReferenceImageViewer from './PromptCard/ReferenceImageViewer';
+import ReferenceImageViewer from '../components/PromptCard/ReferenceImageViewer';
 // FIX: Import ShowcaseTab to resolve 'Cannot find name' error.
 import ShowcaseTab from './PromptDetail/ShowcaseTab';
 
@@ -132,7 +132,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, ca
             }
         };
 
-        const newTitle = `${String(prompt.text || '').substring(0, 50)}... | ${t('header.title')}`;
+        const newTitle = `${prompt.title} | ${t('header.title')}`;
         document.title = newTitle;
         setMetaTag('description', String(prompt.text || ''));
         if (prompt.tags && prompt.tags.length > 0) {

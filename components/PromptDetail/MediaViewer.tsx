@@ -111,11 +111,11 @@ const MediaViewer: React.FC<MediaViewerProps> = ({
                                 switch (currentMedia.type) {
                                     case 'youtube':
                                         const ytSrc = showNSFWOverlay ? currentMedia.url.replace('autoplay=1', 'autoplay=0') : currentMedia.url;
-                                        return <iframe src={ytSrc} className="w-full h-full object-contain" frameBorder="0" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen title={prompt.title}></iframe>;
+                                        return <iframe src={ytSrc} className="w-full h-full object-contain" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen title={prompt.title}></iframe>;
                                     case 'video':
                                         return <video ref={videoRef} src={currentMedia.url} controls autoPlay={!showNSFWOverlay} muted loop playsInline className="max-w-full max-h-full object-contain" />;
                                     case 'image':
-                                        return <img src={transformCloudinaryUrl(currentMedia.url, 'w_800')} alt="Prompt visual" className={`max-w-full max-h-full object-contain cursor-grab ${showNSFWOverlay ? 'filter blur-2xl scale-110' : ''}`} />;
+                                        return <img src={currentMedia.url} alt="Prompt visual" className={`max-w-full max-h-full object-contain cursor-grab ${showNSFWOverlay ? 'filter blur-2xl scale-110' : ''}`} />;
                                     default:
                                         return null;
                                 }
