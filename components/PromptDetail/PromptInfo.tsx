@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Prompt, UserProfile, Category, BannerAdSettings, PromptTextEntry } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
@@ -58,6 +59,29 @@ const PromptInfo: React.FC<PromptInfoProps> = ({
     const [activeLangIndex, setActiveLangIndex] = useState(0);
     const [isCopied, setIsCopied] = useState(false);
 
+    // State for responsive tabs
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const promptTexts = useMemo((): PromptTextEntry[] => {
         if (!prompt.text) return [{ lang: 'Default', text: '' }];
         try {
@@ -90,25 +114,74 @@ const PromptInfo: React.FC<PromptInfoProps> = ({
         .map((id) => categories.find((f) => f.id === id))
         .filter((f): f is Category => f !== undefined);
 
+
     const renderTabs = () => {
         if (promptTexts.length <= 1) return null;
-        
+    
+        const limit = isMobile ? 2 : 3;
+        const visibleTabs = promptTexts.slice(0, limit);
+        const dropdownTabs = promptTexts.slice(limit);
+    
+        const isDropdownTabActive = activeLangIndex >= limit;
+        const dropdownButtonText = isDropdownTabActive ? promptTexts[activeLangIndex].lang : 'More';
+    
         return (
-            <div className="mb-2 border-b border-gray-200 dark:border-gray-700">
+            <div className="border-b border-gray-200 dark:border-gray-700">
                 <nav className="-mb-px flex space-x-4" aria-label="Tabs">
-                    {promptTexts.map((entry, index) => (
+                    {visibleTabs.map((entry, index) => (
                         <button
-                            key={index}
+                            key={`${entry.lang}-${index}`}
                             onClick={() => setActiveLangIndex(index)}
-                            className={`whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm ${
+                            className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                                 activeLangIndex === index
                                     ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                         >
                             {entry.lang}
                         </button>
                     ))}
+    
+                    {dropdownTabs.length > 0 && (
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className={`flex items-center gap-1 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                    isDropdownTabActive
+                                        ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                }`}
+                            >
+                                <span>{dropdownButtonText}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                            {isDropdownOpen && (
+                                <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1">
+                                        {dropdownTabs.map((entry, index) => {
+                                            const actualIndex = index + limit;
+                                            return (
+                                                <button
+                                                    key={`${entry.lang}-${actualIndex}`}
+                                                    onClick={() => {
+                                                        setActiveLangIndex(actualIndex);
+                                                        setIsDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full text-left block px-4 py-2 text-sm ${
+                                                        activeLangIndex === actualIndex ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : ''
+                                                    } text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
+                                                >
+                                                    {entry.lang}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </nav>
             </div>
         );
@@ -188,12 +261,16 @@ const PromptInfo: React.FC<PromptInfoProps> = ({
                 </div>
             </div>
             
-            {showCopyButtonSetting && (
-                <div className="mb-6">
-                    <CopyPromptButton textToCopy={text} className="w-full" />
-                </div>
-            )}
-            
+            {
+                /*
+                    {showCopyButtonSetting && (
+                        <div className="mb-6">
+                            <CopyPromptButton textToCopy={text} className="w-full" />
+                        </div>
+                    )}
+                */
+            }
+
             {prompt.promptNote && (
                 <div className="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 mb-4 rounded-r-md">
                     <h4 className="text-sm font-bold text-yellow-800 dark:text-yellow-200 mb-1">Notes / Instructions</h4>
