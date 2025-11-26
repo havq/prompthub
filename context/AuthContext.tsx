@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { UserProfile, Notification, AuthUser } from '../utils/types';
 import { fetchApi } from '../services/api/core';
@@ -108,6 +107,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (data.token && data.user) {
         setUserSession(data.user, data.token);
+        // RELOAD SETTINGS: Fetch sensitive admin settings using the new token
+        await loadSettings();
     } else {
         throw new Error("Login failed: Invalid response from server.");
     }
@@ -147,6 +148,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             body: JSON.stringify({ accessToken: tokenResponse.access_token })
                          });
                          setUserSession(data.user, data.token);
+                         // RELOAD SETTINGS: Fetch sensitive admin settings using the new token
+                         await loadSettings();
                          resolve();
                      } catch (e) {
                          reject(e);
@@ -168,6 +171,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (data.token && data.user) {
         setUserSession(data.user, data.token);
+        // Reload settings just in case specific user settings apply (though unlikely for register)
+        await loadSettings();
     }
   };
 
@@ -178,6 +183,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsAdmin(false);
     setIsPro(false);
     setNotifications([]);
+    // RELOAD SETTINGS: Revert to guest settings (hiding admin-only keys)
+    await loadSettings();
   };
   
   const updateUserProfile = async (profileData: Partial<Omit<UserProfile, 'uid'>>) => {
