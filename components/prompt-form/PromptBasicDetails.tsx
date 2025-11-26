@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Spinner from '../Spinner';
 import { PromptTextEntry } from '../../utils/types';
 import ConfirmModal from '../ConfirmModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PromptBasicDetailsProps {
     title: string;
@@ -20,17 +22,45 @@ interface PromptBasicDetailsProps {
     isSuggestingTags: boolean;
     suggestTagsError: string;
     INPUT_STYLE: string;
-    t: (key: string) => string;
+    t: (key: string, options?: any) => string;
 }
 
 const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
     title, setTitle, promptTexts, setPromptTexts, activeLangIndex, setActiveLangIndex, promptNote, setPromptNote, promptSource, setPromptSource, tagsInput, setTagsInput,
     onSuggestTags, isSuggestingTags, suggestTagsError, INPUT_STYLE, t
 }) => {
+    const { language } = useLanguage();
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
     const [editingLangState, setEditingLangState] = useState<{ index: number | null, name: string }>({ index: null, name: '' });
     const [addLangError, setAddLangError] = useState('');
     const [deletingLangIndex, setDeletingLangIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (!promptTexts || promptTexts.length === 0) return;
+
+        // Automatically set the language tab for new empty prompts to the user's current language.
+        // This runs when promptTexts or language changes, but the condition ensures it only applies to fresh prompts.
+        if (promptTexts.length === 1 && promptTexts[0].text.trim() === '') {
+            const langMapping: Record<string, string[]> = {
+                'vi': ['Tiếng Việt', 'Vietnamese', 'VN', 'VI'],
+                'en': ['English', 'Tiếng Anh', 'EN', 'US'],
+                'zh': ['中文', 'Chinese', 'Tiếng Trung', 'ZH', 'CN'],
+                'ko': ['한국어', 'Korean', 'Tiếng Hàn', 'KR', 'KO']
+            };
+
+            const currentLangLabels = langMapping[language] || [];
+            const primaryLabel = currentLangLabels[0] || 'English';
+            const currentLabel = promptTexts[0].lang;
+
+            // Only override if the current label is the hardcoded default 'Tiếng Việt' 
+            // and the user's language is NOT Vietnamese.
+            if (currentLabel === 'Tiếng Việt' && primaryLabel !== 'Tiếng Việt') {
+                 const newTexts = [...promptTexts];
+                 newTexts[0].lang = primaryLabel;
+                 setPromptTexts(newTexts);
+            }
+        }
+    }, [promptTexts, language, setPromptTexts]);
 
     const openLangModal = (index: number | null = null) => {
         if (index !== null && promptTexts[index]) {
@@ -45,12 +75,12 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
     const handleSaveLang = () => {
         const { index, name } = editingLangState;
         if (!name.trim()) {
-            setAddLangError("Language name cannot be empty.");
+            setAddLangError(t('admin.promptForm.languageNameError'));
             return;
         }
         const trimmedLang = name.trim();
         if (promptTexts.some((entry, i) => i !== index && entry.lang.toLowerCase() === trimmedLang.toLowerCase())) {
-            setAddLangError("This language already exists.");
+            setAddLangError(t('admin.promptForm.languageExistsError'));
             return;
         }
 
@@ -87,9 +117,9 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                     isOpen={true}
                     onClose={() => setDeletingLangIndex(null)}
                     onConfirm={handleConfirmRemoveLang}
-                    title="Remove Language"
-                    message={`Are you sure you want to remove the "${promptTexts[deletingLangIndex].lang}" language and its text? This cannot be undone.`}
-                    confirmText="Remove"
+                    title={t('admin.promptForm.removeLanguageTitle')}
+                    message={t('admin.promptForm.removeLanguageConfirm', { lang: promptTexts[deletingLangIndex].lang })}
+                    confirmText={t('admin.promptForm.remove')}
                     confirmButtonClass="bg-red-600 hover:bg-red-700"
                 />
             )}
@@ -129,7 +159,7 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                                             className="p-1 text-gray-400 hover:text-red-500 rounded-full"
                                             title={`Remove ${entry.lang}`}
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                         </button>
                                     )}
                                 </div>
@@ -139,10 +169,7 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                             type="button"
                             onClick={() => openLangModal(null)}
                             className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400"
-                            title="Add new language"
-                        >
-                            + Thêm ngôn ngữ
-                        </button>
+                            title="Add new language">+ {t('admin.promptForm.addNewLanguage')}</button>
                     </div>
                     <textarea
                         id="prompt-text-multilang"
@@ -157,19 +184,19 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                         }}
                         className={`w-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed border-0 rounded-b-md p-3`}
                         required
-                        placeholder={`Enter prompt text for ${promptTexts[activeLangIndex]?.lang || ''}...`}
+                        placeholder={t('admin.promptForm.enterPromptTextPlaceholder', { lang: promptTexts[activeLangIndex]?.lang || '' })}
                     />
                 </div>
             </div>
             <div>
-                <label htmlFor="prompt-note" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Prompt Note / Instructions</label>
+                <label htmlFor="prompt-note" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.promptNoteLabel')}</label>
                 <textarea id="prompt-note" rows={3} value={promptNote} onChange={(e) => setPromptNote(e.target.value)}
-                    className={`mt-1 ${INPUT_STYLE}`} placeholder="Add notes, settings, or usage tips for this prompt..." />
+                    className={`mt-1 ${INPUT_STYLE}`} placeholder={t('admin.promptForm.promptNotePlaceholder')} />
             </div>
             <div>
-                <label htmlFor="prompt-source" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source URL (Optional)</label>
+                <label htmlFor="prompt-source" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.sourceUrlLabel')}</label>
                 <input id="prompt-source" type="url" value={promptSource} onChange={(e) => setPromptSource(e.target.value)}
-                    className={`mt-1 ${INPUT_STYLE}`} placeholder="https://example.com/original-prompt" />
+                    className={`mt-1 ${INPUT_STYLE}`} placeholder={t('admin.promptForm.sourceUrlPlaceholder')} />
             </div>
             <div>
                 <label htmlFor="prompt-tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.tags')}</label>
@@ -187,10 +214,10 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                 <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4" onClick={() => setIsLangModalOpen(false)}>
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                            {editingLangState.index !== null ? 'Edit Language Name' : 'Add New Language'}
+                            {editingLangState.index !== null ? t('admin.promptForm.editLanguageTitle') : t('admin.promptForm.addLanguageTitle')}
                         </h3>
                         <div>
-                            <label htmlFor="lang-name-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Language Name</label>
+                            <label htmlFor="lang-name-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.languageNameLabel')}</label>
                             <input
                                 type="text"
                                 id="lang-name-input"
@@ -200,7 +227,7 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                                     if (addLangError) setAddLangError('');
                                 }}
                                 className={`mt-1 ${INPUT_STYLE}`}
-                                placeholder="e.g., VN, EN, English"
+                                placeholder={t('admin.promptForm.languageNamePlaceholder')}
                                 autoFocus
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
@@ -213,10 +240,10 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                         </div>
                         <div className="mt-6 flex justify-end gap-3">
                             <button type="button" onClick={() => setIsLangModalOpen(false)} className="py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button type="button" onClick={handleSaveLang} className="py-2 px-4 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                                {editingLangState.index !== null ? 'Save Name' : 'Add Language'}
+                                {editingLangState.index !== null ? t('admin.promptForm.saveName') : t('admin.promptForm.addLanguage')}
                             </button>
                         </div>
                     </div>

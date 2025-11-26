@@ -117,7 +117,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ userId }) => {
                             {topPrompts.length > 0 ? topPrompts.map((prompt: Prompt) => (
                                 <tr key={prompt.id}>
                                     <td className="p-4 max-w-sm">
-                                        <p className="truncate text-sm font-medium text-gray-900 dark:text-white" title={prompt.text}>{prompt.text}</p>
+                                        <p className="truncate text-sm font-medium text-gray-900 dark:text-white" title={prompt.title}>{prompt.title}</p>
                                     </td>
                                     <td className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">{formatCount(prompt.viewCount)}</td>
                                     <td className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">{formatCount((prompt as any).favoriteCount)}</td>

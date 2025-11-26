@@ -145,7 +145,7 @@ const FooterStyle1: React.FC = () => {
       {isBackToTopVisible && (
           <button
               onClick={scrollToTop}
-              className="fixed bottom-[65] right-2 bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 transition-transform hover:scale-110 duration-300 z-40"
+              className="fixed bottom-16 mb-3 right-2 bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 transition-transform hover:scale-110 duration-300 z-40"
               aria-label="Back to top"
           >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
