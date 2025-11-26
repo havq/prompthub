@@ -106,6 +106,9 @@ function get_app_settings($conn, $is_admin_request) {
         ];
         
         foreach ($settings_from_db as $key => $value) {
+            // SECURITY FIX: Never expose backend cache tokens (like PayPal access tokens) to the frontend
+            if (strpos($key, 'paypal_access_token_') === 0) continue;
+            
             if ($value === null) continue;
 
             $decoded_value = json_decode($value, true);
@@ -124,6 +127,7 @@ function get_app_settings($conn, $is_admin_request) {
             unset($final_settings['smtpConfig']);
             unset($final_settings['tumblrConfigs']);
             unset($final_settings['r2Configs']);
+            unset($final_settings['cloudinaryConfigs']);
             
             if (isset($final_settings['imgbbApiKeys'])) {
                 $final_settings['imgbbApiKeys'] = array_map(function($item) { unset($item['key']); return $item; }, $final_settings['imgbbApiKeys']);

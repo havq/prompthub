@@ -1,11 +1,6 @@
 
 import { getSettings } from './settingsService';
 
-interface CloudinaryResponse {
-    secure_url: string;
-    [key: string]: any;
-}
-
 interface UploadResult {
     imageUrl: string;
     videoUrl?: string;
@@ -13,49 +8,48 @@ interface UploadResult {
 
 export const uploadToCloudinary = async (imageFile: File): Promise<UploadResult> => {
     const settings = getSettings();
-    const activeConfigs = (settings.cloudinaryConfigs || []).filter(c => c.enabled && c.cloudName && c.uploadPreset);
-
-    if (activeConfigs.length === 0) {
-        throw new Error("Cloudinary is not configured. Please set a Cloud Name and Upload Preset in admin settings.");
+    const apiUrl = settings.externalApiUrl;
+    if (!apiUrl) {
+        throw new Error("External API URL is not configured.");
     }
 
-    const { cloudName, uploadPreset } = activeConfigs[Math.floor(Math.random() * activeConfigs.length)];
-    const isVideo = imageFile.type.startsWith('video/');
-    const resourceType = isVideo ? 'video' : 'image';
+    // Use the backend proxy instead of direct Cloudinary upload
+    const uploadUrl = `${apiUrl}?resource=upload&provider=cloudinary`;
 
-    // Trim whitespace to prevent "Upload preset not found" errors
-    const cleanCloudName = cloudName.trim();
-    const cleanUploadPreset = uploadPreset.trim();
-
-    const url = `https://api.cloudinary.com/v1_1/${cleanCloudName}/${resourceType}/upload`;
-    
     const formData = new FormData();
-    formData.append('file', imageFile);
-    formData.append('upload_preset', cleanUploadPreset);
+    formData.append('image', imageFile);
 
     try {
-        const response = await fetch(url, {
+        const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData,
+            // Do not set Content-Type header when using FormData, the browser will set it with the boundary.
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
-            throw new Error(`Cloudinary API error: ${errorData.error?.message || response.statusText}`);
+            let errorMessage = `Cloudinary proxy upload failed with status ${response.status}`;
+            try {
+                // Try to get JSON error from backend
+                const errorData = await response.json();
+                if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+            } catch (e) {
+                // Fallback to text
+                const text = await response.text();
+                if (text) errorMessage = text;
+            }
+            throw new Error(errorMessage);
         }
 
-        const result: CloudinaryResponse = await response.json();
-        
-        if (result.secure_url) {
-            if (isVideo) {
-                return { imageUrl: '', videoUrl: result.secure_url };
-            }
-            return { imageUrl: result.secure_url };
+        const result = await response.json();
+        if (result.imageUrl || result.videoUrl) {
+            return result;
         } else {
-            throw new Error('Failed to upload image to Cloudinary. The response did not contain a secure_url.');
+            throw new Error('Invalid response from server for Cloudinary upload.');
         }
     } catch (error) {
-        console.error("Error uploading to Cloudinary:", error);
+        console.error("Error uploading to Cloudinary via proxy:", error);
         if (error instanceof Error) {
             throw error;
         }

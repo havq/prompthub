@@ -1,3 +1,4 @@
+
 <?php
 // api/upload.php
 
@@ -31,6 +32,147 @@ function get_file_mime_type($file) {
     return get_mime_type_from_extension($extension);
 }
 // --- MIME TYPE HELPER (END) ---
+
+function check_upload_rate_limit($redis, $userId) {
+    if (!$redis || !$userId) return;
+
+    $key = 'upload_limit:' . $userId;
+    $limit = 10; // Cho phép 10 file mỗi phút
+    $window = 60;
+
+    $current = $redis->incr($key);
+    
+    if ($current === 1) {
+        $redis->expire($key, $window);
+    }
+
+    if ($current > $limit) {
+        send_error('Upload rate limit exceeded. Please wait a moment.', 429);
+    }
+}
+
+function verify_upload_recaptcha($conn, $token) {
+    // 1. Fetch settings
+    $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'recaptchaSettings'");
+    $config_json = $result ? $result->fetch_assoc()['setting_value'] : null;
+    
+    if (!$config_json) return true; // Config not found, fail open or closed depending on policy. Here failing open to avoid blocking if misconfigured.
+    
+    $settings = json_decode($config_json, true);
+    if (empty($settings['enabled'])) return true; // Recaptcha disabled
+    
+    if (empty($token)) {
+        return false; // Enabled but no token provided
+    }
+
+    $secretKey = ($settings['version'] === 'v2') ? ($settings['v2SecretKey'] ?? null) : ($settings['v3SecretKey'] ?? null);
+    if (!$secretKey) return true; // Config error, fail open
+
+    $verify_url = 'https://www.google.com/recaptcha/api/siteverify';
+    $data = http_build_query([
+        'secret'   => $secretKey,
+        'response' => $token,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? null
+    ]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method'  => 'POST',
+            'content' => $data
+        ]
+    ];
+    
+    try {
+        $context = stream_context_create($options);
+        $result = file_get_contents($verify_url, false, $context);
+        if ($result === FALSE) return false;
+        
+        $json = json_decode($result, true);
+        
+        if ($settings['version'] === 'v3') {
+            return isset($json['success']) && $json['success'] === true && ($json['score'] ?? 0) >= 0.5;
+        }
+        return isset($json['success']) && $json['success'] === true;
+    } catch (Exception $e) {
+        error_log("Recaptcha verify error: " . $e->getMessage());
+        return false; 
+    }
+}
+
+
+function upload_to_cloudinary($conn, $file) {
+    // 1. Fetch Cloudinary configurations from the database
+    $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'cloudinaryConfigs'");
+    $configs_json = $result ? $result->fetch_assoc()['setting_value'] : null;
+
+    if (!$configs_json) {
+        send_error('Cloudinary configurations are not set on the server.', 500);
+        return null;
+    }
+
+    $configs = json_decode($configs_json, true);
+    if (!is_array($configs) || empty($configs)) {
+        send_error('Cloudinary configurations are invalid or empty.', 500);
+        return null;
+    }
+
+    // 2. Filter for enabled configs
+    $enabled_configs = array_filter($configs, function($config) {
+        return !empty($config['enabled']) && !empty($config['cloudName']) && !empty($config['uploadPreset']);
+    });
+
+    if (empty($enabled_configs)) {
+        send_error('No enabled Cloudinary configurations found.', 500);
+        return null;
+    }
+
+    // 3. Select a random config to distribute load
+    $config = array_values($enabled_configs)[mt_rand(0, count($enabled_configs) - 1)];
+    $cloud_name = trim($config['cloudName']);
+    $upload_preset = trim($config['uploadPreset']);
+
+    // 4. Determine resource type
+    $mime_type = get_file_mime_type($file);
+    $resource_type = strpos($mime_type, 'video/') === 0 ? 'video' : 'image';
+
+    // 5. Upload
+    $url = "https://api.cloudinary.com/v1_1/{$cloud_name}/{$resource_type}/upload";
+    
+    $client = new Client();
+    try {
+        $response = $client->post($url, [
+            'multipart' => [
+                [
+                    'name' => 'upload_preset',
+                    'contents' => $upload_preset
+                ],
+                [
+                    'name' => 'file',
+                    'contents' => fopen($file['tmp_name'], 'r'),
+                    'filename' => $file['name']
+                ]
+            ]
+        ]);
+
+        $body = json_decode($response->getBody(), true);
+        
+        if (isset($body['secure_url'])) {
+            if ($resource_type === 'video') {
+                return ['imageUrl' => '', 'videoUrl' => $body['secure_url']];
+            } else {
+                return ['imageUrl' => $body['secure_url']];
+            }
+        } else {
+             throw new Exception('Secure URL not found in Cloudinary response');
+        }
+
+    } catch (Exception $e) {
+        error_log("Cloudinary upload failed: " . $e->getMessage());
+        send_error('Cloudinary upload failed: ' . $e->getMessage(), 500);
+        return null;
+    }
+}
 
 function upload_to_tumblr($conn, $file) {
     // 1. Fetch Tumblr configurations from the database
@@ -214,6 +356,24 @@ function upload_to_tumblr($conn, $file) {
 }
 
 function handle_upload($conn) {
+    global $current_user_uid, $redis;
+
+    // 1. SECURITY: Authentication Check
+    if (!$current_user_uid) {
+        send_error('Authentication required to upload files.', 401);
+        return;
+    }
+
+    // 2. SECURITY: Rate Limiting
+    check_upload_rate_limit($redis, $current_user_uid);
+
+    // 3. SECURITY: reCAPTCHA Verification
+    $recaptcha_token = $_SERVER['HTTP_X_RECAPTCHA_TOKEN'] ?? null;
+    if (!verify_upload_recaptcha($conn, $recaptcha_token)) {
+        send_error('Security check failed: Invalid or missing reCAPTCHA token.', 403);
+        return;
+    }
+
     // NEW: Handle Cloudflare R2 Presigned URL Generation
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'generate-r2-presigned-url') {
         // 1. Get request data from frontend
@@ -376,6 +536,8 @@ function handle_upload($conn) {
         $file_urls = null;
         if ($provider === 'tumblr') {
             $file_urls = upload_to_tumblr($conn, $file);
+        } elseif ($provider === 'cloudinary') {
+            $file_urls = upload_to_cloudinary($conn, $file);
         } else { // Default to local 'server' upload
             $root_upload_dir = 'uploads/';
             
@@ -427,4 +589,3 @@ function handle_upload($conn) {
         send_error('An unexpected server error occurred: ' . $e->getMessage(), 500);
     }
 }
-?>
