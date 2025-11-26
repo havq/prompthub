@@ -1,3 +1,4 @@
+
 import { getSettings } from './settingsService';
 
 interface UploadResponse {
@@ -16,11 +17,16 @@ export const uploadToServer = async (imageFile: File): Promise<UploadResponse> =
 
     const formData = new FormData();
     formData.append('image', imageFile);
+    
+    const authToken = localStorage.getItem('auth_token');
+    const headers: HeadersInit = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     try {
         const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData,
+            headers: headers
             // Do not set Content-Type header when using FormData,
             // the browser will set it with the correct boundary.
         });

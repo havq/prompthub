@@ -68,6 +68,7 @@ export const uploadToR2 = async (file: File): Promise<UploadResult> => {
         }
 
         // Step 1: Request a presigned URL from the backend.
+        // fetchApi automatically handles Authorization header
         const presignedUrlResponse = await fetchApi<{ uploadUrl: string; finalUrl: string }>(
             'upload', 
             '&action=generate-r2-presigned-url', 
@@ -87,7 +88,7 @@ export const uploadToR2 = async (file: File): Promise<UploadResult> => {
         }
 
         // Step 2: Upload the file directly to R2 using the presigned URL.
-        // Note: We do NOT send the recaptcha token to R2, only to our backend.
+        // Note: We do NOT send the recaptcha token or Auth token to R2, only to our backend.
         const uploadResponse = await fetch(presignedUrlResponse.uploadUrl, {
             method: 'PUT',
             body: file,
@@ -298,11 +299,21 @@ const uploadToServer = async (imageFile: File): Promise<UploadResult> => {
     formData.append('image', imageFile);
 
     const recaptchaToken = await getRecaptchaToken('upload_server');
+    const authToken = localStorage.getItem('auth_token');
+    
     const headers: HeadersInit = {};
     if (recaptchaToken) headers['X-Recaptcha-Token'] = recaptchaToken;
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const response = await fetch(uploadUrl, { method: 'POST', body: formData, headers });
-    if (!response.ok) throw new Error('Server upload failed.');
+    if (!response.ok) {
+        try {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Server upload failed.');
+        } catch (e) {
+            throw new Error(`Server upload failed: ${response.statusText}`);
+        }
+    }
     const result = await response.json();
     if (result.error) throw new Error(result.error);
     return result;
@@ -316,11 +327,21 @@ const uploadToCloudinaryProxy = async (imageFile: File): Promise<UploadResult> =
     formData.append('image', imageFile);
 
     const recaptchaToken = await getRecaptchaToken('upload_cloudinary');
+    const authToken = localStorage.getItem('auth_token');
+
     const headers: HeadersInit = {};
     if (recaptchaToken) headers['X-Recaptcha-Token'] = recaptchaToken;
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const response = await fetch(uploadUrl, { method: 'POST', body: formData, headers });
-    if (!response.ok) throw new Error('Cloudinary upload failed.');
+    if (!response.ok) {
+        try {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Cloudinary upload failed.');
+        } catch (e) {
+            throw new Error(`Cloudinary upload failed: ${response.statusText}`);
+        }
+    }
     const result = await response.json();
     if (result.error) throw new Error(result.error);
     return result;

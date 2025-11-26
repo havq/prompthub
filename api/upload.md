@@ -1,4 +1,3 @@
-
 <?php
 // api/upload.php
 
@@ -217,6 +216,10 @@ function upload_to_tumblr($conn, $file) {
             continue;
         }
         
+        // Sanitize blog identifier (remove protocol and trailing slashes if present)
+        $blog_identifier = preg_replace('#^https?://#', '', $blog_identifier);
+        $blog_identifier = rtrim($blog_identifier, '/');
+        
         $client = new Client();
         try {
             $file_type = get_file_mime_type($file);
@@ -235,12 +238,12 @@ function upload_to_tumblr($conn, $file) {
             // Minimal required parameters for the post body
             $post_params = [
                 'type' => $post_type,
-                'state' => 'private'
+                'state' => 'private' // Always private initially
             ];
 
-            // FIX: For Tumblr's non-standard OAuth with multipart, we MUST include
-            // the non-file POST parameters in the signature base string.
-            $params_for_signature = array_merge($post_params, $oauth_params);
+            // FIX: OAuth 1.0a spec says: DO NOT include multipart body parameters in the signature base string.
+            // Only query params (none here) and oauth_* params are signed.
+            $params_for_signature = $oauth_params;
             
             uksort($params_for_signature, 'strcmp');
             $param_string_parts = [];
@@ -268,9 +271,11 @@ function upload_to_tumblr($conn, $file) {
             
             $data_param_name = 'data';
             $multipart_data = [];
+            // Add body parameters to multipart data
             foreach ($post_params as $key => $value) {
                 $multipart_data[] = ['name' => $key, 'contents' => $value];
             }
+            // Add file
             $multipart_data[] = [
                 'name'     => $data_param_name,
                 'contents' => fopen($file['tmp_name'], 'r'),
@@ -290,7 +295,7 @@ function upload_to_tumblr($conn, $file) {
             }
             $new_post_id = $post_data['response']['id'];
 
-            // FETCH URL Logic
+            // FETCH URL Logic (GET request needs its own signature)
             $get_params = ['id' => $new_post_id];
             $get_oauth_params = [
                 'oauth_consumer_key' => $consumer_key,
@@ -332,6 +337,7 @@ function upload_to_tumblr($conn, $file) {
             if ($is_video) {
                 if (isset($get_data['response']['posts'][0]['video_url'])) {
                     $video_url = $get_data['response']['posts'][0]['video_url'];
+                    // Normalize Tumblr video URL to mp4 if possible
                     $video_url = str_replace(['.mov', 'v.tumblr.com'], ['.mp4', 'va.media.tumblr.com'], $video_url);
                     $thumbnail_url = $get_data['response']['posts'][0]['thumbnail_url'] ?? '';
                     return ['imageUrl' => $thumbnail_url, 'videoUrl' => $video_url];

@@ -1,3 +1,4 @@
+
 import { getSettings } from './settingsService';
 
 interface UploadResponse {
@@ -17,11 +18,16 @@ export const uploadToTumblr = async (imageFile: File): Promise<UploadResponse> =
 
     const formData = new FormData();
     formData.append('image', imageFile);
+    
+    const authToken = localStorage.getItem('auth_token');
+    const headers: HeadersInit = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     try {
         const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData,
+            headers: headers
         });
 
         if (!response.ok) {
