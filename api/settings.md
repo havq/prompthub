@@ -166,8 +166,31 @@ function update_app_settings($conn, $new_settings) {
         }
         // NOTE: footerDevelopedByText intentionally allows HTML, so it is NOT sanitized with strip_all_tags_pure.
 
+        // Define keys that MUST be treated as JSON objects/arrays, even if they arrive as strings
+        $force_json_decode_keys = [
+            'tumblrConfigs', 'r2Configs', 'imgbbApiKeys', 'cloudinaryConfigs', 
+            'sepayConfig', 'paypalConfig', 'smtpConfig', 'recaptchaSettings',
+            'notificationBarSettings', 'watermarkSettings', 'homeLayout',
+            'rewardPackages', 'gamificationSettings', 'footerSocialLinks',
+            'footerLinks', 'navigationMenu', 'bottomTabMenu', 'adSettings',
+            'reelsAdSettings', 'reelsBannerAdSettings', 'overlayAdSettings',
+            'topBannerAdSettings', 'bottomBannerAdSettings', 'sidebarTopAdSettings',
+            'sidebarBottomAdSettings', 'promptDetailAdSettings', 'customBadgeIcons',
+            'permalinkSettings', 'cookieConsentSettings', 'languageSettings', 'promptCardSettings'
+        ];
+
         foreach ($new_settings as $key => $value) {
+            // Critical fix: If the value for a complex setting comes in as a string (JSON), decode it first.
+            // This prevents double-encoding or saving string literals instead of JSON structures.
+            if (in_array($key, $force_json_decode_keys) && is_string($value)) {
+                $decoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $value = $decoded;
+                }
+            }
+
             $value_to_store = is_array($value) || is_object($value) ? json_encode($value) : ($value === false ? 'false' : ($value === true ? 'true' : $value));
+            
             if ($value_to_store !== null) {
                 $stmt->bind_param("ss", $key, $value_to_store);
                 $stmt->execute();

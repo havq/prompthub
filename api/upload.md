@@ -249,6 +249,10 @@ function handle_upload($conn) {
 
         // 3. Instantiate the S3 Client for R2
         try {
+            // FIX: Suppress display_errors to prevent warnings (like open_basedir restrictions from AWS SDK)
+            // from corrupting the JSON response. putenv() is disabled on this server.
+            ini_set('display_errors', '0');
+            
             $s3Client = new S3Client([
                 'region' => 'auto',
                 'version' => 'latest',
@@ -257,7 +261,7 @@ function handle_upload($conn) {
                     'key'    => $selected_config['accessKeyId'],
                     'secret' => $selected_config['secretAccessKey'],
                 ],
-                'use_path_style_endpoint' => false,
+                'use_path_style_endpoint' => true, // Use path style for better compatibility
             ]);
 
             // 4. Generate the presigned URL
