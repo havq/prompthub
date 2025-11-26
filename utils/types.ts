@@ -13,7 +13,7 @@ export interface AuthUser {
 }
 
 // --- Widget Types ---
-export type WidgetType = 'banner' | 'prompt-grid' | 'rich-text' | 'category-tabs' | 'post-grid' | 'reel-grid';
+export type WidgetType = 'banner' | 'prompt-grid' | 'rich-text' | 'category-tabs' | 'post-grid' | 'reel-grid' | 'top-contributors';
 
 export interface HomeWidget {
   id: string;
@@ -42,6 +42,13 @@ export interface PromptGridWidgetData {
   tabletCols?: number;
   mobileCols?: number;
   customLink?: string; // New field for custom link
+}
+
+export interface TopContributorsWidgetData {
+  title?: string;
+  subtitle?: string;
+  limit?: number;
+  layout?: 'grid' | 'slider';
 }
 
 export interface RichTextWidgetData {

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
@@ -26,6 +25,7 @@ import PromptGridWidget from '../components/widgets/PromptGridWidget';
 import RichTextWidget from '../components/widgets/RichTextWidget';
 import PostGridWidget from '../components/widgets/PostGridWidget';
 import ReelGridWidget from '../components/widgets/ReelGridWidget';
+import TopContributorsWidget from '../components/widgets/TopContributorsWidget';
 
 export const HomePage: React.FC = () => {
   const logic = useHomeLogic();
@@ -386,6 +386,8 @@ export const HomePage: React.FC = () => {
                           return <PostGridWidget key={widget.id} data={widget.data} />;
                       case 'reel-grid':
                           return <ReelGridWidget key={widget.id} data={widget.data} />;
+                      case 'top-contributors':
+                          return <TopContributorsWidget key={widget.id} data={widget.data} />;
                       case 'rich-text':
                           return <RichTextWidget key={widget.id} data={widget.data} />;
                       case 'category-tabs':

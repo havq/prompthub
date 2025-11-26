@@ -4,6 +4,7 @@ import { UserProfile } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
 import BadgeIcon from '../BadgeIcon';
 import Pagination from '../Pagination';
+import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 
 interface AdminUsersProps {
     users: UserProfile[];
@@ -59,7 +60,16 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ users, onAdd, onEdit, onDelete 
                     <tbody>
                         {paginatedUsers.length > 0 ? paginatedUsers.map(user => (
                             <tr key={user.uid} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="p-3 font-medium text-gray-900 dark:text-white">{user.username}</td>
+                                <td className="p-3 font-medium text-gray-900 dark:text-white">
+                                    <div className="flex items-center gap-3">
+                                        <img
+                                            src={user.photoURL ? transformCloudinaryUrl(user.photoURL, 'w_40,h_40,c_fill,g_auto') : `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(user.username)}`}
+                                            alt={user.username}
+                                            className="w-8 h-8 rounded-full object-cover bg-gray-200 dark:bg-gray-600"
+                                        />
+                                        <span>{user.username}</span>
+                                    </div>
+                                </td>
                                 <td className="p-3 text-gray-600 dark:text-gray-300">{user.email}</td>
                                 <td className="p-3"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'Admin' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'}`}>{user.role}</span></td>
                                 <td className="p-3"><div className="flex items-center gap-1.5">{user.badges && user.badges.length > 0 ? user.badges.map(badge => <BadgeIcon key={badge} badge={badge} size="sm" />) : <span className="text-xs text-gray-400 dark:text-gray-500">—</span>}</div></td>

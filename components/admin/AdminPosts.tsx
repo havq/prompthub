@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Post, Category, UserProfile } from '../../utils/types';
@@ -167,6 +168,7 @@ const AdminPosts: React.FC<AdminPostsProps> = ({ posts, categories, users, onAdd
                             <th className="p-3 w-4"><input ref={headerCheckboxRef} type="checkbox" onChange={handleToggleSelectAllOnPage} className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 rounded" disabled={postIdsOnPage.length === 0}/></th>
                             <th className="p-3">Title</th>
                             <th className="p-3">Author</th>
+                            <th className="p-3">{t('admin.prompts.categoriesHeader')}</th>
                             <th className="p-3">Stats</th>
                             <th className="p-3">Comments</th>
                             <th className="p-3">{t('common.status')}</th>
@@ -175,6 +177,11 @@ const AdminPosts: React.FC<AdminPostsProps> = ({ posts, categories, users, onAdd
                     </thead>
                     <tbody>
                         {paginatedPosts.map(post => {
+                            const postCategoryNames = (post.categoryIds || [])
+                                .map(id => categories.find(c => c.id === id)?.name)
+                                .filter(Boolean)
+                                .join(', ');
+
                             return (
                                 <tr key={post.id} className="border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                     <td className="p-3"><input type="checkbox" checked={selectedPosts.includes(post.id)} onChange={() => setSelectedPosts(prev => prev.includes(post.id) ? prev.filter(pId => pId !== post.id) : [...prev, post.id])} className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 rounded"/></td>
@@ -185,6 +192,9 @@ const AdminPosts: React.FC<AdminPostsProps> = ({ posts, categories, users, onAdd
                                         </Link>
                                     </td>
                                     <td className="p-3 max-w-xs">{post.authorName || '—'}</td>
+                                    <td className="p-3 max-w-xs truncate text-sm text-gray-600 dark:text-gray-400" title={postCategoryNames}>
+                                        {postCategoryNames || '—'}
+                                    </td>
                                     <td className="p-3">
                                         <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                                             <div className="flex items-center gap-1" title="Views">

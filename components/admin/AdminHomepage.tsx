@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HomeWidget, WidgetType, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
@@ -8,6 +9,7 @@ import ConfirmModal from '../ConfirmModal';
 
 const WIDGET_TYPES: { type: WidgetType; label: string }[] = [
     { type: 'banner', label: 'Hero Banner' },
+    { type: 'top-contributors', label: 'Top Contributors' },
     { type: 'prompt-grid', label: 'Prompt Grid' },
     { type: 'post-grid', label: 'Post Grid' },
     { type: 'reel-grid', label: 'Reel Grid' },
@@ -50,6 +52,21 @@ const WidgetEditorModal: React.FC<WidgetEditorModalProps> = ({ widget, onClose, 
                         <div className="grid grid-cols-2 gap-4">
                             <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Height</label><select value={formData.height} onChange={e => handleChange('height', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></div>
                             <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Overlay Opacity (%)</label><input type="number" value={formData.overlayOpacity} onChange={e => handleChange('overlayOpacity', Number(e.target.value))} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        </div>
+                    </div>
+                )}
+
+                {type === 'top-contributors' && (
+                    <div className="space-y-3">
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label><input type="text" value={formData.title || ''} onChange={e => handleChange('title', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subtitle</label><input type="text" value={formData.subtitle || ''} onChange={e => handleChange('subtitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Limit</label><input type="number" value={formData.limit || 5} onChange={e => handleChange('limit', Number(e.target.value))} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                         <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Layout</label>
+                            <select value={formData.layout || 'grid'} onChange={e => handleChange('layout', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="grid">Grid (Default)</option>
+                                <option value="slider">Slider</option>
+                            </select>
                         </div>
                     </div>
                 )}
@@ -257,6 +274,7 @@ const AdminHomepage: React.FC = () => {
     const getDefaultDataForType = (type: WidgetType) => {
         switch(type) {
             case 'banner': return { imageUrl: '', title: 'Welcome', height: 'medium', overlayOpacity: 40 };
+            case 'top-contributors': return { title: 'Top Contributors', subtitle: 'Meet our most active community members', limit: 5 };
             case 'prompt-grid': return { 
                 title: 'Latest Prompts', 
                 sort: 'newest', 
@@ -326,7 +344,7 @@ const AdminHomepage: React.FC = () => {
                         <div className="flex items-center gap-3">
                              <span className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">{widget.type.replace('-', ' ')}</span>
                              <span className="font-medium text-gray-900 dark:text-white truncate max-w-[200px] sm:max-w-md">
-                                 {widget.type === 'prompt-grid' || widget.type === 'post-grid' || widget.type === 'reel-grid' || widget.type === 'banner' ? (widget.data.title || 'Untitled') :
+                                 {widget.type === 'prompt-grid' || widget.type === 'post-grid' || widget.type === 'reel-grid' || widget.type === 'banner' || widget.type === 'top-contributors' ? (widget.data.title || 'Untitled') :
                                   widget.type === 'category-tabs' ? 'Category Navigation' : 'Rich Text Block'}
                              </span>
                         </div>
