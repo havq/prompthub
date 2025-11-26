@@ -5,44 +5,6 @@ import { uploadToCloudinary } from './cloudinaryService'; // We will override th
 import { UploadMethod, WatermarkSettings } from '../utils/types';
 import { fetchApi } from './api/core';
 
-// Helper to get reCAPTCHA token
-const getRecaptchaToken = async (action: string): Promise<string | null> => {
-    const settings = getSettings();
-    const recaptcha = settings.recaptchaSettings;
-
-    // Only proceed if enabled and using v3 (v2 checkbox isn't suitable for invisible background actions like upload)
-    if (!recaptcha?.enabled || recaptcha.version !== 'v3' || !recaptcha.v3SiteKey) {
-        return null;
-    }
-
-    return new Promise((resolve) => {
-        const checkGrecaptcha = () => {
-            // @ts-ignore
-            if (window.grecaptcha && window.grecaptcha.execute) {
-                // @ts-ignore
-                window.grecaptcha.execute(recaptcha.v3SiteKey, { action })
-                    .then((token: string) => resolve(token))
-                    .catch((err: any) => {
-                        console.error("reCAPTCHA execution failed:", err);
-                        resolve(null); // Fail open on client error, let backend decide
-                    });
-            } else {
-                // If script isn't loaded yet, wait a bit or fail gracefully
-                // In a real app, you might want to dynamically load the script here if missing
-                console.warn("reCAPTCHA script not loaded.");
-                resolve(null);
-            }
-        };
-
-        if ((window as any).grecaptcha) {
-            checkGrecaptcha();
-        } else {
-            // Simple retry mechanism if script is loading
-            setTimeout(checkGrecaptcha, 1000);
-        }
-    });
-};
-
 interface UploadResult {
     imageUrl: string;
     videoUrl?: string;
@@ -60,13 +22,6 @@ export const uploadToR2 = async (file: File): Promise<UploadResult> => {
     const config = activeConfigs[0];
     
     try {
-        // Get Recaptcha Token
-        const recaptchaToken = await getRecaptchaToken('upload_r2');
-        const headers: HeadersInit = {};
-        if (recaptchaToken) {
-            headers['X-Recaptcha-Token'] = recaptchaToken;
-        }
-
         // Step 1: Request a presigned URL from the backend.
         // fetchApi automatically handles Authorization header
         const presignedUrlResponse = await fetchApi<{ uploadUrl: string; finalUrl: string }>(
@@ -74,7 +29,6 @@ export const uploadToR2 = async (file: File): Promise<UploadResult> => {
             '&action=generate-r2-presigned-url', 
             {
                 method: 'POST',
-                headers: headers,
                 body: JSON.stringify({
                     fileName: file.name,
                     contentType: file.type,
@@ -88,7 +42,7 @@ export const uploadToR2 = async (file: File): Promise<UploadResult> => {
         }
 
         // Step 2: Upload the file directly to R2 using the presigned URL.
-        // Note: We do NOT send the recaptcha token or Auth token to R2, only to our backend.
+        // Note: We do NOT send Auth token to R2, only to our backend.
         const uploadResponse = await fetch(presignedUrlResponse.uploadUrl, {
             method: 'PUT',
             body: file,
@@ -297,12 +251,10 @@ const uploadToServer = async (imageFile: File): Promise<UploadResult> => {
     const uploadUrl = `${settings.externalApiUrl}?resource=upload`;
     const formData = new FormData();
     formData.append('image', imageFile);
-
-    const recaptchaToken = await getRecaptchaToken('upload_server');
+    
     const authToken = localStorage.getItem('auth_token');
     
     const headers: HeadersInit = {};
-    if (recaptchaToken) headers['X-Recaptcha-Token'] = recaptchaToken;
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const response = await fetch(uploadUrl, { method: 'POST', body: formData, headers });
@@ -326,11 +278,9 @@ const uploadToCloudinaryProxy = async (imageFile: File): Promise<UploadResult> =
     const formData = new FormData();
     formData.append('image', imageFile);
 
-    const recaptchaToken = await getRecaptchaToken('upload_cloudinary');
     const authToken = localStorage.getItem('auth_token');
 
     const headers: HeadersInit = {};
-    if (recaptchaToken) headers['X-Recaptcha-Token'] = recaptchaToken;
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const response = await fetch(uploadUrl, { method: 'POST', body: formData, headers });

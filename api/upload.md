@@ -50,56 +50,6 @@ function check_upload_rate_limit($redis, $userId) {
     }
 }
 
-function verify_upload_recaptcha($conn, $token) {
-    // 1. Fetch settings
-    $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'recaptchaSettings'");
-    $config_json = $result ? $result->fetch_assoc()['setting_value'] : null;
-    
-    if (!$config_json) return true; // Config not found, fail open or closed depending on policy. Here failing open to avoid blocking if misconfigured.
-    
-    $settings = json_decode($config_json, true);
-    if (empty($settings['enabled'])) return true; // Recaptcha disabled
-    
-    if (empty($token)) {
-        return false; // Enabled but no token provided
-    }
-
-    $secretKey = ($settings['version'] === 'v2') ? ($settings['v2SecretKey'] ?? null) : ($settings['v3SecretKey'] ?? null);
-    if (!$secretKey) return true; // Config error, fail open
-
-    $verify_url = 'https://www.google.com/recaptcha/api/siteverify';
-    $data = http_build_query([
-        'secret'   => $secretKey,
-        'response' => $token,
-        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? null
-    ]);
-
-    $options = [
-        'http' => [
-            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-            'method'  => 'POST',
-            'content' => $data
-        ]
-    ];
-    
-    try {
-        $context = stream_context_create($options);
-        $result = file_get_contents($verify_url, false, $context);
-        if ($result === FALSE) return false;
-        
-        $json = json_decode($result, true);
-        
-        if ($settings['version'] === 'v3') {
-            return isset($json['success']) && $json['success'] === true && ($json['score'] ?? 0) >= 0.5;
-        }
-        return isset($json['success']) && $json['success'] === true;
-    } catch (Exception $e) {
-        error_log("Recaptcha verify error: " . $e->getMessage());
-        return false; 
-    }
-}
-
-
 function upload_to_cloudinary($conn, $file) {
     // 1. Fetch Cloudinary configurations from the database
     $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'cloudinaryConfigs'");
@@ -372,13 +322,6 @@ function handle_upload($conn) {
 
     // 2. SECURITY: Rate Limiting
     check_upload_rate_limit($redis, $current_user_uid);
-
-    // 3. SECURITY: reCAPTCHA Verification
-    $recaptcha_token = $_SERVER['HTTP_X_RECAPTCHA_TOKEN'] ?? null;
-    if (!verify_upload_recaptcha($conn, $recaptcha_token)) {
-        send_error('Security check failed: Invalid or missing reCAPTCHA token.', 403);
-        return;
-    }
 
     // NEW: Handle Cloudflare R2 Presigned URL Generation
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'generate-r2-presigned-url') {
