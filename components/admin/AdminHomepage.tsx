@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HomeWidget, WidgetType, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
@@ -59,17 +58,62 @@ const WidgetEditorModal: React.FC<WidgetEditorModalProps> = ({ widget, onClose, 
 
                 {type === 'featured-comments-slider' && (
                     <div className="space-y-3">
-                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label><input type="text" value={formData.title || 'TOP BÌNH LUẬN'} onChange={e => handleChange('title', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                            <input 
+                                type="text" 
+                                value={formData.title ?? ''} 
+                                onChange={e => handleChange('title', e.target.value)} 
+                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                placeholder="TOP BÌNH LUẬN"
+                            />
+                        </div>
                         <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Limit</label><input type="number" value={formData.limit || 10} onChange={e => handleChange('limit', Number(e.target.value))} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
                     </div>
                 )}
 
                 {type === 'community-activity' && (
                     <div className="space-y-3">
-                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Active List Title</label><input type="text" value={formData.activeTitle || 'SÔI NỔI NHẤT'} onChange={e => handleChange('activeTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Favorite List Title</label><input type="text" value={formData.favoriteTitle || 'YÊU THÍCH NHẤT'} onChange={e => handleChange('favoriteTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category List Title</label><input type="text" value={formData.categoryTitle || 'THỂ LOẠI HOT'} onChange={e => handleChange('categoryTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comment List Title</label><input type="text" value={formData.commentTitle || 'BÌNH LUẬN MỚI'} onChange={e => handleChange('commentTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Active List Title</label>
+                            <input 
+                                type="text" 
+                                value={formData.activeTitle ?? ''} 
+                                onChange={e => handleChange('activeTitle', e.target.value)} 
+                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                placeholder="SÔI NỔI NHẤT"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Favorite List Title</label>
+                            <input 
+                                type="text" 
+                                value={formData.favoriteTitle ?? ''} 
+                                onChange={e => handleChange('favoriteTitle', e.target.value)} 
+                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                placeholder="YÊU THÍCH NHẤT"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category List Title</label>
+                            <input 
+                                type="text" 
+                                value={formData.categoryTitle ?? ''} 
+                                onChange={e => handleChange('categoryTitle', e.target.value)} 
+                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                placeholder="THỂ LOẠI HOT"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comment List Title</label>
+                            <input 
+                                type="text" 
+                                value={formData.commentTitle ?? ''} 
+                                onChange={e => handleChange('commentTitle', e.target.value)} 
+                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                placeholder="BÌNH LUẬN MỚI"
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -367,14 +411,14 @@ const AdminHomepage: React.FC = () => {
                                 type="button" 
                                 onClick={(e) => { e.stopPropagation(); setEditingWidget(widget); setIsEditModalOpen(true); }} 
                                 className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800"
-                             >
+                            >
                                 Edit
                              </button>
                              <button 
                                 type="button" 
                                 onClick={(e) => { e.stopPropagation(); handleDeleteClick(widget.id); }} 
                                 className="px-3 py-1.5 text-sm bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800"
-                             >
+                            >
                                 Delete
                              </button>
                         </div>

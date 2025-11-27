@@ -1004,6 +1004,15 @@
     "commentMention": "在短视频评论中提到了您。",
     "promptCommentMention": "在评论中提到了您。"
   },
+  "widgets": {
+    "featuredCommentsTitle": "热门评论",
+    "mostActiveTitle": "最活跃",
+    "mostFavoriteTitle": "最爱",
+    "hotCategoriesTitle": "热门分类",
+    "newCommentsTitle": "新评论",
+    "noItemsFound": "未找到项目",
+    "showMore": "查看更多"
+  },
   "staticPage": {
     "publishedOn": "发布于 {{date}}",
     "updatedOn": "更新于 {{date}}"

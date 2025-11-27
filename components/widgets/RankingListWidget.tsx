@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { RankingListWidgetData, Prompt } from '../../utils/types';
 import { getPrompts } from '../../services/api';
@@ -79,7 +78,7 @@ const RankingListWidget: React.FC<{ data: RankingListWidgetData }> = ({ data }) 
                             </li>
                         );
                     })}
-                    {items.length === 0 && <li className="text-xs text-gray-500 italic text-center">No items found</li>}
+                    {items.length === 0 && <li className="text-xs text-gray-500 italic text-center">{t('widgets.noItemsFound')}</li>}
                 </ul>
             )}
             <Link to="/prompts-list" className="block mt-4 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-right transition-colors">{t('common.showMore', { count: '' })} &rarr;</Link>

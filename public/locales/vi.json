@@ -1004,6 +1004,15 @@
     "commentMention": "đã nhắc đến bạn trong một bình luận trên reel.",
     "promptCommentMention": "đã nhắc đến bạn trong một bình luận."
   },
+  "widgets": {
+    "featuredCommentsTitle": "Bình Luận Nổi Bật",
+    "mostActiveTitle": "Sôi Nổi Nhất",
+    "mostFavoriteTitle": "Yêu Thích Nhất",
+    "hotCategoriesTitle": "Thể Loại Hot",
+    "newCommentsTitle": "Bình Luận Mới",
+    "noItemsFound": "Không tìm thấy mục nào",
+    "showMore": "Xem thêm"
+  },
   "staticPage": {
     "publishedOn": "Đăng vào ngày {{date}}",
     "updatedOn": "Cập nhật vào ngày {{date}}"
