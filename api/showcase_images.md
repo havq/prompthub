@@ -40,6 +40,74 @@ function handle_showcase_images($conn, $method, $id, $get_params, $post_data) {
         }
         switch($method) {
             case 'GET':
+                // Pagination Logic
+                if (isset($get_params['page'])) {
+                    $page = max(1, intval($get_params['page']));
+                    $limit = isset($get_params['limit']) ? intval($get_params['limit']) : 20;
+                    $offset = ($page - 1) * $limit;
+                    $searchTerm = $get_params['searchTerm'] ?? '';
+
+                    $where_clauses = ["1=1"];
+                    $params = [];
+                    $types = "";
+
+                    if (!empty($searchTerm)) {
+                        $likeTerm = '%' . $searchTerm . '%';
+                        $where_clauses[] = "(si.username LIKE ? OR p.text LIKE ?)";
+                        $params[] = $likeTerm;
+                        $params[] = $likeTerm;
+                        $types .= "ss";
+                    }
+
+                    $where_sql = implode(" AND ", $where_clauses);
+
+                    // Count Total
+                    $count_sql = "SELECT COUNT(si.id) as total 
+                                  FROM showcase_images si 
+                                  LEFT JOIN prompts p ON si.promptId = p.id 
+                                  WHERE $where_sql";
+                    
+                    $stmt_count = $conn->prepare($count_sql);
+                    if (!empty($params)) {
+                        $stmt_count->bind_param($types, ...$params);
+                    }
+                    $stmt_count->execute();
+                    $total = $stmt_count->get_result()->fetch_assoc()['total'];
+                    $stmt_count->close();
+
+                    // Fetch Data
+                    $data_sql = "SELECT si.*, u.photoURL as liveUserPhotoURL, p.text as promptText 
+                                 FROM showcase_images si 
+                                 LEFT JOIN users u ON si.userId = u.uid 
+                                 LEFT JOIN prompts p ON si.promptId = p.id 
+                                 WHERE $where_sql 
+                                 ORDER BY si.createdAt DESC 
+                                 LIMIT ? OFFSET ?";
+                    
+                    $stmt = $conn->prepare($data_sql);
+                    $params[] = $limit;
+                    $params[] = $offset;
+                    $types .= "ii";
+                    
+                    $stmt->bind_param($types, ...$params);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    
+                    $images = [];
+                    while($row = $result->fetch_assoc()) {
+                        $row['id'] = (string)$row['id'];
+                        if (isset($row['liveUserPhotoURL'])) {
+                            $row['userPhotoURL'] = $row['liveUserPhotoURL'];
+                        }
+                        unset($row['liveUserPhotoURL']);
+                        $images[] = $row;
+                    }
+                    
+                    send_json(['images' => $images, 'total' => (int)$total]);
+                    return;
+                }
+
+                // Legacy / Public GET (All or by Prompt ID)
                 $cacheKey = 'showcase:' . md5(http_build_query($get_params));
                 if ($redis) {
                     $cachedData = $redis->get($cacheKey);
@@ -62,6 +130,7 @@ function handle_showcase_images($conn, $method, $id, $get_params, $post_data) {
                 $result = $stmt->get_result();
                 $images = [];
                 while($row = $result->fetch_assoc()) {
+                    $row['id'] = (string)$row['id'];
                     if (isset($row['liveUserPhotoURL'])) {
                         $row['userPhotoURL'] = $row['liveUserPhotoURL'];
                     }
@@ -95,7 +164,7 @@ function handle_showcase_images($conn, $method, $id, $get_params, $post_data) {
 
                 if ($prompt_details && !empty($prompt_details['authorId']) && $prompt_details['authorId'] !== $data['userId']) {
                     $notification_stmt = $conn->prepare(
-                        "INSERT INTO notifications (recipientId, actorId, actorName, actorPhotoURL, type, promptId, promptText, is_read) VALUES (?, ?, ?, ?, 'showcase', ?, ?, 0)"
+                        "INSERT INTO notifications (recipientId, actorId, actorName, actorPhotoURL, type, promptId, promptText, is_read, createdAt) VALUES (?, ?, ?, ?, 'showcase', ?, ?, 0, NOW())"
                     );
                     $prompt_text_snippet = mb_substr($prompt_details['text'], 0, 50);
                     $notification_stmt->bind_param(
@@ -114,7 +183,8 @@ function handle_showcase_images($conn, $method, $id, $get_params, $post_data) {
                 $res_stmt = $conn->prepare("SELECT * FROM showcase_images WHERE id=?");
                 $res_stmt->bind_param("i", $newId);
                 $res_stmt->execute();
-                send_json($res_stmt->get_result()->fetch_assoc());
+                $res = $res_stmt->get_result()->fetch_assoc();
+                send_json($res);
                 break;
             case 'DELETE':
                 clear_showcase_cache($redis);

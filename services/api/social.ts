@@ -1,4 +1,5 @@
 
+
 import { Comment, Report, ShowcaseImage, Notification, Suggestion, Prompt, UserProfile } from '../../utils/types';
 import { fetchApi, mapItem, mapItems } from './core';
 import { getPrompts } from './prompts';
@@ -34,6 +35,17 @@ export const addShowcaseImage = (data: Omit<ShowcaseImage, 'id' | 'createdAt'>):
 export const deleteShowcaseImage = (imageId: string, userId: string): Promise<{ id: string }> => fetchApi<{ id: string }>('showcase_images', `&id=${imageId}&userId=${userId}`, { method: 'DELETE' });
 export const getAllShowcaseImageCounts = (): Promise<Record<string, number>> => fetchApi<Record<string, number>>('showcase_images', '&action=counts');
 export const getAllShowcaseImages = (): Promise<ShowcaseImage[]> => fetchApi<ShowcaseImage[]>('showcase_images').then(mapItems);
+export const getAdminShowcaseImages = (page: number, limit: number, searchTerm?: string): Promise<{ images: ShowcaseImage[], total: number }> => {
+    const query = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        searchTerm: searchTerm || ''
+    });
+    return fetchApi<{ images: ShowcaseImage[], total: number }>('showcase_images', `&${query.toString()}`).then(response => ({
+        images: mapItems(response.images),
+        total: response.total
+    }));
+};
 
 // --- Notification Functions ---
 const mapNotifications = (items: any[]): Notification[] => {

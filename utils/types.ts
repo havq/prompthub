@@ -1,4 +1,5 @@
 
+
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -112,6 +113,7 @@ export interface GamificationSettings {
   promptRemixed: number;
   rating5Star: number;
   commentReceived: number;
+  registrationBonus: number;
 }
 
 export interface AppSettings {
@@ -555,6 +557,7 @@ export interface ShowcaseImage {
   userPhotoURL?: string;
   imageUrl: string;
   createdAt: string;
+  promptText?: string; // Optional property for display
 }
 
 export interface Collection {

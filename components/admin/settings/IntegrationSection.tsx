@@ -102,7 +102,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                                <input type="text" value={settings.smtpConfig?.password || ''} onChange={e => handleSmtpChange('password', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="App Password (if 2FA on)" />
+                                <input type="password" value={settings.smtpConfig?.password || ''} onChange={e => handleSmtpChange('password', e.target.value)} className="mt-1 w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm border border-gray-300 dark:border-gray-500" placeholder="App Password (if 2FA on)" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Encryption</label>

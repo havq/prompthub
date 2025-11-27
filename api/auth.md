@@ -1,3 +1,4 @@
+
 <?php
 // api/auth.php
 
@@ -272,15 +273,20 @@ function handle_auth($conn, $method, $post_data) {
                 $username = $base_username . $i++;
             }
 
+            // Fetch registration bonus points
+            $g_settings_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'gamificationSettings'");
+            $g_settings = json_decode($g_settings_res->fetch_assoc()['setting_value'] ?? '{}', true);
+            $initial_points = isset($g_settings['registrationBonus']) ? (int)$g_settings['registrationBonus'] : 10;
+
             // Ensure database has google_id and points columns
-            $stmt = $conn->prepare("INSERT INTO users (uid, username, email, role, photoURL, google_id, points) VALUES (?, ?, ?, ?, ?, ?, 0)");
+            $stmt = $conn->prepare("INSERT INTO users (uid, username, email, role, photoURL, google_id, points) VALUES (?, ?, ?, ?, ?, ?, ?)");
             
             if (!$stmt) {
                 // Graceful check for missing columns
                 send_error('Database prepare failed. Check schema for google_id column. Error: ' . $conn->error, 500);
             }
             
-            $stmt->bind_param("ssssss", $uid, $username, $email, $role, $picture, $google_sub);
+            $stmt->bind_param("ssssssi", $uid, $username, $email, $role, $picture, $google_sub, $initial_points);
             $stmt->execute();
             
             // Fetch newly created user
@@ -330,15 +336,20 @@ function handle_auth($conn, $method, $post_data) {
         if ($email === 'prompthub.today@gmail.com') $role = 'Admin';
 
         $photoURL = "https://api.dicebear.com/8.x/initials/svg?size=120&seed=" . urlencode($username);
+        
+        // Fetch registration bonus points
+        $g_settings_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'gamificationSettings'");
+        $g_settings = json_decode($g_settings_res->fetch_assoc()['setting_value'] ?? '{}', true);
+        $initial_points = isset($g_settings['registrationBonus']) ? (int)$g_settings['registrationBonus'] : 10;
 
-        $stmt = $conn->prepare("INSERT INTO users (uid, username, email, password_hash, role, photoURL, points) VALUES (?, ?, ?, ?, ?, ?, 0)");
+        $stmt = $conn->prepare("INSERT INTO users (uid, username, email, password_hash, role, photoURL, points) VALUES (?, ?, ?, ?, ?, ?, ?)");
         if (!$stmt) { 
             error_log("Registration Prepare Error: " . $conn->error);
             // If this fails, it's likely because 'password_hash' column is missing
             send_error('Database error: `password_hash` column missing in `users` table. Please run migration SQL.', 500); 
         }
 
-        $stmt->bind_param("ssssss", $uid, $username, $email, $password_hash, $role, $photoURL);
+        $stmt->bind_param("ssssssi", $uid, $username, $email, $password_hash, $role, $photoURL, $initial_points);
         
         if ($stmt->execute()) {
              $token = create_jwt($uid, $email, $role, $role === 'Admin');
@@ -350,7 +361,7 @@ function handle_auth($conn, $method, $post_data) {
                  'role' => $role,
                  'photoURL' => $photoURL,
                  'isPro' => false,
-                 'points' => 0
+                 'points' => $initial_points
              ];
              
              send_json(['token' => $token, 'user' => $user]);

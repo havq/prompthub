@@ -225,7 +225,7 @@ export const useAdminActions = () => {
         deletingReel, setDeletingReel,
         deletingShowcaseImage, setDeletingShowcaseImage,
         deletingReport, setDeletingReport,
-        isUserFormOpen, setIsUserFormOpen, editingUser,
+        isUserFormOpen, setIsUserFormOpen, editingUser, setEditingUser,
         deletingUser, setDeletingUser, userFormError, setUserFormError,
         deletingCategory, setDeletingCategory,
         deletingPostCategory, setDeletingPostCategory,

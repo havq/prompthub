@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Prompt, Category, UserProfile, UploadMethod, CategoryWithCount } from '../utils/types';
+import { Prompt, UserProfile, UploadMethod, CategoryWithCount, PromptTextEntry } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
 import { remixPrompt } from '../services/api';
 import Spinner from './Spinner';
-import FormDetails from './remix/FormDetails';
+import PromptBasicDetails from './prompt-form/PromptBasicDetails';
 import MediaPreview from './remix/MediaPreview';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';
 import { GoogleGenAI } from '@google/genai';
@@ -31,7 +31,11 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
 
     // Basic Details
     const [title, setTitle] = useState(`Remix of ${promptToRemix.title}`);
-    const [text, setText] = useState(promptToRemix.text);
+    
+    // Multi-language Text State
+    const [promptTexts, setPromptTexts] = useState<PromptTextEntry[]>([{ lang: 'Tiếng Việt', text: '' }]);
+    const [activeLangIndex, setActiveLangIndex] = useState(0);
+
     const [promptNote, setPromptNote] = useState(promptToRemix.promptNote || '');
     const [promptSource, setPromptSource] = useState(promptToRemix.promptSource || '');
     const [tagsInput, setTagsInput] = useState(promptToRemix.tags?.join(', ') || '');
@@ -100,11 +104,32 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
         if (promptToRemix.rotation) {
             setRotation(promptToRemix.rotation);
         }
+
+        // Parse Text (JSON or String)
+        if (promptToRemix.text) {
+            let initialTexts: PromptTextEntry[] = [{ lang: 'Tiếng Việt', text: '' }];
+            try {
+                const parsed = JSON.parse(promptToRemix.text);
+                if (Array.isArray(parsed) && parsed.length > 0 && 'lang' in parsed[0] && 'text' in parsed[0]) {
+                    initialTexts = parsed;
+                } else if (typeof parsed === 'string') {
+                    initialTexts = [{ lang: 'Tiếng Việt', text: parsed }];
+                } else {
+                    // Fallback for legacy data
+                    initialTexts = [{ lang: 'Tiếng Việt', text: promptToRemix.text }];
+                }
+            } catch (e) {
+                initialTexts = [{ lang: 'Tiếng Việt', text: promptToRemix.text }];
+            }
+            setPromptTexts(initialTexts);
+        }
         
     }, [promptToRemix]);
 
     const handleSuggestTags = async () => {
-        if (!text.trim() || isSuggestingTags) return;
+        const currentText = promptTexts[activeLangIndex]?.text || '';
+        if (!currentText.trim() || isSuggestingTags) return;
+        
         if (!process.env.API_KEY) {
             setSuggestTagsError("AI API Key not configured.");
             return;
@@ -115,7 +140,7 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const result = await ai.models.generateContent({
               model: 'gemini-2.5-flash',
-              contents: `Suggest 5 relevant tags for this prompt, separated by commas: "${text}"`,
+              contents: `Suggest 5 relevant tags for this prompt, separated by commas: "${currentText}"`,
             });
             const tags = result.text.split(',').map(t => t.trim()).join(', ');
             setTagsInput(prev => prev ? `${prev}, ${tags}` : tags);
@@ -253,11 +278,21 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
+
+        const hasText = promptTexts.some(entry => entry.text.trim() !== '');
+        if (!hasText) {
+            alert("Please enter prompt text for at least one language.");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
             await remixPrompt({
-                title, text, promptNote: promptNote || undefined, promptSource: promptSource || undefined,
+                title, 
+                text: JSON.stringify(promptTexts), // Serialize multi-lang text
+                promptNote: promptNote || undefined, 
+                promptSource: promptSource || undefined,
                 imageUrl: JSON.stringify(imageUrls), // Send as JSON array string
                 videoUrl: videoUrl || undefined, 
                 referenceImageUrl: requiresUserImage ? referenceImageUrl : undefined,
@@ -294,9 +329,12 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-4">
-                                <FormDetails 
+                                <PromptBasicDetails 
                                     title={title} setTitle={setTitle} 
-                                    text={text} setText={setText} 
+                                    promptTexts={promptTexts} 
+                                    setPromptTexts={setPromptTexts}
+                                    activeLangIndex={activeLangIndex}
+                                    setActiveLangIndex={setActiveLangIndex}
                                     promptNote={promptNote} setPromptNote={setPromptNote}
                                     promptSource={promptSource} setPromptSource={setPromptSource}
                                     tagsInput={tagsInput} setTagsInput={setTagsInput} 
@@ -304,6 +342,7 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
                                     isSuggestingTags={isSuggestingTags} 
                                     suggestTagsError={suggestTagsError} 
                                     INPUT_STYLE={INPUT_STYLE} 
+                                    t={t}
                                 />
                             </div>
                             <div className="space-y-4">

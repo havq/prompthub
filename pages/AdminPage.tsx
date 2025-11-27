@@ -1,3 +1,4 @@
-import AdminDashboardWrapper from '../components/AdminDashboard';
+
+import AdminDashboardWrapper from '../components/admin/AdminDashboard';
 
 export default AdminDashboardWrapper;

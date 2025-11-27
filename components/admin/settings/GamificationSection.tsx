@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { GamificationSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
@@ -28,6 +29,11 @@ const GamificationSection: React.FC<GamificationSectionProps> = ({ settings, onC
                 Configure the number of points users earn for various community interactions.
             </p>
             <div className="space-y-4">
+                <PointInput 
+                    label="Points for New User Registration"
+                    value={settings.registrationBonus}
+                    onChange={val => onChange('registrationBonus', val)}
+                />
                 <PointInput 
                     label="Points for a 5-Star Rating"
                     value={settings.rating5Star}

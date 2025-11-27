@@ -1,3 +1,4 @@
+
 import { AppSettings, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig } from '../utils/types';
 import { saveAppSettings as saveExternalSettings, getAppSettings as getExternalSettings } from './externalApi';
 
@@ -195,6 +196,7 @@ const fallbackSettings: AppSettings = {
     promptRemixed: 5,
     rating5Star: 2,
     commentReceived: 1,
+    registrationBonus: 10,
   },
   smtpConfig: {
       host: '',

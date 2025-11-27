@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod, GamificationSettings, CloudflareR2Config } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
@@ -294,7 +292,7 @@ const AdminSettings: React.FC = () => {
     const handleGamificationSettingChange = (field: keyof GamificationSettings, value: number) => {
         handleSettingsChange('gamificationSettings', {
             ...(localSettings.gamificationSettings || {
-                promptFavorited: 1, promptCollected: 2, promptRemixed: 5, rating5Star: 2, commentReceived: 1
+                promptFavorited: 1, promptCollected: 2, promptRemixed: 5, rating5Star: 2, commentReceived: 1, registrationBonus: 10
             }),
             [field]: value
         });
@@ -352,7 +350,7 @@ const AdminSettings: React.FC = () => {
                         handlePromptCardSettingChange={handlePromptCardSettingChange}
                     />
                     <GamificationSection
-                        settings={localSettings.gamificationSettings || { promptFavorited: 1, promptCollected: 2, promptRemixed: 5, rating5Star: 2, commentReceived: 1 }}
+                        settings={localSettings.gamificationSettings || { promptFavorited: 1, promptCollected: 2, promptRemixed: 5, rating5Star: 2, commentReceived: 1, registrationBonus: 10 }}
                         onChange={handleGamificationSettingChange}
                         t={t}
                     />

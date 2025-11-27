@@ -329,6 +329,8 @@ export const addShowcaseImage = (data: Omit<ShowcaseImage, 'id' | 'createdAt'>):
 export const deleteShowcaseImage = (imageId: string, userId: string): Promise<{ id: string }> => externalApi.deleteShowcaseImage(imageId, userId);
 export const getAllShowcaseImageCounts = (): Promise<Record<string, number>> => externalApi.getAllShowcaseImageCounts();
 export const getAllShowcaseImages = (): Promise<ShowcaseImage[]> => externalApi.getAllShowcaseImages();
+export const getAdminShowcaseImages = (page: number, limit: number, searchTerm?: string): Promise<{ images: ShowcaseImage[], total: number }> => externalApi.getAdminShowcaseImages(page, limit, searchTerm);
+
 
 // --- Social Functions ---
 export const followUser = (currentUserId: string, targetUserId: string): Promise<void> => externalApi.followUser(currentUserId, targetUserId);
