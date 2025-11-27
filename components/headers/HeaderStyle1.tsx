@@ -277,7 +277,7 @@ const HeaderStyle1: React.FC<{ isNotificationBarVisible?: boolean }> = ({ isNoti
           {currentUser && userProfile ? (
             <div className="relative" ref={userMenuRef}>
               <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="flex items-center space-x-2 focus:outline-none">
-                <img src={userProfile.photoURL ? transformCloudinaryUrl(userProfile.photoURL, 'w_250,h_250,c_fill,g_auto') : `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(userProfile.username)}`} alt="User avatar" className="h-9 w-9 rounded-full object-cover ring-2 ring-gray-300 dark:ring-gray-600 hover:ring-indigo-500 transition-all"/>
+                <img src={userProfile.photoURL ? transformCloudinaryUrl(userProfile.photoURL, 'w_250,h_250,c_fill,g_auto') : `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(userProfile.username)}&size=32`} alt="User avatar" className="h-9 w-9 rounded-full object-cover ring-2 ring-gray-300 dark:ring-gray-600 hover:ring-indigo-500 transition-all"/>
                 <span className="text-gray-800 dark:text-white font-medium hidden sm:block">{userProfile.username}</span>
               </button>
               {isUserMenuOpen && (
