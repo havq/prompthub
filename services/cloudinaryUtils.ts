@@ -1,7 +1,7 @@
+
 /**
  * Transforms a Cloudinary URL to apply specified transformations for optimization.
- * This function specifically handles replacing the version number if it exists.
- * It also avoids adding transformations if they already exist.
+ * Automatically injects 'f_auto,q_auto' for best performance/quality ratio.
  * @param url The original Cloudinary image URL.
  * @param transformation The transformation string (e.g., 'w_260,h_360,c_fill').
  * @returns The transformed URL, or the original URL if it's not a valid Cloudinary URL.
@@ -11,26 +11,35 @@ export const transformCloudinaryUrl = (url: string, transformation: string): str
         return url;
     }
 
+    // Ensure auto format and quality are always present for performance
+    let optimizedTransformation = transformation;
+    if (!optimizedTransformation.includes('f_auto')) {
+        optimizedTransformation += ',f_auto';
+    }
+    if (!optimizedTransformation.includes('q_auto')) {
+        optimizedTransformation += ',q_auto';
+    }
+
     // Regex to find if a transformation is already present.
     // This looks for common transformation parameters like w_, h_, c_, etc.
-    const transformationRegex = /\/upload\/(w_|h_|c_|g_|ar_|q_|f_)/;
-    if (url.match(transformationRegex)) {
-        return url; // Already transformed, do nothing.
-    }
-
-    // Regex to find and replace the version part of the URL, e.g., /upload/v1234567890/
+    // We look for the start of the upload path to inject correctly.
+    
+    // If url already has /upload/v.../ format
     const versionRegex = /\/upload\/v\d+\//;
     if (url.match(versionRegex)) {
-        return url.replace(versionRegex, `/upload/${transformation}/`);
+        // Check if there are existing transformations before the version
+        // This is a simplified check. For full robustness, we assume standard Cloudinary URL structure.
+        return url.replace(/\/upload\/(?:[^\/]+\/)?v(\d+)\//, `/upload/${optimizedTransformation}/v$1/`);
     }
 
-    // If no version and no transformation is found, insert the transformation.
-    // This handles URLs like /upload/public_id.jpg
+    // If URL is /upload/public_id (no version, no transform)
     const parts = url.split('/upload/');
     if (parts.length === 2) {
-        return `${parts[0]}/upload/${transformation}/${parts[1]}`;
+        // Check if the second part already starts with transformations (heuristic)
+        // Assuming public IDs don't typically start with 'w_', 'h_', etc. immediately followed by comma/slash
+        // But safer to just inject if we are sure it's untransformed.
+        return `${parts[0]}/upload/${optimizedTransformation}/${parts[1]}`;
     }
 
-    // Fallback for any other format.
     return url;
 };

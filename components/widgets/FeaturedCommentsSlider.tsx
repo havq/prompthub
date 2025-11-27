@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { FeaturedCommentsWidgetData, Comment, Prompt } from '../../utils/types';
 import { getAllComments, getPrompt } from '../../services/api';
@@ -208,6 +209,8 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
                                             src={transformCloudinaryUrl(comment.promptImage, 'w_200,h_300,c_fill')} 
                                             className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" 
                                             alt="Prompt" 
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-600">

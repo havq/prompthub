@@ -1,3 +1,4 @@
+
 import React, { useRef, useMemo } from 'react';
 import { Prompt } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
@@ -19,7 +20,11 @@ const CardMedia: React.FC<CardMediaProps> = ({ prompt, viewMode, isMediaReady, m
     const firstImageUrl = imageUrls[0] || '';
     const { videoId: youTubeVideoId } = useMemo(() => parseYouTubeUrl(prompt.videoUrl || ''), [prompt.videoUrl]);
     const isYouTube = !!youTubeVideoId;
-    const optimizedImageUrl = transformCloudinaryUrl(firstImageUrl, 'w_800,c_fill');
+    
+    // Optimize image size based on viewMode to save bandwidth
+    const widthParam = viewMode === 'list' ? 'w_200' : 'w_600';
+    const optimizedImageUrl = transformCloudinaryUrl(firstImageUrl, `${widthParam},c_fill`);
+    
     const thumbnail = isYouTube ? `https://img.youtube.com/vi/${youTubeVideoId}/hqdefault.jpg` : optimizedImageUrl;
 
     const handleMouseEnter = () => {
@@ -29,7 +34,13 @@ const CardMedia: React.FC<CardMediaProps> = ({ prompt, viewMode, isMediaReady, m
         // Check isNSFW: if true, do not autoplay
         if (prompt.isNSFW) return;
 
-        videoRef.current.play().catch(e => console.log("Video play interrupted or failed", e));
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                // Auto-play was prevented
+                // console.log("Video play interrupted or failed", e);
+            });
+        }
     };
     
     const handleMouseLeave = () => {
@@ -67,7 +78,7 @@ const CardMedia: React.FC<CardMediaProps> = ({ prompt, viewMode, isMediaReady, m
                     src={prompt.videoUrl}
                     poster={optimizedImageUrl}
                     className={`w-full h-full object-cover ${getRotationClass(prompt.rotation, viewMode)}`}
-                    muted loop playsInline preload="metadata"
+                    muted loop playsInline preload="none"
                 />
             ) : (
                 <img 
@@ -78,7 +89,8 @@ const CardMedia: React.FC<CardMediaProps> = ({ prompt, viewMode, isMediaReady, m
                         ? 'object-contain transition-all ease-in-out duration-500'
                         : 'object-cover transition-transform duration-300'
                     } ${getRotationClass(prompt.rotation, viewMode)}`} 
-                    loading="lazy" 
+                    loading="lazy"
+                    decoding="async"
                 />
             )}
         </div>

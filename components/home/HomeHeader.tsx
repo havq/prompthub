@@ -96,9 +96,11 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
                                 💡 {t('home.generateWithAI')}
                             </button>
                         )}
+                        {/*
                         <button onClick={handleSubmitPromptClick} className={`col-span-1 flex items-center justify-center px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md ${!showAIPromptIdeasButton ? 'col-span-2' : ''}`}>
                             {t('home.submitPrompt')}
                         </button>
+                        */}
                         {/* Desktop Filter Button */}
                         <button onClick={() => setIsFilterPanelOpen(true)} className="hidden sm:flex lg:hidden items-center justify-center px-3 py-2.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-[#1c1f26] text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-800">
                             {t('home.filters')}

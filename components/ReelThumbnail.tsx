@@ -1,6 +1,7 @@
 
 import React, { useRef, useMemo } from 'react';
 import { Reel, ReelCategory } from '../utils/types';
+import { formatCount } from './PromptDetail/utils';
 
 const parseYouTubeUrl = (url: string): { videoId: string | null } => {
     if (!url) {
@@ -20,24 +21,6 @@ interface ReelThumbnailProps {
     categories: ReelCategory[];
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
-
-const formatCount = (count: number | undefined): string => {
-    const num = Number(count || 0);
-    if (num < 1000) {
-      return num.toLocaleString();
-    }
-    const units = ['k', 'm', 'b', 't'];
-    const unit = Math.floor((num.toFixed(0).length - 1) / 3) - 1;
-    
-    if (unit >= units.length) {
-        return num.toLocaleString();
-    }
-    
-    const value = num / Math.pow(1000, unit + 1);
-    const truncatedValue = Math.floor(value * 10) / 10;
-    
-    return String(truncatedValue) + units[unit];
-};
 
 const ReelThumbnail: React.FC<ReelThumbnailProps> = ({ reel, categories, onClick }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -76,6 +59,7 @@ const ReelThumbnail: React.FC<ReelThumbnailProps> = ({ reel, categories, onClick
                     alt={reel.title}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     loading="lazy"
+                    decoding="async"
                 />
             ) : (
                 <video
@@ -84,7 +68,7 @@ const ReelThumbnail: React.FC<ReelThumbnailProps> = ({ reel, categories, onClick
                     muted
                     loop
                     playsInline
-                    preload="metadata"
+                    preload="none"
                     className={`w-full h-full object-cover transition-transform duration-300 ${!reel.isNSFW ? 'group-hover:scale-110' : ''}`}
                 />
             )}

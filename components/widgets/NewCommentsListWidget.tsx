@@ -82,7 +82,13 @@ const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData }> = ({ data
                     {comments.map(comment => (
                         <div key={comment.id} className="flex gap-3 bg-gray-50 dark:bg-[#1e2128] p-2.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors group shadow-sm dark:shadow-none">
                             <Link to={`/author/${comment.userId}`} className="flex-shrink-0">
-                                <img src={transformCloudinaryUrl(comment.userPhotoURL || '', 'w_50,h_50,c_fill')} className="w-9 h-9 rounded-full object-cover border border-gray-300 dark:border-gray-600 group-hover:border-gray-400 transition-colors" alt={comment.username} />
+                                <img 
+                                    src={transformCloudinaryUrl(comment.userPhotoURL || '', 'w_50,h_50,c_fill')} 
+                                    className="w-9 h-9 rounded-full object-cover border border-gray-300 dark:border-gray-600 group-hover:border-gray-400 transition-colors" 
+                                    alt={comment.username} 
+                                    loading="lazy"
+                                    decoding="async"
+                                />
                             </Link>
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between mb-0.5">
