@@ -20,6 +20,7 @@ interface ReelsPageProps {
     categories: ReelCategory[];
 }
 
+// AdReel adapts to h-full of parent container
 const AdReel: React.FC<{ adCode: string }> = ({ adCode }) => {
     const { t } = useLanguage();
     const adContainerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +48,7 @@ const AdReel: React.FC<{ adCode: string }> = ({ adCode }) => {
     }, [adCode]);
 
     return (
-        <div className="h-full w-full snap-start relative flex items-center justify-center bg-black">
+        <div className="h-full w-full snap-center snap-always relative flex items-center justify-center bg-black">
            <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg shadow-inner flex flex-col h-full border border-dashed border-gray-300 dark:border-gray-700 w-full p-4 items-center justify-center max-w-md max-h-[80vh] relative">
                 <div ref={adContainerRef} className="w-full flex justify-center items-center" />
                 <span className="text-xs text-gray-400 dark:text-gray-500 mt-2 tracking-widest uppercase">{t('adCard.advertisement')}</span>
@@ -99,22 +100,14 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
     const [processedNavKey, setProcessedNavKey] = useState<string | null>(null);
 
     const handleReelInView = useCallback((reelId: string) => {
-        // Prevent IPC flooding / navigation throttling errors:
-        // 1. If we are currently on the Explore page (e.g. user clicked "Back"), do not attempt to navigate back to a specific reel ID.
         if (location.pathname.includes('/reels/explore')) return;
-        
-        // 2. If the URL already ends with this reel ID, do not navigate (redundant replacement).
         if (location.pathname.endsWith(`/${reelId}`)) return;
 
         const currentState = location.state as any || {};
-        
-        // Create a copy and strip 'openComments' to prevent the modal from reopening loop if closed.
-        // We keep 'commentId' to preserve highlighting while viewing this reel.
         const persistentState = { ...currentState };
         if ('openComments' in persistentState) {
             delete persistentState.openComments;
         }
-        
         navigate(`/reels/${reelId}`, { replace: true, state: persistentState });
     }, [navigate, location.state, location.pathname]);
 
@@ -130,13 +123,6 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
     // Effect to handle auto-opening comments if navigated from notification
     useEffect(() => {
         const currentNavKey = location.key || 'initial';
-        
-        // Check if we should open comments:
-        // 1. We have a startReelId
-        // 2. State requests opening comments
-        // 3. Reels are loaded
-        // 4. Modal is not currently open (or we are switching reels)
-        // 5. We haven't processed this specific navigation event yet
         if (startReelId && location.state?.openComments && reels.length > 0 && !activeReelForComments) {
             if (processedNavKey !== currentNavKey) {
                 const targetReel = reels.find(r => r.id === startReelId);
@@ -221,7 +207,6 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
             setHasMore(feedResponse.reels.length > 0);
         } catch (error) {
             console.error("Failed to initialize reels feed:", error);
-            // Fallback to normal feed if specific reel fails
             fetchAndAppendReels();
         } finally {
             setIsLoading(false);
@@ -232,7 +217,6 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
         if (!initialReels || initialReels.length === 0) {
             fetchAndInitialize();
         } else {
-            // We have initial reels from explore page, set next page to fetch correctly
             const REELS_PER_PAGE = 5;
             setPageToFetch(Math.ceil(initialReels.length / REELS_PER_PAGE) + 1);
         }
@@ -262,13 +246,15 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
         };
     }, [fetchAndAppendReels, hasMore, isLoading, initialReels, pageToFetch]);
     
+    // Initial scroll to startReelId
     useLayoutEffect(() => {
         if (startReelId && reels.length > 0 && containerRef.current) {
+            // Wait a tick for rendering
             setTimeout(() => {
                 if (containerRef.current) {
                     const startElement = containerRef.current.querySelector<HTMLElement>(`[data-reel-id="${startReelId}"]`);
                     if (startElement) {
-                        containerRef.current.scrollTop = startElement.offsetTop;
+                         startElement.scrollIntoView({ behavior: 'auto' });
                     }
                 }
             }, 0);
@@ -321,13 +307,41 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
     const itemsWithAds = useMemo(() => {
         const items: React.ReactNode[] = [];
         if (isPro || !reelsAdSettings?.enabled || !reelsAdSettings.adCode || reels.length === 0) {
-            return reels.map(reel => <ReelPlayer key={reel.id} reel={reel} categories={categories} isLiked={!!likedReels[reel.id]} onLikeToggle={handleLikeToggle} containerRef={containerRef} isLoggedIn={!!currentUser} onOpenComments={() => setActiveReelForComments(reel)} onViewPrompt={handleViewPrompt} isBannerVisible={isBannerAdVisible} onInView={handleReelInView} />);
+            return reels.map(reel => (
+                <ReelPlayer 
+                    key={reel.id} 
+                    reel={reel} 
+                    categories={categories} 
+                    isLiked={!!likedReels[reel.id]} 
+                    onLikeToggle={handleLikeToggle} 
+                    containerRef={containerRef} 
+                    isLoggedIn={!!currentUser} 
+                    onOpenComments={() => setActiveReelForComments(reel)} 
+                    onViewPrompt={handleViewPrompt} 
+                    isBannerVisible={isBannerAdVisible} 
+                    onInView={handleReelInView}
+                />
+            ));
         }
 
         const { adCode, frequency, startPosition } = reelsAdSettings;
 
         reels.forEach((reel, i) => {
-            items.push(<ReelPlayer key={reel.id} reel={reel} categories={categories} isLiked={!!likedReels[reel.id]} onLikeToggle={handleLikeToggle} containerRef={containerRef} isLoggedIn={!!currentUser} onOpenComments={() => setActiveReelForComments(reel)} onViewPrompt={handleViewPrompt} isBannerVisible={isBannerAdVisible} onInView={handleReelInView} />);
+            items.push(
+                <ReelPlayer 
+                    key={reel.id} 
+                    reel={reel} 
+                    categories={categories} 
+                    isLiked={!!likedReels[reel.id]} 
+                    onLikeToggle={handleLikeToggle} 
+                    containerRef={containerRef} 
+                    isLoggedIn={!!currentUser} 
+                    onOpenComments={() => setActiveReelForComments(reel)} 
+                    onViewPrompt={handleViewPrompt} 
+                    isBannerVisible={isBannerAdVisible} 
+                    onInView={handleReelInView}
+                />
+            );
             
             const currentPosition = i + 1;
             if (currentPosition >= startPosition && (currentPosition - startPosition + 1) % frequency === 0) {
@@ -340,14 +354,18 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
 
 
     return (
-
-
-        <div className="flex h-screen w-full bg-black">
+        <div className="fixed inset-0 z-40 flex w-full bg-black h-[100dvh]">
              <ReelsLeftSidebar />
 
-             <div className="fixed inset-0 lg:static lg:w-auto lg:flex-1 bg-black z-50 transition-all duration-300">
-                <div className="h-full w-full relative">
-
+             <div className="flex-1 flex flex-col h-full relative min-w-0">
+                
+                {/* Main Scrollable Container */}
+                {/* flex-1 ensures it takes up remaining space below header if one existed, ensuring correct height */}
+                {/* Added overscroll-contain to prevent rubber-banding effect that messes up snap alignment */}
+                <div 
+                    ref={containerRef}
+                    className="flex-1 w-full snap-y snap-mandatory overflow-y-scroll scrollbar-hide relative overscroll-y-contain"
+                >
                     {isLoginModalOpen && <LoginSuggestionModal onClose={() => setIsLoginModalOpen(false)} />}
                     {activeReelForComments && (
                         <CommentsModal 
@@ -357,37 +375,33 @@ const ReelsPage: React.FC<ReelsPageProps> = ({ startReelId, initialReels, catego
                             highlightCommentId={location.state?.commentId}
                         />
                     )}
-                    
-                    <div 
-                        ref={containerRef}
-                        className="h-full w-full snap-y snap-mandatory overflow-y-scroll scrollbar-hide relative"
-                    >
 
-                        {itemsWithAds}
+                    {itemsWithAds}
 
-                        {(isLoading || hasMore) && (
-                            <div ref={loaderRef} className="h-[100vh] w-full snap-start flex items-center justify-center">
-                                {isLoading && <Spinner size="lg" />}
-                            </div>
-                        )}
-                    </div>
-
-                    <Link
-                        to="/reels/explore"
-                        className="absolute top-5 left-5 z-[100] lg:hidden transform-gpu p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors"
-                        aria-label={t('reels.backToExplore')}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </Link>
-
-                    {isBannerAdVisible && (
-                        <div className="absolute bottom-0 left-0 right-0 z-20 p-2 bg-black/30 backdrop-blur-sm">
-                            <BannerAd adCode={reelsBannerAdSettings!.adCode} className="my-0" onClose={handleCloseBanner} />
+                    {(isLoading || hasMore) && (
+                        <div ref={loaderRef} className="w-full h-full snap-center flex items-center justify-center bg-black">
+                            {isLoading && <Spinner size="lg" />}
                         </div>
                     )}
                 </div>
+
+                <Link
+                    to="/reels/explore"
+                    className="absolute top-5 left-5 z-[50] lg:hidden transform-gpu p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors"
+                    aria-label={t('reels.backToExplore')}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                </Link>
+
+                {isBannerAdVisible && (
+                    <div className="absolute bottom-0 left-0 right-0 z-30 p-2 bg-black/30 backdrop-blur-sm pointer-events-none">
+                         <div className="pointer-events-auto">
+                            <BannerAd adCode={reelsBannerAdSettings!.adCode} className="my-0" onClose={handleCloseBanner} />
+                         </div>
+                    </div>
+                )}
             </div>
         </div>
 

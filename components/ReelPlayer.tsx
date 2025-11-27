@@ -36,6 +36,7 @@ interface ReelPlayerProps {
     onViewPrompt: (promptId: string) => void;
     isBannerVisible: boolean;
     onInView: (reelId: string) => void;
+    // Removed style prop as it's no longer needed with flexbox layout
 }
 
 const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLikeToggle, onOpenComments, containerRef, isLoggedIn, onViewPrompt, isBannerVisible, onInView }) => {
@@ -208,7 +209,7 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
 
 
     return (
-        <div ref={reelRef} data-reel-id={reel.id} className="h-full w-full snap-start relative flex items-center justify-center bg-black">
+        <div ref={reelRef} data-reel-id={reel.id} className="h-full w-full snap-center snap-always relative flex items-center justify-center bg-black">
             {showNSFWOverlay && (
                 <div className="absolute inset-0 z-30 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
                     <div className="bg-red-600 rounded-full p-3 mb-4 shadow-lg">
@@ -310,7 +311,7 @@ const ReelPlayer: React.FC<ReelPlayerProps> = ({ reel, categories, isLiked, onLi
 
                     <div className="flex flex-col items-center space-y-5 ml-4">
                         <Link to={`/author/${reel.authorId}`} onClick={e => e.stopPropagation()} className="relative block" aria-label={`View profile of ${reel.authorName}`}>
-                           <img src={transformCloudinaryUrl(reel.authorPhotoURL || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(reel.authorName || 'A')}`, 'w_100,h_100,c_fill,g_auto')} alt={reel.authorName || 'Author avatar'} className="w-12 h-12 rounded-full object-cover border-2 border-white"/>
+                           <img src={transformCloudinaryUrl(reel.authorPhotoURL || `https://api.dicebear.com/8.x/initials/svg?size=32&seed=${encodeURIComponent(reel.authorName || 'A')}`, 'w_100,h_100,c_fill,g_auto')} alt={reel.authorName || 'Author avatar'} className="w-12 h-12 rounded-full object-cover border-2 border-white"/>
                         </Link>
                         {reel.promptId && (
                             <button onClick={handleViewPromptClick} className="flex flex-col items-center">
