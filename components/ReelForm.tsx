@@ -22,6 +22,7 @@ const INPUT_STYLE = "block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border 
 export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClose, isSubmitting, prompts, categories }) => {
   const [title, setTitle] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [videoThumbnail, setVideoThumbnail] = useState(''); // New state for thumbnail
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [promptId, setPromptId] = useState<string>('');
   const [tagsInput, setTagsInput] = useState('');
@@ -31,10 +32,12 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailFileInputRef = useRef<HTMLInputElement>(null); // Ref for thumbnail
   const urlInputRef = useRef<HTMLInputElement>(null);
 
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -92,6 +95,7 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
     if (initialData) {
       setTitle(initialData.title || '');
       setVideoUrl(initialData.videoUrl || '');
+      setVideoThumbnail(initialData.videoThumbnail || '');
       
       if (initialData.imageUrl) {
         if (initialData.imageUrl.startsWith('[') && initialData.imageUrl.endsWith(']')) {
@@ -155,13 +159,14 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || isUploading || isUploadingVideo) return;
+    if (isSubmitting || isUploading || isUploadingVideo || isUploadingThumbnail) return;
     
     const tags = tagsInput.split(',').map(tag => tag.trim()).filter(Boolean);
     
     const reelData = {
         title,
         videoUrl,
+        videoThumbnail: videoThumbnail || undefined,
         imageUrl: JSON.stringify(imageUrls),
         tags,
         status,
@@ -258,6 +263,10 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
               if (result.imageUrl && imageUrls.length === 0) {
                   setImageUrls([result.imageUrl]);
               }
+              // Auto set thumbnail if provided by upload result (e.g. from Tumblr) and not set manually
+              if (result.imageUrl && !videoThumbnail) {
+                  setVideoThumbnail(result.imageUrl);
+              }
           }
           completeProgress();
       } catch (error) {
@@ -268,6 +277,29 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
           if (videoFileInputRef.current) videoFileInputRef.current.value = '';
       }
   };
+
+  const handleThumbnailUploadClick = () => {
+      if (thumbnailFileInputRef.current) {
+          thumbnailFileInputRef.current.click();
+      }
+  };
+
+  const processThumbnailFile = async (file: File) => {
+      setIsUploadingThumbnail(true);
+      startProgressSimulation();
+      try {
+          const result = await uploadImage(file, undefined, { isPro, isAdmin });
+          setVideoThumbnail(result.imageUrl);
+          completeProgress();
+      } catch (error) {
+          console.error("Thumbnail upload failed:", error);
+          setError("Failed to upload thumbnail.");
+      } finally {
+          setIsUploadingThumbnail(false);
+          if (thumbnailFileInputRef.current) thumbnailFileInputRef.current.value = '';
+      }
+  };
+
 
   const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -367,6 +399,33 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
                     // IMPORTANT: Hide reference image settings for Reels
                     hideReferenceImageSettings={true}
                 />
+
+                {/* Video Thumbnail Field */}
+                <div>
+                    <label htmlFor="video-thumbnail" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Video Thumbnail (Optional)</label>
+                    <div className="mt-1 flex items-center gap-2">
+                        <input
+                            type="text"
+                            id="video-thumbnail"
+                            value={videoThumbnail}
+                            onChange={(e) => setVideoThumbnail(e.target.value)}
+                            className={`flex-grow ${INPUT_STYLE}`}
+                            placeholder="https://..."
+                        />
+                        <button
+                            type="button"
+                            onClick={handleThumbnailUploadClick}
+                            disabled={isUploadingThumbnail || isUploading || isUploadingVideo}
+                            className="relative inline-flex items-center justify-center min-w-[80px] px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 disabled:opacity-50 rounded-md"
+                        >
+                            {isUploadingThumbnail ? <CircularProgress progress={uploadProgress} size={20} strokeWidth={3} /> : <span>{t('admin.settings.upload')}</span>}
+                        </button>
+                        <input type="file" ref={thumbnailFileInputRef} onChange={(e) => e.target.files?.[0] && processThumbnailFile(e.target.files[0])} className="hidden" accept="image/*" />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Provide an image URL to display as the cover before the video plays.
+                    </p>
+                </div>
 
                  <div>
                     <label htmlFor="reel-prompt-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Linked Prompt (Optional)</label>

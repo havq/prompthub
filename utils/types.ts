@@ -486,6 +486,7 @@ export interface Reel {
   id: string;
   title: string;
   videoUrl: string;
+  videoThumbnail?: string;
   imageUrl?: string; // JSON string of image URLs
   promptId?: string;
   authorId?: string;

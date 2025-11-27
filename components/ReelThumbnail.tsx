@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useMemo } from 'react';
 import { Reel, ReelCategory } from '../utils/types';
 import { formatCount } from './PromptDetail/utils';
@@ -56,6 +57,14 @@ const ReelThumbnail: React.FC<ReelThumbnailProps> = ({ reel, categories, onClick
             {isYouTube ? (
                 <img 
                     src={`https://img.youtube.com/vi/${youTubeVideoId}/hqdefault.jpg`} 
+                    alt={reel.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    loading="lazy"
+                    decoding="async"
+                />
+            ) : reel.videoThumbnail ? (
+                <img 
+                    src={reel.videoThumbnail} 
                     alt={reel.title}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     loading="lazy"

@@ -15,6 +15,7 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
     // Check for column existence once at the beginning of the function
     $is_nsfw_column_exists = $conn->query("SHOW COLUMNS FROM `reels` LIKE 'isNSFW'")->num_rows > 0;
     $is_image_url_column_exists = $conn->query("SHOW COLUMNS FROM `reels` LIKE 'imageUrl'")->num_rows > 0;
+    $is_video_thumbnail_column_exists = $conn->query("SHOW COLUMNS FROM `reels` LIKE 'videoThumbnail'")->num_rows > 0;
 
     try {
         if ($method === 'POST' && isset($get_params['action'])) {
@@ -100,6 +101,7 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                         $reel['authorPhotoURL'] = $reel['authorPhotoURL'] ?? null;
                         $reel['isNSFW'] = (bool)($reel['isNSFW'] ?? false);
                         $reel['imageUrl'] = $reel['imageUrl'] ?? null; // Might contain JSON string
+                        $reel['videoThumbnail'] = $reel['videoThumbnail'] ?? null; // Add videoThumbnail
                         
                         $is_owner = $current_user_uid && $reel['authorId'] === $current_user_uid;
                         if ($is_admin_request || $reel['status'] === 'approved' || $is_owner) {
@@ -196,6 +198,7 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                     $row['authorPhotoURL'] = $row['authorPhotoURL'] ?? null;
                     $row['isNSFW'] = (bool)($row['isNSFW'] ?? false);
                     $row['imageUrl'] = $row['imageUrl'] ?? null;
+                    $row['videoThumbnail'] = $row['videoThumbnail'] ?? null; // Include thumbnail in list
                     $reels[] = $row;
                 }
 
@@ -280,6 +283,13 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                     $params[] = $data['imageUrl'] ?? null;
                 }
 
+                if ($is_video_thumbnail_column_exists) {
+                    $sql_columns .= ", videoThumbnail";
+                    $sql_placeholders .= ", ?";
+                    $types .= "s";
+                    $params[] = $data['videoThumbnail'] ?? null;
+                }
+
                 $stmt = $conn->prepare("INSERT INTO reels ($sql_columns) VALUES ($sql_placeholders)");
                 $stmt->bind_param($types, ...$params);
                 $stmt->execute();
@@ -345,6 +355,12 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
                     $sql_update .= ", imageUrl=?";
                     $types .= "s";
                     $params[] = $data['imageUrl'] ?? null;
+                }
+
+                if ($is_video_thumbnail_column_exists) {
+                    $sql_update .= ", videoThumbnail=?";
+                    $types .= "s";
+                    $params[] = $data['videoThumbnail'] ?? null;
                 }
 
                 $sql_update .= " WHERE id=?";

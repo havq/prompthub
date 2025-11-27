@@ -52,6 +52,7 @@ const mapReels = (reels: any[]): Reel[] => {
             tags,
             categoryIds,
             isNSFW,
+            videoThumbnail: r.videoThumbnail || undefined,
         };
     });
 };
