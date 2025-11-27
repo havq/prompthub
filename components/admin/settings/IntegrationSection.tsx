@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig, CloudflareR2Config } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
@@ -25,6 +26,7 @@ const uploadOptions: { value: UploadMethod; label: string }[] = [
     { value: 'cloudinary', label: 'Cloudinary' },
     { value: 'r2', label: 'Cloudflare R2' },
     { value: 'tumblr', label: 'Tumblr' },
+    { value: 'blogger', label: 'Blogger (Google)' },
     { value: 'base64', label: 'Base64' }
 ];
 
@@ -165,7 +167,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Apply to Services</label>
                                 <div className="mt-2 grid grid-cols-2 gap-2">
-                                    {(['cloudinary', 'tumblr', 'imgbb', 'server', 'r2'] as UploadMethod[]).map(method => (
+                                    {(['cloudinary', 'tumblr', 'imgbb', 'server', 'r2', 'blogger'] as UploadMethod[]).map(method => (
                                         <label key={method} className="flex items-center gap-2">
                                             <input type="checkbox" checked={settings.watermarkSettings?.applyTo?.includes(method)} onChange={e => handleWatermarkApplyToChange(method, e.target.checked)} className="h-4 w-4 rounded" />
                                             <span className="text-sm capitalize">{method}</span>

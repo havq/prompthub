@@ -1,9 +1,11 @@
 
+
 import { getSettings } from './settingsService';
 import { uploadToImgbb } from './imgbbService';
 import { uploadToCloudinary } from './cloudinaryService'; // We will override the export here locally or update logic
 import { UploadMethod, WatermarkSettings } from '../utils/types';
 import { fetchApi } from './api/core';
+import { uploadToBlogger } from './bloggerService';
 
 interface UploadResult {
     imageUrl: string;
@@ -390,6 +392,10 @@ export const uploadImage = async (file: File, methodOverride?: UploadMethod, rol
     
     if (method === 'cloudinary') {
         return uploadToCloudinaryProxy(fileToUpload);
+    }
+
+    if (method === 'blogger') {
+        return uploadToBlogger(fileToUpload);
     }
     
     // Default to base64
