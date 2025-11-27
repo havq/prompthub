@@ -77,7 +77,7 @@ const ReelThumbnail: React.FC<ReelThumbnailProps> = ({ reel, categories, onClick
                     muted
                     loop
                     playsInline
-                    preload="metadata"
+                    preload={!reel.isNSFW ? '"metadata"' : '"none"'} 
                     className={`w-full h-full object-cover transition-transform duration-300 ${!reel.isNSFW ? 'group-hover:scale-110' : ''}`}
                 />
             )}
