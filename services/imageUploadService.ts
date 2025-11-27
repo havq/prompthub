@@ -1,11 +1,12 @@
 
 
+
 import { getSettings } from './settingsService';
 import { uploadToImgbb } from './imgbbService';
 import { uploadToCloudinary } from './cloudinaryService'; // We will override the export here locally or update logic
 import { UploadMethod, WatermarkSettings } from '../utils/types';
 import { fetchApi } from './api/core';
-import { uploadToBlogger } from './bloggerService';
+import { uploadToServer as uploadToServerProxy } from './serverUploadService';
 
 interface UploadResult {
     imageUrl: string;
@@ -246,11 +247,16 @@ const uploadAsBase64 = (file: File): Promise<UploadResult> => {
     });
 };
 
-// Re-implementing local versions of server/cloudinary upload to inject headers
-const uploadToServer = async (imageFile: File): Promise<UploadResult> => {
+// Helper to upload to server via the generic upload endpoint, specifying provider
+const uploadToServer = async (imageFile: File, provider?: string): Promise<UploadResult> => {
     const settings = getSettings();
     if (!settings.externalApiUrl) throw new Error("External API URL is not configured.");
-    const uploadUrl = `${settings.externalApiUrl}?resource=upload`;
+    
+    let uploadUrl = `${settings.externalApiUrl}?resource=upload`;
+    if (provider) {
+        uploadUrl += `&provider=${provider}`;
+    }
+
     const formData = new FormData();
     formData.append('image', imageFile);
     
@@ -263,9 +269,9 @@ const uploadToServer = async (imageFile: File): Promise<UploadResult> => {
     if (!response.ok) {
         try {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Server upload failed.');
+            throw new Error(errorData.error || 'Upload failed.');
         } catch (e) {
-            throw new Error(`Server upload failed: ${response.statusText}`);
+            throw new Error(`Upload failed: ${response.statusText}`);
         }
     }
     const result = await response.json();
@@ -273,30 +279,9 @@ const uploadToServer = async (imageFile: File): Promise<UploadResult> => {
     return result;
 };
 
+// Re-implementing local versions of Cloudinary upload to inject headers
 const uploadToCloudinaryProxy = async (imageFile: File): Promise<UploadResult> => {
-    const settings = getSettings();
-    if (!settings.externalApiUrl) throw new Error("External API URL is not configured.");
-    const uploadUrl = `${settings.externalApiUrl}?resource=upload&provider=cloudinary`;
-    const formData = new FormData();
-    formData.append('image', imageFile);
-
-    const authToken = localStorage.getItem('auth_token');
-
-    const headers: HeadersInit = {};
-    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-
-    const response = await fetch(uploadUrl, { method: 'POST', body: formData, headers });
-    if (!response.ok) {
-        try {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Cloudinary upload failed.');
-        } catch (e) {
-            throw new Error(`Cloudinary upload failed: ${response.statusText}`);
-        }
-    }
-    const result = await response.json();
-    if (result.error) throw new Error(result.error);
-    return result;
+    return uploadToServer(imageFile, 'cloudinary');
 };
 
 import { uploadToTumblr } from './tumblrService'; // Tumblr uses external client, handled separately or updated similarly
@@ -383,7 +368,7 @@ export const uploadImage = async (file: File, methodOverride?: UploadMethod, rol
     }
 
     if (method === 'server') {
-        return uploadToServer(fileToUpload);
+        return uploadToServer(fileToUpload, 'server');
     }
 
     if (method === 'imgbb') {
@@ -395,7 +380,8 @@ export const uploadImage = async (file: File, methodOverride?: UploadMethod, rol
     }
 
     if (method === 'blogger') {
-        return uploadToBlogger(fileToUpload);
+        // Use server-side proxy for Blogger upload to use stored tokens
+        return uploadToServer(fileToUpload, 'blogger');
     }
     
     // Default to base64

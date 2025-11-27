@@ -1,10 +1,6 @@
 
 import { getSettings } from './settingsService';
-
-interface UploadResult {
-    imageUrl: string;
-    videoUrl?: string;
-}
+import { fetchApi } from './api/core';
 
 // Helper to load Google Identity Services script
 const loadGoogleScript = (): Promise<void> => {
@@ -23,7 +19,13 @@ const loadGoogleScript = (): Promise<void> => {
     });
 };
 
-export const uploadToBlogger = async (file: File): Promise<UploadResult> => {
+/**
+ * Initiates the Google OAuth 2.0 Authorization Code Flow.
+ * This gets an authorization code which is then sent to the backend.
+ * The backend exchanges this code for an Access Token and Refresh Token,
+ * allowing long-term offline access for uploading images.
+ */
+export const authorizeBlogger = async (): Promise<void> => {
     const settings = getSettings();
     const clientId = settings.googleClientId;
 
@@ -34,77 +36,35 @@ export const uploadToBlogger = async (file: File): Promise<UploadResult> => {
     await loadGoogleScript();
 
     return new Promise((resolve, reject) => {
-        const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+        const client = (window as any).google.accounts.oauth2.initCodeClient({
             client_id: clientId,
             scope: 'https://www.googleapis.com/auth/blogger',
-            callback: async (tokenResponse: any) => {
-                if (tokenResponse.error) {
-                    reject(new Error(`Google Auth Error: ${tokenResponse.error}`));
+            ux_mode: 'popup',
+            callback: async (response: any) => {
+                if (response.error) {
+                    reject(new Error(`Google Auth Error: ${response.error}`));
                     return;
                 }
 
-                const accessToken = tokenResponse.access_token;
-                if (!accessToken) {
-                    reject(new Error("Failed to retrieve access token."));
+                const code = response.code;
+                if (!code) {
+                    reject(new Error("Failed to retrieve authorization code."));
                     return;
                 }
 
                 try {
-                    // Step 1: Prepare the file data
-                    const buffer = await file.arrayBuffer();
-                    const bytes = new Uint8Array(buffer);
-
-                    // Step 2: Upload to Picasa Web Albums API (Backing storage for Blogger images)
-                    // This endpoint creates a new photo in the "default" album (usually "Drop Box")
-                    // It returns an Atom feed with the media info including the direct URL.
-                    const uploadUrl = 'https://picasaweb.google.com/data/feed/api/user/default/albumid/default';
-                    
-                    const response = await fetch(uploadUrl, {
+                    // Send code to backend
+                    await fetchApi('settings', '&action=connect_blogger', {
                         method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`,
-                            'Content-Type': file.type, // e.g. image/jpeg
-                            'Slug': file.name,
-                        },
-                        body: bytes
+                        body: JSON.stringify({ code })
                     });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Blogger/Picasa Upload Failed: ${response.status} ${errorText}`);
-                    }
-
-                    const responseText = await response.text();
-                    
-                    // Step 3: Parse XML response to extract the image URL
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(responseText, "text/xml");
-                    
-                    // The direct image URL is usually in <content src="...">
-                    const contentNode = xmlDoc.getElementsByTagName('content')[0];
-                    let imageUrl = contentNode ? contentNode.getAttribute('src') : null;
-
-                    // Fallback: try getting media:content url
-                    if (!imageUrl) {
-                         const mediaContent = xmlDoc.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'content')[0];
-                         if (mediaContent) {
-                             imageUrl = mediaContent.getAttribute('url');
-                         }
-                    }
-
-                    if (imageUrl) {
-                        resolve({ imageUrl });
-                    } else {
-                        reject(new Error("Could not extract image URL from Blogger response."));
-                    }
-
+                    resolve();
                 } catch (error: any) {
                     reject(error);
                 }
             },
         });
 
-        // Request token (triggers popup)
-        tokenClient.requestAccessToken();
+        client.requestCode();
     });
 };

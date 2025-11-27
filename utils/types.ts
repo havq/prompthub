@@ -119,6 +119,7 @@ export interface GamificationSettings {
 export interface AppSettings {
   adminPassword?: string;
   googleClientId?: string;
+  googleClientSecret?: string;
   promptDisplayCount: number;
   postsPerPage: number;
   relatedPostsCount: number;

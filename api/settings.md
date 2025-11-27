@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
@@ -31,6 +32,14 @@ function handle_settings($conn, $method, $get_params, $post_data, $is_admin_requ
     if (!$conn) { send_error('Database connection is not available.', 500); return; }
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+    if (isset($get_params['action']) && $get_params['action'] === 'connect_blogger') {
+        if (!$is_admin_request) {
+             send_error('Forbidden: Only administrators can connect services.', 403); return;
+        }
+        handle_connect_blogger($conn, $post_data);
+        return;
+    }
+
     switch ($method) {
         case 'GET': get_app_settings($conn, $is_admin_request); break;
         case 'PUT': 
@@ -41,8 +50,90 @@ function handle_settings($conn, $method, $get_params, $post_data, $is_admin_requ
             clear_settings_cache($redis);
             update_app_settings($conn, $post_data); 
             break;
+        case 'POST':
+            // Fallback if action logic above missed, though action check usually prioritized
+             if (isset($get_params['action']) && $get_params['action'] === 'connect_blogger') {
+                 handle_connect_blogger($conn, $post_data);
+             } else {
+                 send_error('Method not allowed for settings resource.', 405);
+             }
+             break;
         default: send_error('Method not allowed for settings resource.', 405); break;
     }
+}
+
+function handle_connect_blogger($conn, $data) {
+    $code = $data['code'] ?? null;
+    if (!$code) {
+        send_error('Authorization code is missing.', 400);
+        return;
+    }
+
+    // 1. Retrieve Client ID and Secret from DB
+    $stmt = $conn->prepare("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('googleClientId', 'googleClientSecret')");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $creds = [];
+    while($row = $result->fetch_assoc()) {
+        $creds[$row['setting_key']] = $row['setting_value'];
+    }
+    
+    if (empty($creds['googleClientId']) || empty($creds['googleClientSecret'])) {
+        send_error('Google Client ID and Secret must be configured in settings first.', 400);
+        return;
+    }
+
+    // 2. Exchange Code for Tokens
+    $token_url = 'https://oauth2.googleapis.com/token';
+    $params = [
+        'code' => $code,
+        'client_id' => $creds['googleClientId'],
+        'client_secret' => $creds['googleClientSecret'],
+        'redirect_uri' => 'postmessage', // Crucial for pop-up flow
+        'grant_type' => 'authorization_code'
+    ];
+
+    $ch = curl_init($token_url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $token_data = json_decode($response, true);
+
+    if ($httpCode !== 200 || !isset($token_data['access_token'])) {
+        error_log("Google Token Exchange Failed: " . $response);
+        send_error('Failed to exchange code for tokens. Check server logs.', 500);
+        return;
+    }
+
+    // 3. Save Tokens to DB
+    $access_token = $token_data['access_token'];
+    $refresh_token = $token_data['refresh_token'] ?? null; // Might not be returned if not first time, unless prompt=consent
+    $expires_in = $token_data['expires_in'];
+    $expiry_time = time() + $expires_in;
+
+    // We store these as individual settings
+    $settings_to_save = [
+        'bloggerAccessToken' => $access_token,
+        'bloggerTokenExpiry' => $expiry_time
+    ];
+    if ($refresh_token) {
+        $settings_to_save['bloggerRefreshToken'] = $refresh_token;
+    }
+
+    $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+    foreach ($settings_to_save as $key => $val) {
+        $stmt->bind_param("ss", $key, $val);
+        $stmt->execute();
+    }
+    $stmt->close();
+
+    send_json(['status' => 'success', 'message' => 'Blogger connected successfully.']);
 }
 
 function get_app_settings($conn, $is_admin_request) {
@@ -106,8 +197,10 @@ function get_app_settings($conn, $is_admin_request) {
         ];
         
         foreach ($settings_from_db as $key => $value) {
-            // SECURITY FIX: Never expose backend cache tokens (like PayPal access tokens) to the frontend
+            // SECURITY FIX: Never expose backend cache tokens (like PayPal/Blogger access tokens) to the frontend
             if (strpos($key, 'paypal_access_token_') === 0) continue;
+            if (strpos($key, 'blogger') === 0) continue; // Hide Blogger tokens
+            if ($key === 'googleClientSecret') continue; // Hide Google Client Secret
             
             if ($value === null) continue;
 
@@ -128,6 +221,7 @@ function get_app_settings($conn, $is_admin_request) {
             unset($final_settings['tumblrConfigs']);
             unset($final_settings['r2Configs']);
             unset($final_settings['cloudinaryConfigs']);
+            unset($final_settings['googleClientId']); // Client ID is public but maybe hide if not needed
             
             if (isset($final_settings['imgbbApiKeys'])) {
                 $final_settings['imgbbApiKeys'] = array_map(function($item) { unset($item['key']); return $item; }, $final_settings['imgbbApiKeys']);

@@ -1,10 +1,12 @@
 
 
-import React from 'react';
+
+import React, { useState } from 'react';
 import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig, CloudflareR2Config } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
 import { Toggle } from './SharedComponents';
 import Spinner from '../../Spinner';
+import { authorizeBlogger } from '../../../services/bloggerService';
 
 interface IntegrationSectionProps {
     settings: AppSettings;
@@ -70,10 +72,28 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
     handleWatermarkSettingChange, handleWatermarkApplyToChange, isUploadingLogo, handleLogoChange,
     handleRepeaterChange, handleRemoveRepeaterItem, handleAddRepeaterItem
 }) => {
-    
+    const [isAuthorizingBlogger, setIsAuthorizingBlogger] = useState(false);
+
     const handleSmtpChange = (field: keyof SmtpConfig, value: any) => {
         const newConfig = { ...settings.smtpConfig, [field]: value } as SmtpConfig;
         onChange('smtpConfig', newConfig);
+    };
+
+    const handleConnectBlogger = async () => {
+        if (!settings.googleClientId || !settings.googleClientSecret) {
+            alert("Please save Google Client ID and Client Secret first.");
+            return;
+        }
+        
+        setIsAuthorizingBlogger(true);
+        try {
+            await authorizeBlogger();
+            alert("Blogger authorized successfully!");
+        } catch (error: any) {
+            alert("Authorization failed: " + error.message);
+        } finally {
+            setIsAuthorizingBlogger(false);
+        }
     };
 
     return (
@@ -129,20 +149,48 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                 </div>
             </CollapsibleSection>
 
-            <CollapsibleSection title="Authentication">
-                <div>
-                    <label htmlFor="google-client-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Client ID</label>
-                    <input 
-                        type="text" 
-                        id="google-client-id" 
-                        value={settings.googleClientId || ''} 
-                        onChange={e => onChange('googleClientId', e.target.value)} 
-                        className="mt-1 w-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600"
-                        placeholder="e.g. 123456789-abc...apps.googleusercontent.com"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Required for "Continue with Google" button. Get this from the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">Google Cloud Console</a>.
-                    </p>
+            <CollapsibleSection title="Authentication & Google Services">
+                <div className="space-y-4">
+                    <div>
+                        <label htmlFor="google-client-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Client ID</label>
+                        <input 
+                            type="text" 
+                            id="google-client-id" 
+                            value={settings.googleClientId || ''} 
+                            onChange={e => onChange('googleClientId', e.target.value)} 
+                            className="mt-1 w-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600"
+                            placeholder="e.g. 123456789-abc...apps.googleusercontent.com"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="google-client-secret" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Client Secret</label>
+                        <input 
+                            type="password" 
+                            id="google-client-secret" 
+                            value={settings.googleClientSecret || ''} 
+                            onChange={e => onChange('googleClientSecret', e.target.value)} 
+                            className="mt-1 w-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600"
+                            placeholder="Required for Blogger upload (token exchange)"
+                        />
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Required for "Continue with Google" and Blogger/Picasa image uploads. Get this from the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">Google Cloud Console</a>.
+                        </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <h4 className="text-sm font-medium text-gray-800 dark:text-white mb-2">Blogger / Picasa Authorization</h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            Authorize the application to upload images to Google Blogger/Picasa on your behalf. This is required if you select "Blogger" as an upload method. You must save the Client ID and Secret above first.
+                        </p>
+                        <button 
+                            onClick={handleConnectBlogger} 
+                            disabled={isAuthorizingBlogger}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+                        >
+                            {isAuthorizingBlogger ? <Spinner size="sm" className="mr-2" /> : null}
+                            Authorize Blogger
+                        </button>
+                    </div>
                 </div>
             </CollapsibleSection>
 

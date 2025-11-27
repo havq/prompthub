@@ -1,3 +1,4 @@
+
 <?php
 // api/upload.php
 
@@ -48,6 +49,117 @@ function check_upload_rate_limit($redis, $userId) {
     if ($current > $limit) {
         send_error('Upload rate limit exceeded. Please wait a moment.', 429);
     }
+}
+
+function refresh_google_token($conn, $refresh_token, $client_id, $client_secret) {
+    $url = 'https://oauth2.googleapis.com/token';
+    $params = [
+        'client_id' => $client_id,
+        'client_secret' => $client_secret,
+        'refresh_token' => $refresh_token,
+        'grant_type' => 'refresh_token'
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+    $response = curl_exec($ch);
+    curl_close($ch);
+    
+    $data = json_decode($response, true);
+    
+    if (isset($data['access_token'])) {
+        $new_access_token = $data['access_token'];
+        $expires_in = $data['expires_in'];
+        $new_expiry = time() + $expires_in;
+        
+        // Save to DB
+        $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $stmt->bind_param("ss", $key1, $val1);
+        
+        $key1 = 'bloggerAccessToken'; $val1 = $new_access_token; $stmt->execute();
+        $key1 = 'bloggerTokenExpiry'; $val1 = $new_expiry; $stmt->execute();
+        
+        return $new_access_token;
+    }
+    return null;
+}
+
+function upload_to_blogger($conn, $file) {
+    // 1. Get Tokens from DB
+    $stmt = $conn->prepare("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('bloggerAccessToken', 'bloggerRefreshToken', 'bloggerTokenExpiry', 'googleClientId', 'googleClientSecret')");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $creds = [];
+    while($row = $result->fetch_assoc()) {
+        $creds[$row['setting_key']] = $row['setting_value'];
+    }
+
+    $accessToken = $creds['bloggerAccessToken'] ?? null;
+    $refreshToken = $creds['bloggerRefreshToken'] ?? null;
+    $expiry = $creds['bloggerTokenExpiry'] ?? 0;
+    $clientId = $creds['googleClientId'] ?? null;
+    $clientSecret = $creds['googleClientSecret'] ?? null;
+
+    if (!$refreshToken) {
+        send_error('Blogger is not authorized. Please connect in settings.', 400);
+        return null;
+    }
+
+    // 2. Refresh Token if needed
+    if (time() >= ($expiry - 60)) { // Refresh if expired or expiring in 1 min
+        if (!$clientId || !$clientSecret) {
+             send_error('Missing Google Client ID/Secret to refresh token.', 500);
+        }
+        $accessToken = refresh_google_token($conn, $refreshToken, $clientId, $clientSecret);
+        if (!$accessToken) {
+            send_error('Failed to refresh Blogger access token. Please re-authorize.', 401);
+        }
+    }
+
+    // 3. Upload to Picasa (Blogger backend)
+    $uploadUrl = 'https://picasaweb.google.com/data/feed/api/user/default/albumid/default';
+    
+    $file_content = file_get_contents($file['tmp_name']);
+    $mime_type = get_file_mime_type($file);
+    $headers = [
+        "Authorization: Bearer $accessToken",
+        "Content-Type: $mime_type",
+        "Content-Length: " . strlen($file_content),
+        "Slug: " . $file['name']
+    ];
+
+    $ch = curl_init($uploadUrl);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $file_content);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 201) {
+        error_log("Blogger Upload Failed: " . $response);
+        send_error("Blogger upload failed with code $httpCode.", 502);
+    }
+
+    // 4. Parse Response for URL
+    // Response is XML Atom Feed
+    // Simple regex to find direct image src (robust enough for Picasa response)
+    if (preg_match('/<content type=\'image\/.*\' src=\'(.*?)\'/', $response, $matches)) {
+        return ['imageUrl' => $matches[1]];
+    } else {
+        // Fallback: try media:content
+        if (preg_match('/<media:content url=\'(.*?)\'/', $response, $matches)) {
+             return ['imageUrl' => $matches[1]];
+        }
+    }
+
+    send_error('Could not extract image URL from Blogger response.', 500);
+    return null;
 }
 
 function upload_to_cloudinary($conn, $file) {
@@ -487,6 +599,8 @@ function handle_upload($conn) {
             $file_urls = upload_to_tumblr($conn, $file);
         } elseif ($provider === 'cloudinary') {
             $file_urls = upload_to_cloudinary($conn, $file);
+        } elseif ($provider === 'blogger') {
+            $file_urls = upload_to_blogger($conn, $file);
         } else { // Default to local 'server' upload
             $root_upload_dir = 'uploads/';
             
