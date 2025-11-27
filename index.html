@@ -46,6 +46,21 @@
                 },
               },
             }),
+            colors: {
+              gray: {
+                50: '#f9fafb',
+                100: '#f3f4f6',
+                200: '#e5e7eb',
+                300: '#d1d5db',
+                400: '#9ca3af',
+                500: '#6b7280',
+                600: '#4b5563',
+                700: '#2a2e36', /* Tinh chỉnh để hợp với nền tối */
+                800: '#1c1f26', /* Màu Card */
+                900: '#131519', /* MÀU CHỦ ĐẠO MỚI */
+                950: '#0b0c0f', /* Màu Footer */
+              }
+            },            
           }
         }
       }
@@ -62,14 +77,20 @@
     "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.3",
     "react-image-crop": "https://aistudiocdn.com/react-image-crop@^11.0.6",
     "react-zoom-pan-pinch": "https://aistudiocdn.com/react-zoom-pan-pinch@^3.6.1",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
+    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/",
+    "path": "https://aistudiocdn.com/path@^0.12.7",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
 
+<link rel="stylesheet" href="/index.css">
 </head>
   <body>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>
+    

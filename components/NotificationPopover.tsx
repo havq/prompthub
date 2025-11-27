@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 // @ts-ignore
 import { Link, useNavigate } from 'react-router-dom';
@@ -167,21 +168,21 @@ const NotificationPopover: React.FC = () => {
             <div className="relative" ref={menuRef}>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="relative p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 focus:ring-indigo-500"
+                    className="relative p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 focus:ring-indigo-500"
                     aria-label="View notifications"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     {unreadNotificationCount > 0 && (
-                        <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center ring-2 ring-white dark:ring-gray-800">
+                        <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center ring-2 ring-white dark:ring-gray-900">
                             {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
                         </span>
                     )}
                 </button>
                 {isOpen && (
-                    <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[90vw] max-w-sm md:absolute md:w-96 md:top-full md:right-0 md:mt-2 md:left-auto md:transform-none bg-white dark:bg-gray-700 rounded-lg shadow-2xl z-50 ring-1 ring-black ring-opacity-5 flex flex-col">
-                        <div className="p-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-600">
+                    <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[90vw] max-w-sm md:absolute md:w-96 md:top-full md:right-0 md:mt-2 md:left-auto md:transform-none bg-white dark:bg-gray-800 rounded-lg shadow-2xl z-50 ring-1 ring-black ring-opacity-5 flex flex-col border border-gray-200 dark:border-gray-700">
+                        <div className="p-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
                             <h3 className="font-semibold text-gray-900 dark:text-white">{t('notifications.title')}</h3>
                             {unreadNotificationCount > 0 && (
                                 <button onClick={() => markAllAsRead()} className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">{t('notifications.markAllRead')}</button>
@@ -193,7 +194,7 @@ const NotificationPopover: React.FC = () => {
                                     <div
                                         key={n.id}
                                         onClick={(e) => handleNotificationClick(e, n)}
-                                        className={`group flex items-start p-3 space-x-3 transition-colors cursor-pointer ${!n.read ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''} hover:bg-gray-100 dark:hover:bg-gray-600`}
+                                        className={`group flex items-start p-3 space-x-3 transition-colors cursor-pointer ${!n.read ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''} hover:bg-gray-100 dark:hover:bg-gray-700`}
                                     >
                                         <div className="flex-shrink-0">
                                             <img className="h-9 w-9 rounded-full object-cover" src={n.actorPhotoURL || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(n.actorName || 'A')}`} alt={n.actorName} />
@@ -212,9 +213,9 @@ const NotificationPopover: React.FC = () => {
                             )}
                         </div>
                         {notifications.length > 0 && (
-                            <div className="p-2 border-t border-gray-200 dark:border-gray-600">
+                            <div className="p-2 border-t border-gray-200 dark:border-gray-700">
                                 <p className="text-xs text-center text-gray-500 dark:text-gray-400 px-2 py-1">{t('notifications.autoDeleteNotice')}</p>
-                                <button onClick={() => setIsConfirmingDelete(true)} className="w-full text-center text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50 py-1.5 rounded-md">{t('notifications.deleteAll')}</button>
+                                <button onClick={() => setIsConfirmingDelete(true)} className="w-full text-center text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 py-1.5 rounded-md">{t('notifications.deleteAll')}</button>
                             </div>
                         )}
                     </div>

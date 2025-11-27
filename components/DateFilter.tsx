@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -22,10 +23,10 @@ const DateFilter: React.FC<DateFilterProps> = ({ selectedFilter, onSelectFilter 
         <button
           key={option.key}
           onClick={() => onSelectFilter(option.key)}
-          className={`px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
             selectedFilter === option.key
-              ? 'bg-indigo-600 text-white shadow-md'
-              : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-transparent'
+              ? 'bg-indigo-600 text-white shadow-sm border border-indigo-600'
+              : 'bg-white dark:bg-[#1c1f26] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-800'
           }`}
         >
           {option.label}

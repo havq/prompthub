@@ -13,7 +13,7 @@ export interface AuthUser {
 }
 
 // --- Widget Types ---
-export type WidgetType = 'banner' | 'prompt-grid' | 'rich-text' | 'category-tabs' | 'post-grid' | 'reel-grid' | 'top-contributors';
+export type WidgetType = 'banner' | 'prompt-grid' | 'rich-text' | 'category-tabs' | 'post-grid' | 'reel-grid' | 'top-contributors' | 'featured-comments-slider' | 'community-activity';
 
 export interface HomeWidget {
   id: string;
@@ -54,6 +54,37 @@ export interface TopContributorsWidgetData {
 export interface RichTextWidgetData {
   content: string;
   containerClass?: string; // e.g., 'container mx-auto'
+}
+
+export interface FeaturedCommentsWidgetData {
+  title?: string;
+  limit?: number;
+}
+
+export interface RankingListWidgetData {
+  title?: string;
+  icon?: string; // 'trending' | 'heart' | 'fire' | 'bolt'
+  dataSource?: 'views' | 'favorites' | 'remixes';
+  limit?: number;
+}
+
+export interface CategoryRankingWidgetData {
+  title?: string;
+  icon?: string;
+  limit?: number;
+}
+
+export interface NewCommentsWidgetData {
+  title?: string;
+  icon?: string;
+  limit?: number;
+}
+
+export interface CommunityActivityWidgetData {
+  activeTitle?: string;
+  favoriteTitle?: string;
+  categoryTitle?: string;
+  commentTitle?: string;
 }
 // --------------------
 

@@ -70,7 +70,10 @@ const TopContributorsWidget: React.FC<TopContributorsWidgetProps> = ({ data }) =
     const [contributors, setContributors] = useState<TopContributor[]>([]);
     const [loading, setLoading] = useState(true);
     const { title, subtitle, limit, layout = 'grid' } = data; // Default to 'grid'
+    
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [activeSlide, setActiveSlide] = useState(0);
+    const [totalSlides, setTotalSlides] = useState(0);
 
     useEffect(() => {
         const fetchContributors = async () => {
@@ -85,6 +88,45 @@ const TopContributorsWidget: React.FC<TopContributorsWidgetProps> = ({ data }) =
         };
         fetchContributors();
     }, [limit]);
+
+    // Calculate total slides on mount/resize/data change
+    useEffect(() => {
+        if (layout !== 'slider') return;
+        
+        const updateSlideInfo = () => {
+            if (scrollContainerRef.current) {
+                const { scrollWidth, clientWidth } = scrollContainerRef.current;
+                if (clientWidth > 0) {
+                    setTotalSlides(Math.ceil(scrollWidth / clientWidth));
+                }
+            }
+        };
+        
+        const timer = setTimeout(updateSlideInfo, 100);
+        window.addEventListener('resize', updateSlideInfo);
+        
+        return () => {
+            window.removeEventListener('resize', updateSlideInfo);
+            clearTimeout(timer);
+        };
+    }, [contributors.length, layout, loading]);
+
+    const handleScroll = () => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, clientWidth } = scrollContainerRef.current;
+            const newActive = Math.round(scrollLeft / clientWidth);
+            setActiveSlide(newActive);
+        }
+    };
+
+    const scrollToSlide = (index: number) => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                left: index * scrollContainerRef.current.clientWidth,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     const scroll = (direction: 'left' | 'right') => {
         if (scrollContainerRef.current) {
@@ -114,7 +156,7 @@ const TopContributorsWidget: React.FC<TopContributorsWidgetProps> = ({ data }) =
                     {/* Left Navigation Button */}
                     <button 
                         onClick={() => scroll('left')} 
-                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 p-2 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-all hover:scale-110 disabled:opacity-0 hidden md:block"
+                        className="absolute -left-4 top-1/2 -translate-y-1/2 -translate-x-3 z-10 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 p-2 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-all hover:scale-110 disabled:opacity-0 hidden md:block"
                         aria-label="Scroll Left"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,6 +167,7 @@ const TopContributorsWidget: React.FC<TopContributorsWidgetProps> = ({ data }) =
                     {/* Scroll Container */}
                     <div 
                         ref={scrollContainerRef}
+                        onScroll={handleScroll}
                         className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4 px-2 -mx-2"
                     >
                         {contributors.map((user, index) => (
@@ -137,13 +180,31 @@ const TopContributorsWidget: React.FC<TopContributorsWidgetProps> = ({ data }) =
                     {/* Right Navigation Button */}
                     <button 
                         onClick={() => scroll('right')} 
-                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 p-2 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-all hover:scale-110 disabled:opacity-0 hidden md:block"
+                        className="absolute -right-4 top-1/2 -translate-y-1/2 translate-x-3 z-10 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 p-2 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-all hover:scale-110 disabled:opacity-0 hidden md:block"
                         aria-label="Scroll Right"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
+                    
+                    {/* Navigation Dots */}
+                    {totalSlides > 1 && (
+                        <div className="flex justify-center gap-2 mt-2">
+                            {Array.from({ length: totalSlides }).map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => scrollToSlide(idx)}
+                                    className={`h-2 rounded-full transition-all duration-300 ${
+                                        activeSlide === idx 
+                                        ? 'w-6 bg-indigo-600 dark:bg-indigo-400' 
+                                        : 'w-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                                    }`}
+                                    aria-label={`Go to slide ${idx + 1}`}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             ) : (
                 // Default Grid Layout

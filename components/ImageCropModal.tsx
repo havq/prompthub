@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import { useLanguage } from '../context/LanguageContext';
 import Spinner from './Spinner';
@@ -34,6 +34,17 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({ imageSrc, onClose, onCo
     const [completedCrop, setCompletedCrop] = useState<Crop>();
     const imgRef = useRef<HTMLImageElement>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const linkId = 'react-image-crop-css';
+        if (!document.getElementById(linkId)) {
+            const link = document.createElement('link');
+            link.id = linkId;
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/react-image-crop/dist/ReactCrop.css';
+            document.head.appendChild(link);
+        }
+    }, []);
 
     function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
         if (aspect) {

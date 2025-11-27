@@ -19,7 +19,7 @@ import {
     getCombinedRatings,
     saveRating
 } from '../services/api';
-import { Prompt, UserProfile, Badge, CategoryWithCount, Collection, TopContributor } from '../types';
+import { Prompt, UserProfile, Badge, CategoryWithCount, Collection, TopContributor } from '../utils/types';
 import Spinner from '../components/Spinner';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -420,7 +420,7 @@ export const CommunityPage: React.FC = () => {
                             return (
                                 <Link to={`/author/${user.uid}`} key={user.uid} className="flex items-center space-x-4 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                     <RankIcon rank={index + 1} />
-                                    <img src={transformCloudinaryUrl(user.photoURL || '', 'w_150,h_150,c_fill,g_auto') || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(user.username)}`} alt={user.username} className="w-12 h-12 rounded-full object-cover bg-gray-200 dark:bg-gray-600"/>
+                                    <img src={transformCloudinaryUrl(user.photoURL || '', 'w_150,h_150,c_fill,g_auto') || `https://api.dicebear.com/8.x/initials/svg?size=120&seed=${encodeURIComponent(user.username)}`} alt={user.username} className="w-12 h-12 rounded-full object-cover bg-gray-200 dark:bg-gray-600"/>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-gray-800 dark:text-white truncate">{user.username}</p>
                                         <div className="flex items-center gap-2 text-sm">
@@ -438,7 +438,7 @@ export const CommunityPage: React.FC = () => {
                                 <RankIcon rank={index + 1} />
                                 <img src={transformCloudinaryUrl(getImageUrls(prompt.imageUrl)[0] || '', 'w_150,h_150,c_fill,g_auto')} alt={(prompt.text || '').substring(0,20)} className="w-12 h-12 rounded-md object-cover flex-shrink-0"/>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-800 dark:text-white truncate-2-lines">{prompt.text}</p>
+                                    <p className="text-sm text-gray-800 dark:text-white truncate-2-lines">{prompt.title}</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">{t('community.views', { count: formatCount(prompt.viewCount) })}</p>
                                 </div>
                             </button>
@@ -454,7 +454,7 @@ export const CommunityPage: React.FC = () => {
                                 <RankIcon rank={index + 1} />
                                 <img src={transformCloudinaryUrl(getImageUrls(prompt.imageUrl)[0] || '', 'w_150,h_150,c_fill,g_auto')} alt={(prompt.text || '').substring(0,20)} className="w-12 h-12 rounded-md object-cover flex-shrink-0"/>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-800 dark:text-white truncate-2-lines">{prompt.text}</p>
+                                    <p className="text-sm text-gray-800 dark:text-white truncate-2-lines">{prompt.title}</p>
                                     <p className="text-xs text-yellow-500 dark:text-yellow-400 font-semibold">{t('community.rating', { rating: prompt.averageRating.toFixed(2), count: formatCount(prompt.ratingCount) })}</p>
                                 </div>
                             </button>

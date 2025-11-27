@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
@@ -49,11 +50,11 @@ const CardContent: React.FC<PromptCardProps> = ({
                         <button
                             key={tag}
                             onClick={onTagClick ? (e) => { e.stopPropagation(); onTagClick(tag); } : undefined}
-                            className={`px-2 py-0.5 text-xs rounded-full ${
+                            className={`px-2 py-0.5 text-[11px] font-medium rounded-md border transition-colors ${
                                 onTagClick
-                                    ? 'bg-gray-200 dark:bg-gray-700 hover:bg-indigo-200 dark:hover:bg-indigo-600 cursor-pointer'
-                                    : 'bg-gray-200 dark:bg-gray-700 cursor-default'
-                            } text-gray-700 dark:text-gray-300 transition-colors`}
+                                    ? 'bg-gray-100 dark:bg-[#1c1f26] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
+                                    : 'bg-gray-100 dark:bg-[#1c1f26] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 cursor-default'
+                            }`}
                         >
                             #{tag}
                         </button>
@@ -129,7 +130,7 @@ const CardContent: React.FC<PromptCardProps> = ({
                         {showRemixCountSetting && (
                             <div className="flex items-center gap-1" title={t('promptCard.remixesCount', { count: prompt.remixCount || 0 })}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-5">
-                                    <path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 0 1-.784.785l-1.192.238a1 1 0 0 0 0 1.962l1.192.238a1 1 0 0 1 .785.785l.238 1.192a1 1 0 0 0 1.962 0l.238-1.192a1 1 0 0 1 .785-.785l1.192-.238a1 1 0 0 0 0-1.962l-1.192-.238a1 1 0 0 1-.785-.785l-.238-1.192ZM6.949 5.684a1 1 0 0 0-1.898 0l-.683 2.051a1 1 0 0 1-.633.633l-2.051.683a1 1 0 0 0 0 1.898l2.051.684a1 1 0 0 1 .633.632l.683 2.051a1 1 0 0 0 1.898 0l.683-2.051a1 1 0 0 1 .633-.633l2.051-.683a1 1 0 0 0 0-1.898l-2.051-.683a1 1 0 0 1-.633-.633L6.95 5.684ZM13.949 13.684a1 1 0 0 0-1.898 0l-.184.551a1 1 0 0 1-.632.633l-.551.183a1 1 0 0 0 0 1.898l.551.183a1 1 0 0 1 .633.633l.183.551a1 1 0 0 0 0 1.898 0l.184-.551a1 1 0 0 1 .632-.633l.551-.183a1 1 0 0 0 0-1.898l-.551-.184a1 1 0 0 1-.633-.632l-.183-.551Z" />
+                                    <path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 0 1-.784.785l-1.192.238a1 1 0 0 0 0 1.962l1.192.238a1 1 0 0 1 .785.785l.238 1.192a1 1 0 0 0 1.962 0l.238-1.192a1 1 0 0 1 .785-.785l1.192-.238a1 1 0 0 0 0-1.962l-1.192-.238a1 1 0 0 1-.633-.632l-.183-.551Z" />
                                 </svg>
                                 <span>{formatCount(prompt.remixCount)}</span>
                             </div>
@@ -143,14 +144,14 @@ const CardContent: React.FC<PromptCardProps> = ({
                             <button
                                 onClick={(e) => { e.stopPropagation(); onRemix(prompt); }}
                                 title={t('promptCard.remixPrompt')}
-                                className={`text-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm ${!showCopyButtonSetting ? 'w-full' : ''}`}
+                                className={`text-center bg-gray-100 dark:bg-[#1c1f26] hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-medium py-1.5 px-3 rounded-md transition-colors text-xs ${!showCopyButtonSetting ? 'w-full' : ''}`}
                             >
                                 {t('promptCard.remix')}
                             </button>
                         )}
                         {showCopyButtonSetting && (
-                            <div onClick={e => e.stopPropagation()} className={showRemixButtonSetting ? 'flex-1X' : 'w-fullX'}>
-                                <CopyPromptButton textToCopy={prompt.text} className="w-full" />
+                            <div onClick={e => e.stopPropagation()} className={showRemixButtonSetting ? 'flex-1' : 'w-full'}>
+                                <CopyPromptButton textToCopy={prompt.text} className="w-full text-xs py-1.5 font-medium" />
                             </div>
                         )}
                     </div>

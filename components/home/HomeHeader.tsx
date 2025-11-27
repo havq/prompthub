@@ -40,7 +40,7 @@ interface HomeHeaderProps {
 const FilterSelect: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, children: React.ReactNode}> = ({label, value, onChange, children}) => (
     <div className="flex items-center gap-2">
       <label className="text-sm font-semibold text-gray-500 dark:text-gray-400 shrink-0">{label}</label>
-      <select value={value} onChange={onChange} className="w-full bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600 transition-colors">
+      <select value={value} onChange={onChange} className="w-full bg-white dark:bg-[#1c1f26] text-gray-800 dark:text-gray-300 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-800 transition-colors">
         {children}
       </select>
     </div>
@@ -78,11 +78,11 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
                             value={searchInput} 
                             onChange={handleSearchChange} 
                             placeholder={t('home.searchPlaceholder')} 
-                            className="w-full flex-grow bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600" 
+                            className="w-full flex-grow bg-white dark:bg-[#1c1f26] text-gray-900 dark:text-white rounded-lg px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-800 placeholder-gray-500 dark:placeholder-gray-500" 
                         />
                         <button 
                             onClick={() => setIsFilterPanelOpen(true)} 
-                            className="sm:hidden flex-shrink-0 flex items-center justify-center px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
+                            className="sm:hidden flex-shrink-0 flex items-center justify-center px-4 rounded-lg bg-white dark:bg-[#1c1f26] border border-gray-300 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" 
                             aria-label={t('home.filters')}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,15 +92,15 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
                     </div>
                     <div className="grid grid-cols-2 sm:flex items-center sm:justify-end gap-2 w-full sm:w-auto">
                         {showAIPromptIdeasButton && (
-                            <button onClick={handleAIGeneratorClick} className="col-span-1 flex items-center justify-center gap-2 px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-white hover:bg-indigo-200 dark:hover:bg-indigo-700">
+                            <button onClick={handleAIGeneratorClick} className="col-span-1 flex items-center justify-center gap-2 px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-100 dark:border-indigo-800 transition-colors">
                                 💡 {t('home.generateWithAI')}
                             </button>
                         )}
-                        <button onClick={handleSubmitPromptClick} className={`col-span-1 flex items-center justify-center px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 ${!showAIPromptIdeasButton ? 'col-span-2' : ''}`}>
+                        <button onClick={handleSubmitPromptClick} className={`col-span-1 flex items-center justify-center px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md ${!showAIPromptIdeasButton ? 'col-span-2' : ''}`}>
                             {t('home.submitPrompt')}
                         </button>
                         {/* Desktop Filter Button */}
-                        <button onClick={() => setIsFilterPanelOpen(true)} className="hidden sm:flex lg:hidden items-center justify-center px-3 py-2.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">
+                        <button onClick={() => setIsFilterPanelOpen(true)} className="hidden sm:flex lg:hidden items-center justify-center px-3 py-2.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-[#1c1f26] text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-800">
                             {t('home.filters')}
                         </button>
                     </div>
@@ -126,8 +126,8 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
             {allTags.length > 0 && (
                 <div className="flex justify-center mt-4">
                     <div className="flex items-center flex-wrap gap-2 justify-center max-w-4xl mx-auto">
-                        <button onClick={() => handleSelectTag(null)} className={`px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${ selectedTag === null ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-transparent' }`}>{t('common.all')}</button>
-                        {tagsToDisplay.map((tag) => <button key={tag} onClick={() => handleSelectTag(tag)} className={`px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${ selectedTag === tag ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-transparent' }`}>#{tag}</button>)}
+                        <button onClick={() => handleSelectTag(null)} className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 ${ selectedTag === null ? 'bg-indigo-600 text-white shadow-md border border-indigo-600' : 'bg-white dark:bg-[#1c1f26] text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-800' }`}>{t('common.all')}</button>
+                        {tagsToDisplay.map((tag) => <button key={tag} onClick={() => handleSelectTag(tag)} className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 ${ selectedTag === tag ? 'bg-indigo-600 text-white shadow-md border border-indigo-600' : 'bg-white dark:bg-[#1c1f26] text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-800' }`}>#{tag}</button>)}
                         {allTags.length > TAGS_TO_SHOW_INITIAL && (<button onClick={() => setIsTagsExpanded(!isTagsExpanded)} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">{isTagsExpanded ? t('common.showLess') : t('common.showMore', { count: allTags.length - TAGS_TO_SHOW_INITIAL })}</button>)}
                     </div>
                 </div>

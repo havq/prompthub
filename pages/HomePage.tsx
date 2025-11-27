@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-// @ts-ignore
 import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { Prompt, HomeWidget, CategoryWithCount } from '../utils/types';
 import PromptCard from '../components/PromptCard';
@@ -26,6 +25,8 @@ import RichTextWidget from '../components/widgets/RichTextWidget';
 import PostGridWidget from '../components/widgets/PostGridWidget';
 import ReelGridWidget from '../components/widgets/ReelGridWidget';
 import TopContributorsWidget from '../components/widgets/TopContributorsWidget';
+import FeaturedCommentsSlider from '../components/widgets/FeaturedCommentsSlider';
+import CommunityActivityWidget from '../components/widgets/CommunityActivityWidget';
 
 export const HomePage: React.FC = () => {
   const logic = useHomeLogic();
@@ -372,6 +373,10 @@ export const HomePage: React.FC = () => {
                   switch(widget.type) {
                       case 'banner':
                           return <HeroBannerWidget key={widget.id} data={widget.data} />;
+                      case 'featured-comments-slider':
+                          return <FeaturedCommentsSlider key={widget.id} data={widget.data} />;
+                      case 'community-activity':
+                          return <CommunityActivityWidget key={widget.id} data={widget.data} />;
                       case 'prompt-grid':
                           return (
                             <PromptGridWidget 

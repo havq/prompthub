@@ -9,6 +9,8 @@ import ConfirmModal from '../ConfirmModal';
 
 const WIDGET_TYPES: { type: WidgetType; label: string }[] = [
     { type: 'banner', label: 'Hero Banner' },
+    { type: 'featured-comments-slider', label: 'Featured Comments Slider' },
+    { type: 'community-activity', label: 'Community Activity (4 Lists)' },
     { type: 'top-contributors', label: 'Top Contributors' },
     { type: 'prompt-grid', label: 'Prompt Grid' },
     { type: 'post-grid', label: 'Post Grid' },
@@ -17,7 +19,6 @@ const WIDGET_TYPES: { type: WidgetType; label: string }[] = [
     { type: 'rich-text', label: 'Rich Text / HTML' },
 ];
 
-// Extracted Component to adhere to Rules of Hooks
 interface WidgetEditorModalProps {
     widget: HomeWidget;
     onClose: () => void;
@@ -38,7 +39,7 @@ const WidgetEditorModal: React.FC<WidgetEditorModalProps> = ({ widget, onClose, 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all">
-                <h3 className="text-xl font-bold mb-4 capitalize text-gray-900 dark:text-white">Edit {type.replace('-', ' ')}</h3>
+                <h3 className="text-xl font-bold mb-4 capitalize text-gray-900 dark:text-white">Edit {type.replace(/-/g, ' ')}</h3>
                 
                 {type === 'banner' && (
                     <div className="space-y-3">
@@ -53,6 +54,22 @@ const WidgetEditorModal: React.FC<WidgetEditorModalProps> = ({ widget, onClose, 
                             <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Height</label><select value={formData.height} onChange={e => handleChange('height', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></div>
                             <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Overlay Opacity (%)</label><input type="number" value={formData.overlayOpacity} onChange={e => handleChange('overlayOpacity', Number(e.target.value))} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
                         </div>
+                    </div>
+                )}
+
+                {type === 'featured-comments-slider' && (
+                    <div className="space-y-3">
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label><input type="text" value={formData.title || 'TOP BÌNH LUẬN'} onChange={e => handleChange('title', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Limit</label><input type="number" value={formData.limit || 10} onChange={e => handleChange('limit', Number(e.target.value))} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                    </div>
+                )}
+
+                {type === 'community-activity' && (
+                    <div className="space-y-3">
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Active List Title</label><input type="text" value={formData.activeTitle || 'SÔI NỔI NHẤT'} onChange={e => handleChange('activeTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Favorite List Title</label><input type="text" value={formData.favoriteTitle || 'YÊU THÍCH NHẤT'} onChange={e => handleChange('favoriteTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category List Title</label><input type="text" value={formData.categoryTitle || 'THỂ LOẠI HOT'} onChange={e => handleChange('categoryTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
+                        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comment List Title</label><input type="text" value={formData.commentTitle || 'BÌNH LUẬN MỚI'} onChange={e => handleChange('commentTitle', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" /></div>
                     </div>
                 )}
 
@@ -78,9 +95,6 @@ const WidgetEditorModal: React.FC<WidgetEditorModalProps> = ({ widget, onClose, 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Custom Link (Optional)</label>
                             <input type="text" value={formData.customLink || ''} onChange={e => handleChange('customLink', e.target.value)} className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="/prompts or https://example.com" />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Provides a specific destination for the "See More" link. If left blank, it defaults to the selected category page.
-                            </p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -107,7 +121,6 @@ const WidgetEditorModal: React.FC<WidgetEditorModalProps> = ({ widget, onClose, 
                             </div>
                         </div>
                         
-                        {/* Column Configuration - Show for Grid, Compact, and Slider views */}
                         {['grid', 'compact', 'slider-1', 'slider-2'].includes(formData.viewMode || 'grid') && (
                             <div className="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-lg space-y-3 border border-gray-200 dark:border-gray-700">
                                 <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300">Columns Configuration</h4>
@@ -212,13 +225,10 @@ const AdminHomepage: React.FC = () => {
     const [editingWidget, setEditingWidget] = useState<HomeWidget | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [deletingWidgetId, setDeletingWidgetId] = useState<string | null>(null);
-    
-    // Temporary state for new widget selection
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     useEffect(() => {
         const settings = getSettings();
-        // Ensure every widget has an ID to prevent deletion issues
         const sanitizedLayout = (settings.homeLayout || []).map((w: any) => ({
             ...w,
             id: w.id || `widget-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
@@ -275,6 +285,8 @@ const AdminHomepage: React.FC = () => {
         switch(type) {
             case 'banner': return { imageUrl: '', title: 'Welcome', height: 'medium', overlayOpacity: 40 };
             case 'top-contributors': return { title: 'Top Contributors', subtitle: 'Meet our most active community members', limit: 5 };
+            case 'featured-comments-slider': return { title: 'TOP BÌNH LUẬN', limit: 10 };
+            case 'community-activity': return { activeTitle: 'SÔI NỔI NHẤT', favoriteTitle: 'YÊU THÍCH NHẤT', categoryTitle: 'THỂ LOẠI HOT', commentTitle: 'BÌNH LUẬN MỚI' };
             case 'prompt-grid': return { 
                 title: 'Latest Prompts', 
                 sort: 'newest', 
@@ -342,9 +354,9 @@ const AdminHomepage: React.FC = () => {
                 {layout.map((widget, index) => (
                     <div key={widget.id} className="bg-white dark:bg-gray-700 p-4 rounded shadow flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 group">
                         <div className="flex items-center gap-3">
-                             <span className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">{widget.type.replace('-', ' ')}</span>
+                             <span className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">{widget.type.replace(/-/g, ' ')}</span>
                              <span className="font-medium text-gray-900 dark:text-white truncate max-w-[200px] sm:max-w-md">
-                                 {widget.type === 'prompt-grid' || widget.type === 'post-grid' || widget.type === 'reel-grid' || widget.type === 'banner' || widget.type === 'top-contributors' ? (widget.data.title || 'Untitled') :
+                                 {widget.type === 'prompt-grid' || widget.type === 'post-grid' || widget.type === 'reel-grid' || widget.type === 'banner' || widget.type === 'top-contributors' || widget.type === 'featured-comments-slider' || widget.type === 'community-activity' ? (widget.data.title || widget.data.activeTitle || 'Untitled') :
                                   widget.type === 'category-tabs' ? 'Category Navigation' : 'Rich Text Block'}
                              </span>
                         </div>
@@ -373,7 +385,7 @@ const AdminHomepage: React.FC = () => {
             {/* Add Widget Modal */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-2xl">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-2xl max-h-[80vh] overflow-y-auto">
                         <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Select Widget Type</h3>
                         <div className="grid grid-cols-1 gap-2">
                             {WIDGET_TYPES.map(w => (

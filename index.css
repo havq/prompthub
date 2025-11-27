@@ -1,185 +1,205 @@
-      /* Fallback background colors to prevent flashing */
-      body {
-        background-color: #f9fafb; /* bg-gray-50 */
-      }
-      .dark body {
-        background-color: #111827; /* bg-gray-900 */
-      }
+/* Fallback background colors to prevent flashing */
+body {
+  background-color: #f9fafb; /* bg-gray-50 */
+}
+.dark body {
+  background-color: #131519; /* Mã màu mới */
+}
 
-      html:not(.dark) {
-        /* Các quy tắc CSS áp dụng khi class "dark" KHÔNG tồn tại */
-        background-color: lightgray;
-        color: black;
-      }
+html:not(.dark) {
+  /* Các quy tắc CSS áp dụng khi class "dark" KHÔNG tồn tại */
+  background-color: lightgray;
+  color: black;
+}
 
-      .truncate {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          /* white-space: nowrap; */ /* This conflicts with line-clamp */
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 3;
-      }
+/* Override input backgrounds for dark mode to match main theme color */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.dark textarea,
+.dark select {
+    background-color: #131519 !important;
+    border-color: #2d3340 !important;
+    color: #e5e7eb !important;
+}
 
-      .truncate-2-lines {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-      }
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+.dark textarea:focus,
+.dark select:focus {
+    background-color: #0b0c0f !important;
+    border-color: #6366f1 !important; /* Indigo 500 */
+}
 
-      .line-clamp-5 {
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 5;
-      }
+/* Adjust placeholder color for better contrast on dark inputs */
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #6b7280 !important; /* Gray 500 */
+}
 
-      /* Custom scrollbar styling for light/dark modes */
-      
-      /* For Firefox */
-      :root {
-        scrollbar-color: #9ca3af #e5e7eb; /* thumb track */
-        scrollbar-width: thin;
-      }
-      
-      .dark:root {
-        scrollbar-color: #6b7280 #374151; /* thumb track */
-      }
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* white-space: nowrap; */ /* This conflicts with line-clamp */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
 
-      /* For Webkit browsers (Chrome, Safari, Edge) */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
+.truncate-2-lines {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 
-      ::-webkit-scrollbar-track {
-        background-color: #e5e7eb; /* bg-gray-200 */
-      }
+.line-clamp-5 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
 
-      ::-webkit-scrollbar-thumb {
-        background-color: #9ca3af; /* bg-gray-400 */
-        border-radius: 10px;
-        border: 2px solid #e5e7eb; /* bg-gray-200 */
-      }
-      
-      ::-webkit-scrollbar-thumb:hover {
-        background-color: #6b7280; /* bg-gray-500 */
-      }
+/* Custom scrollbar styling for light/dark modes */
 
-      .dark ::-webkit-scrollbar-track {
-        background-color: #374151; /* bg-gray-700 */
-      }
+/* For Firefox */
+:root {
+  scrollbar-color: #9ca3af #e5e7eb; /* thumb track */
+  scrollbar-width: thin;
+}
 
-      .dark ::-webkit-scrollbar-thumb {
-        background-color: #6b7280; /* bg-gray-500 */
-        border-color: #374151; /* bg-gray-700 */
-      }
+.dark:root {
+  scrollbar-color: #6b7280 #374151; /* thumb track */
+}
 
-      .dark ::-webkit-scrollbar-thumb:hover {
-        background-color: #9ca3af; /* bg-gray-400 */
-      }
+/* For Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-      /* Utility to hide scrollbars */
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
+::-webkit-scrollbar-track {
+  background-color: #e5e7eb; /* bg-gray-200 */
+}
 
-      /* Animation for mobile filter panel */
-      @keyframes slide-up {
-        from {
-          transform: translateY(100%);
-        }
-        to {
-          transform: translateY(0);
-        }
-      }
-      .animate-slide-up {
-        animation: slide-up 0.3s ease-out;
-      }
-      
-      /* Quill Dark Theme */
-      .dark .ql-toolbar {
-        background-color: #1f2937; /* gray-800 */
-        border-color: #374151 !important; /* gray-700 */
-      }
+::-webkit-scrollbar-thumb {
+  background-color: #9ca3af; /* bg-gray-400 */
+  border-radius: 10px;
+  border: 2px solid #e5e7eb; /* bg-gray-200 */
+}
 
-      /* Set default color for buttons and pickers to affect SVGs */
-      .dark .ql-snow.ql-toolbar button,
-      .dark .ql-snow .ql-picker-label {
-        color: #d1d5db; /* gray-300 */
-      }
+::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280; /* bg-gray-500 */
+}
 
-      /* Active/selected icon and label colors */
-      .dark .ql-snow.ql-toolbar button:hover,
-      .dark .ql-snow .ql-picker-label:hover,
-      .dark .ql-snow.ql-toolbar button.ql-active,
-      .dark .ql-snow .ql-picker-label.ql-active {
-          color: #ffffff; /* white */
-      }
-      .dark .ql-snow.ql-toolbar button:hover .ql-stroke,
-      .dark .ql-snow .ql-picker-label:hover .ql-stroke,
-      .dark .ql-snow.ql-toolbar button.ql-active .ql-stroke,
-      .dark .ql-snow .ql-picker-label.ql-active .ql-stroke {
-          stroke: #ffffff;
-      }
-      .dark .ql-snow.ql-toolbar button.ql-active .ql-fill {
-        fill: #ffffff;
-      }
-      
-      /* Dropdown options background and text*/
-      .dark .ql-snow .ql-picker-options {
-        background-color: #374151; /* gray-700 */
-        border-color: #4b5563 !important; /* gray-600 */
-        color: #d1d5db; /* gray-300 */
-      }
-      .dark .ql-snow .ql-picker-item.ql-selected {
-        color: #ffffff !important;
-      }
+.dark ::-webkit-scrollbar-track {
+  background-color: #374151; /* bg-gray-700 */
+}
 
-      /* Editor container styles */
-      .dark .ql-snow.ql-container {
-        border-color: #374151 !important; /* gray-700 */
-      }
-      .dark .ql-snow .ql-editor {
-        background-color: #374151; /* gray-700 */
-        color: #d1d5db; /* gray-300 */
-      }
-      
-      /* Editor placeholder text */
-      .dark .ql-editor.ql-blank::before {
-        color: #6b7280; /* gray-500 */
-        font-style: italic;
-      }
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #6b7280; /* bg-gray-500 */
+  border-color: #374151; /* bg-gray-700 */
+}
 
-      /* Tooltip (for links) styles */
-      .dark .ql-snow .ql-tooltip {
-          background-color: #1f2937; /* gray-800 */
-          border-color: #374151;
-          color: #d1d5db;
-          box-shadow: 0px 0px 5px #000;
-      }
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af; /* bg-gray-400 */
+}
 
-      .dark .ql-snow .ql-tooltip input[type="text"] {
-          background-color: #374151;
-          border-color: #4b5563;
-          color: #d1d5db;
-      }
+/* Utility to hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-      .dark .ql-snow .ql-tooltip a.ql-action::before {
-          background-color: #4b5563;
-      }
+/* Animation for mobile filter panel */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
 
-      /* Quill Editor Height */
-      .ql-editor {
-          min-height: 300px;
-          font-size: 1rem;
-          line-height: 1.6;
-      }
+/* Quill Dark Theme */
+.dark .ql-toolbar {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #374151 !important; /* gray-700 */
+}
 
-      @keyframes marching-ants{0%{background-position:0 0,0 100%,0 0,100% 0}to{background-position:20px 0,-20px 100%,0 -20px,100% 20px}}:root{--rc-drag-handle-size: 12px;--rc-drag-handle-mobile-size: 24px;--rc-drag-handle-bg-colour: rgba(0, 0, 0, .2);--rc-drag-bar-size: 6px;--rc-border-color: rgba(255, 255, 255, .7);--rc-focus-color: #0088ff}.ReactCrop{position:relative;display:inline-block;cursor:crosshair;max-width:100%}.ReactCrop *,.ReactCrop *:before,.ReactCrop *:after{box-sizing:border-box}.ReactCrop--disabled,.ReactCrop--locked{cursor:inherit}.ReactCrop__child-wrapper{overflow:hidden;max-height:inherit}.ReactCrop__child-wrapper>img,.ReactCrop__child-wrapper>video{display:block;max-width:100%;max-height:inherit}.ReactCrop:not(.ReactCrop--disabled) .ReactCrop__child-wrapper>img,.ReactCrop:not(.ReactCrop--disabled) .ReactCrop__child-wrapper>video{touch-action:none}.ReactCrop:not(.ReactCrop--disabled) .ReactCrop__crop-selection{touch-action:none}.ReactCrop__crop-mask{position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;width:calc(100% + .5px);height:calc(100% + .5px)}.ReactCrop__crop-selection{position:absolute;top:0;left:0;transform:translateZ(0);cursor:move}.ReactCrop--disabled .ReactCrop__crop-selection{cursor:inherit}.ReactCrop--circular-crop .ReactCrop__crop-selection{border-radius:50%}.ReactCrop--circular-crop .ReactCrop__crop-selection:after{pointer-events:none;content:"";position:absolute;top:-1px;right:-1px;bottom:-1px;left:-1px;border:1px solid var(--rc-border-color);opacity:.3}.ReactCrop--no-animate .ReactCrop__crop-selection{outline:1px dashed white}.ReactCrop__crop-selection:not(.ReactCrop--no-animate .ReactCrop__crop-selection){animation:marching-ants 1s;background-image:linear-gradient(to right,#fff 50%,#444 50%),linear-gradient(to right,#fff 50%,#444 50%),linear-gradient(to bottom,#fff 50%,#444 50%),linear-gradient(to bottom,#fff 50%,#444 50%);background-size:10px 1px,10px 1px,1px 10px,1px 10px;background-position:0 0,0 100%,0 0,100% 0;background-repeat:repeat-x,repeat-x,repeat-y,repeat-y;color:#fff;animation-play-state:running;animation-timing-function:linear;animation-iteration-count:infinite}.ReactCrop__crop-selection:focus{outline:2px solid var(--rc-focus-color);outline-offset:-1px}.ReactCrop--invisible-crop .ReactCrop__crop-mask,.ReactCrop--invisible-crop .ReactCrop__crop-selection{display:none}.ReactCrop__rule-of-thirds-vt:before,.ReactCrop__rule-of-thirds-vt:after,.ReactCrop__rule-of-thirds-hz:before,.ReactCrop__rule-of-thirds-hz:after{content:"";display:block;position:absolute;background-color:#fff6}.ReactCrop__rule-of-thirds-vt:before,.ReactCrop__rule-of-thirds-vt:after{width:1px;height:100%}.ReactCrop__rule-of-thirds-vt:before{left:33.3333333333%}.ReactCrop__rule-of-thirds-vt:after{left:66.6666666667%}.ReactCrop__rule-of-thirds-hz:before,.ReactCrop__rule-of-thirds-hz:after{width:100%;height:1px}.ReactCrop__rule-of-thirds-hz:before{top:33.3333333333%}.ReactCrop__rule-of-thirds-hz:after{top:66.6666666667%}.ReactCrop__drag-handle{position:absolute;width:var(--rc-drag-handle-size);height:var(--rc-drag-handle-size);background-color:var(--rc-drag-handle-bg-colour);border:1px solid var(--rc-border-color)}.ReactCrop__drag-handle:focus{background:var(--rc-focus-color)}.ReactCrop .ord-nw{top:0;left:0;transform:translate(-50%,-50%);cursor:nw-resize}.ReactCrop .ord-n{top:0;left:50%;transform:translate(-50%,-50%);cursor:n-resize}.ReactCrop .ord-ne{top:0;right:0;transform:translate(50%,-50%);cursor:ne-resize}.ReactCrop .ord-e{top:50%;right:0;transform:translate(50%,-50%);cursor:e-resize}.ReactCrop .ord-se{bottom:0;right:0;transform:translate(50%,50%);cursor:se-resize}.ReactCrop .ord-s{bottom:0;left:50%;transform:translate(-50%,50%);cursor:s-resize}.ReactCrop .ord-sw{bottom:0;left:0;transform:translate(-50%,50%);cursor:sw-resize}.ReactCrop .ord-w{top:50%;left:0;transform:translate(-50%,-50%);cursor:w-resize}.ReactCrop__disabled .ReactCrop__drag-handle{cursor:inherit}.ReactCrop__drag-bar{position:absolute}.ReactCrop__drag-bar.ord-n{top:0;left:0;width:100%;height:var(--rc-drag-bar-size);transform:translateY(-50%)}.ReactCrop__drag-bar.ord-e{right:0;top:0;width:var(--rc-drag-bar-size);height:100%;transform:translate(50%)}.ReactCrop__drag-bar.ord-s{bottom:0;left:0;width:100%;height:var(--rc-drag-bar-size);transform:translateY(50%)}.ReactCrop__drag-bar.ord-w{top:0;left:0;width:var(--rc-drag-bar-size);height:100%;transform:translate(-50%)}.ReactCrop--new-crop .ReactCrop__drag-bar,.ReactCrop--new-crop .ReactCrop__drag-handle,.ReactCrop--fixed-aspect .ReactCrop__drag-bar,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-n,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-e,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-s,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-w{display:none}@media (pointer: coarse){.ReactCrop .ord-n,.ReactCrop .ord-e,.ReactCrop .ord-s,.ReactCrop .ord-w{display:none}.ReactCrop__drag-handle{width:var(--rc-drag-handle-mobile-size);height:var(--rc-drag-handle-mobile-size)}}
+/* Set default color for buttons and pickers to affect SVGs */
+.dark .ql-snow.ql-toolbar button,
+.dark .ql-snow .ql-picker-label {
+  color: #d1d5db; /* gray-300 */
+}
+
+/* Active/selected icon and label colors */
+.dark .ql-snow.ql-toolbar button:hover,
+.dark .ql-snow .ql-picker-label:hover,
+.dark .ql-snow.ql-toolbar button.ql-active,
+.dark .ql-snow .ql-picker-label.ql-active {
+    color: #ffffff; /* white */
+}
+.dark .ql-snow.ql-toolbar button:hover .ql-stroke,
+.dark .ql-snow .ql-picker-label:hover .ql-stroke,
+.dark .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.dark .ql-snow .ql-picker-label.ql-active .ql-stroke {
+    stroke: #ffffff;
+}
+.dark .ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: #ffffff;
+}
+
+/* Dropdown options background and text*/
+.dark .ql-snow .ql-picker-options {
+  background-color: #374151; /* gray-700 */
+  border-color: #4b5563 !important; /* gray-600 */
+  color: #d1d5db; /* gray-300 */
+}
+.dark .ql-snow .ql-picker-item.ql-selected {
+  color: #ffffff !important;
+}
+
+/* Editor container styles */
+.dark .ql-snow.ql-container {
+  border-color: #374151 !important; /* gray-700 */
+}
+.dark .ql-snow .ql-editor {
+  background-color: #374151; /* gray-700 */
+  color: #d1d5db; /* gray-300 */
+}
+
+/* Editor placeholder text */
+.dark .ql-editor.ql-blank::before {
+  color: #6b7280; /* gray-500 */
+  font-style: italic;
+}
+
+/* Tooltip (for links) styles */
+.dark .ql-snow .ql-tooltip {
+    background-color: #1f2937; /* gray-800 */
+    border-color: #374151;
+    color: #d1d5db;
+    box-shadow: 0px 0px 5px #000;
+}
+
+.dark .ql-snow .ql-tooltip input[type="text"] {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+}
+
+.dark .ql-snow .ql-tooltip a.ql-action::before {
+    background-color: #4b5563;
+}
+
+/* Quill Editor Height */
+.ql-editor {
+    min-height: 300px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
