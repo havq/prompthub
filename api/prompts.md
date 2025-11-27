@@ -591,26 +591,93 @@ function handle_prompts($conn, $method, $id, $get_params, $post_data) {
                 if (!$id) send_error('Missing ID for DELETE request', 400);
                 if (!$current_user_uid) send_error('Authentication required', 401);
 
-                $stmt_check = $conn->prepare("SELECT authorId FROM prompts WHERE id = ?");
-                $stmt_check->bind_param("i", $id);
-                $stmt_check->execute();
-                $prompt_to_delete = $stmt_check->get_result()->fetch_assoc();
-                $stmt_check->close();
+                $conn->begin_transaction();
+                try {
+                    $stmt_check = $conn->prepare("SELECT authorId FROM prompts WHERE id = ?");
+                    $stmt_check->bind_param("i", $id);
+                    $stmt_check->execute();
+                    $prompt_to_delete = $stmt_check->get_result()->fetch_assoc();
+                    $stmt_check->close();
 
-                if (!$prompt_to_delete) send_error('Prompt not found', 404);
-                
-                if (!$is_admin_request && $current_user_uid !== $prompt_to_delete['authorId']) {
-                    send_error('Forbidden: You do not own this prompt', 403);
+                    if (!$prompt_to_delete) {
+                        // If prompt not found, just return success to idempotent delete
+                        $conn->rollback();
+                        send_error('Prompt not found', 404);
+                        return;
+                    }
+                    
+                    if (!$is_admin_request && $current_user_uid !== $prompt_to_delete['authorId']) {
+                        $conn->rollback();
+                        send_error('Forbidden: You do not own this prompt', 403);
+                        return;
+                    }
+
+                    // --- CASCADE DELETION LOGIC START ---
+                    
+                    // 1. Comments
+                    $stmt_clean = $conn->prepare("DELETE FROM comments WHERE promptId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 2. Ratings (Individual and Aggregate)
+                    $stmt_clean = $conn->prepare("DELETE FROM ratings WHERE promptId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    $stmt_clean = $conn->prepare("DELETE FROM prompt_ratings WHERE promptId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 3. Favorites
+                    $stmt_clean = $conn->prepare("DELETE FROM favorites WHERE promptId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 4. Showcase Images
+                    $stmt_clean = $conn->prepare("DELETE FROM showcase_images WHERE promptId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 5. Reports
+                    $stmt_clean = $conn->prepare("DELETE FROM reports WHERE promptId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 6. Notifications (Related to Prompt)
+                    // Reuse promptId column for multiple types
+                    $stmt_clean = $conn->prepare("DELETE FROM notifications WHERE promptId = ? AND type IN ('favorite', 'comment', 'remix', 'showcase', 'rating', 'prompt-approved', 'prompt-rejected', 'prompt-comment-mention')");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 7. Unlink Reels
+                    $stmt_clean = $conn->prepare("UPDATE reels SET promptId = NULL WHERE promptId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+                    
+                    // --- CASCADE DELETION LOGIC END ---
+
+                    $stmt = $conn->prepare("DELETE FROM prompts WHERE id = ?");
+                    $stmt->bind_param("i", $id);
+                    $stmt->execute();
+
+                    $conn->commit();
+
+                    // SYNC CATEGORIES
+                    sync_categories_data($redis, $conn);
+
+                    send_json(['id' => (string)$id]);
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    throw $e;
                 }
-
-                $stmt = $conn->prepare("DELETE FROM prompts WHERE id = ?");
-                $stmt->bind_param("i", $id);
-                $stmt->execute();
-
-                // SYNC CATEGORIES
-                sync_categories_data($redis, $conn);
-
-                send_json(['id' => (string)$id]);
                 break;
 
             default:

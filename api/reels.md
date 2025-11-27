@@ -376,27 +376,82 @@ function handle_reels($conn, $method, $id, $get_params, $post_data) {
             case 'DELETE':
                 clear_reels_cache($redis);
                 if (!$id) send_error('Missing ID.', 400);
+                if (!$current_user_uid) send_error('Authentication required.', 401);
 
-                $stmt_check = $conn->prepare("SELECT authorId FROM reels WHERE id = ?");
-                $stmt_check->bind_param("i", $id);
-                $stmt_check->execute();
-                $reel_to_delete = $stmt_check->get_result()->fetch_assoc();
-                $stmt_check->close();
+                $conn->begin_transaction();
+                try {
+                    $stmt_check = $conn->prepare("SELECT authorId FROM reels WHERE id = ?");
+                    $stmt_check->bind_param("i", $id);
+                    $stmt_check->execute();
+                    $reel_to_delete = $stmt_check->get_result()->fetch_assoc();
+                    $stmt_check->close();
 
-                if (!$reel_to_delete) {
-                    send_error('Reel not found.', 404);
-                    return;
+                    if (!$reel_to_delete) {
+                        $conn->rollback();
+                        send_error('Reel not found.', 404);
+                        return;
+                    }
+
+                    if (!$is_admin_request && $current_user_uid !== $reel_to_delete['authorId']) {
+                        $conn->rollback();
+                        send_error('Forbidden: You can only delete your own reels.', 403);
+                        return;
+                    }
+
+                    // --- CASCADE DELETION LOGIC START ---
+                    
+                    // 1. Delete Comments
+                    $stmt_clean = $conn->prepare("DELETE FROM reel_comments WHERE reelId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 2. Delete Likes
+                    $stmt_clean = $conn->prepare("DELETE FROM user_reel_likes WHERE reelId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 3. Delete Comment Likes (Since comment IDs are gone, we ideally check before delete or assume consistency)
+                    // Note: Without comment IDs, standard SQL DELETE CASCADE handles this if FKs exist.
+                    // Manually: we would need to select comment IDs first. 
+                    // However, `user_reel_comment_likes` links to `commentId`. Since we deleted `reel_comments`, 
+                    // orphan rows might remain in `user_reel_comment_likes` if no FK.
+                    // Best effort cleanup:
+                    $stmt_clean_likes = $conn->prepare("
+                        DELETE urcl FROM user_reel_comment_likes urcl 
+                        LEFT JOIN reel_comments rc ON urcl.commentId = rc.id 
+                        WHERE rc.id IS NULL
+                    ");
+                    $stmt_clean_likes->execute();
+                    $stmt_clean_likes->close();
+
+                    // 4. Delete Notifications (related to reel)
+                    // Notifications for reels often use reelId column or reuse promptId depending on type.
+                    $stmt_clean = $conn->prepare("DELETE FROM notifications WHERE reelId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+                    
+                    // Also clean up notifications where promptId might have been used for Reel ID (legacy/mixed usage)
+                    // Only delete if type specifically indicates a reel interaction
+                    $stmt_clean_legacy = $conn->prepare("DELETE FROM notifications WHERE promptId = ? AND type IN ('comment-like', 'comment-reply', 'comment-mention')");
+                    $stmt_clean_legacy->bind_param("i", $id);
+                    $stmt_clean_legacy->execute();
+                    $stmt_clean_legacy->close();
+                    
+                    // --- CASCADE DELETION LOGIC END ---
+
+                    $stmt = $conn->prepare("DELETE FROM reels WHERE id = ?");
+                    $stmt->bind_param("i", $id);
+                    $stmt->execute();
+                    
+                    $conn->commit();
+                    send_json(['id' => (string)$id]);
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    throw $e;
                 }
-
-                if (!$is_admin_request && $current_user_uid !== $reel_to_delete['authorId']) {
-                    send_error('Forbidden: You can only delete your own reels.', 403);
-                    return;
-                }
-
-                $stmt = $conn->prepare("DELETE FROM reels WHERE id = ?");
-                $stmt->bind_param("i", $id);
-                $stmt->execute();
-                send_json(['id' => (string)$id]);
                 break;
 
             default:

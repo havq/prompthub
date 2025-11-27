@@ -390,24 +390,54 @@ function handle_posts($conn, $method, $id, $get_params, $post_data) {
                 if (!$id) send_error('Missing ID for DELETE request', 400);
                 if (!$current_user_uid) send_error('Authentication required', 401);
 
-                $stmt_check = $conn->prepare("SELECT authorId FROM posts WHERE id = ?");
-                $stmt_check->bind_param("i", $id);
-                $stmt_check->execute();
-                $post_to_delete = $stmt_check->get_result()->fetch_assoc();
-                $stmt_check->close();
+                $conn->begin_transaction();
+                try {
+                    $stmt_check = $conn->prepare("SELECT authorId FROM posts WHERE id = ?");
+                    $stmt_check->bind_param("i", $id);
+                    $stmt_check->execute();
+                    $post_to_delete = $stmt_check->get_result()->fetch_assoc();
+                    $stmt_check->close();
 
-                if (!$post_to_delete) { send_error('Post not found.', 404); return; }
+                    if (!$post_to_delete) { 
+                        $conn->rollback();
+                        send_error('Post not found.', 404); 
+                        return; 
+                    }
 
-                // SECURITY: Check ownership
-                if (!$is_admin_request && $current_user_uid !== $post_to_delete['authorId']) {
-                    send_error('Forbidden: You can only delete your own posts.', 403);
-                    return;
+                    // SECURITY: Check ownership
+                    if (!$is_admin_request && $current_user_uid !== $post_to_delete['authorId']) {
+                        $conn->rollback();
+                        send_error('Forbidden: You can only delete your own posts.', 403);
+                        return;
+                    }
+
+                    // --- CASCADE DELETION LOGIC START ---
+                    // 1. Delete Comments
+                    $stmt_clean = $conn->prepare("DELETE FROM post_comments WHERE postId = ?");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+
+                    // 2. Delete Notifications (related to post interaction like comment reply, etc.)
+                    // Notifications often use 'promptId' to store resource ID. 
+                    // We need to check types that relate to posts (if any shared logic).
+                    // In this system, post_comments logic inserts notifs with type 'comment-reply' and 'comment-mention' linking promptId=$postId.
+                    $stmt_clean = $conn->prepare("DELETE FROM notifications WHERE promptId = ? AND type IN ('comment-reply', 'comment-mention')");
+                    $stmt_clean->bind_param("i", $id);
+                    $stmt_clean->execute();
+                    $stmt_clean->close();
+                    // --- CASCADE DELETION LOGIC END ---
+
+                    $stmt = $conn->prepare("DELETE FROM posts WHERE id = ?");
+                    $stmt->bind_param("i", $id);
+                    $stmt->execute();
+                    
+                    $conn->commit();
+                    send_json(['id' => (string)$id]);
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    throw $e;
                 }
-
-                $stmt = $conn->prepare("DELETE FROM posts WHERE id = ?");
-                $stmt->bind_param("i", $id);
-                $stmt->execute();
-                send_json(['id' => (string)$id]);
                 break;
             default:
                 send_error('Method not allowed', 405);
