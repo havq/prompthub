@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HomeWidget, WidgetType, CategoryWithCount, PostCategoryWithCount, ReelCategoryWithCount } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
@@ -73,46 +74,93 @@ const WidgetEditorModal: React.FC<WidgetEditorModalProps> = ({ widget, onClose, 
                 )}
 
                 {type === 'community-activity' && (
-                    <div className="space-y-3">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Active List Title</label>
-                            <input 
-                                type="text" 
-                                value={formData.activeTitle ?? ''} 
-                                onChange={e => handleChange('activeTitle', e.target.value)} 
-                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                placeholder="SÔI NỔI NHẤT"
-                            />
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Active List Title</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.activeTitle ?? ''} 
+                                    onChange={e => handleChange('activeTitle', e.target.value)} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                    placeholder="SÔI NỔI NHẤT"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Limit</label>
+                                <input 
+                                    type="number" 
+                                    value={formData.activeLimit || 5} 
+                                    onChange={e => handleChange('activeLimit', Number(e.target.value))} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Favorite List Title</label>
-                            <input 
-                                type="text" 
-                                value={formData.favoriteTitle ?? ''} 
-                                onChange={e => handleChange('favoriteTitle', e.target.value)} 
-                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                placeholder="YÊU THÍCH NHẤT"
-                            />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Favorite List Title</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.favoriteTitle ?? ''} 
+                                    onChange={e => handleChange('favoriteTitle', e.target.value)} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                    placeholder="YÊU THÍCH NHẤT"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Limit</label>
+                                <input 
+                                    type="number" 
+                                    value={formData.favoriteLimit || 5} 
+                                    onChange={e => handleChange('favoriteLimit', Number(e.target.value))} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category List Title</label>
-                            <input 
-                                type="text" 
-                                value={formData.categoryTitle ?? ''} 
-                                onChange={e => handleChange('categoryTitle', e.target.value)} 
-                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                placeholder="THỂ LOẠI HOT"
-                            />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category List Title</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.categoryTitle ?? ''} 
+                                    onChange={e => handleChange('categoryTitle', e.target.value)} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                    placeholder="THỂ LOẠI HOT"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Limit</label>
+                                <input 
+                                    type="number" 
+                                    value={formData.categoryLimit || 5} 
+                                    onChange={e => handleChange('categoryLimit', Number(e.target.value))} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comment List Title</label>
-                            <input 
-                                type="text" 
-                                value={formData.commentTitle ?? ''} 
-                                onChange={e => handleChange('commentTitle', e.target.value)} 
-                                className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
-                                placeholder="BÌNH LUẬN MỚI"
-                            />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comment List Title</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.commentTitle ?? ''} 
+                                    onChange={e => handleChange('commentTitle', e.target.value)} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                    placeholder="BÌNH LUẬN MỚI"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Limit</label>
+                                <input 
+                                    type="number" 
+                                    value={formData.commentLimit || 5} 
+                                    onChange={e => handleChange('commentLimit', Number(e.target.value))} 
+                                    className="w-full border rounded p-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -330,7 +378,12 @@ const AdminHomepage: React.FC = () => {
             case 'banner': return { imageUrl: '', title: 'Welcome', height: 'medium', overlayOpacity: 40 };
             case 'top-contributors': return { title: 'Top Contributors', subtitle: 'Meet our most active community members', limit: 5 };
             case 'featured-comments-slider': return { title: 'TOP BÌNH LUẬN', limit: 10 };
-            case 'community-activity': return { activeTitle: 'SÔI NỔI NHẤT', favoriteTitle: 'YÊU THÍCH NHẤT', categoryTitle: 'THỂ LOẠI HOT', commentTitle: 'BÌNH LUẬN MỚI' };
+            case 'community-activity': return { 
+                activeTitle: 'SÔI NỔI NHẤT', activeLimit: 5,
+                favoriteTitle: 'YÊU THÍCH NHẤT', favoriteLimit: 5,
+                categoryTitle: 'THỂ LOẠI HOT', categoryLimit: 5,
+                commentTitle: 'BÌNH LUẬN MỚI', commentLimit: 5
+            };
             case 'prompt-grid': return { 
                 title: 'Latest Prompts', 
                 sort: 'newest', 

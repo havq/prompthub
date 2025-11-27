@@ -85,6 +85,11 @@ export interface CommunityActivityWidgetData {
   favoriteTitle?: string;
   categoryTitle?: string;
   commentTitle?: string;
+  limit?: number; // Fallback limit
+  activeLimit?: number;
+  favoriteLimit?: number;
+  categoryLimit?: number;
+  commentLimit?: number;
 }
 // --------------------
 
