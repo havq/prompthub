@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { FeaturedCommentsWidgetData, Comment, Prompt } from '../../utils/types';
 import { getAllComments, getPrompt } from '../../services/api';
@@ -9,6 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 interface ExtendedComment extends Comment {
     promptTitle?: string;
     promptImage?: string;
+    promptCommentCount?: number;
 }
 
 // Helper function to robustly parse image URLs
@@ -89,6 +89,7 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
                             ...c,
                             promptTitle: p.title,
                             promptImage: getSafeImageUrl(p.imageUrl),
+                            promptCommentCount: p.commentCount || 0
                         });
                     }
                     return acc;
@@ -194,7 +195,9 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
                                     <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-3 mb-2 leading-relaxed">{comment.text}</p>
                                 </div>
                                 <div className="flex items-center gap-4 text-[10px] text-gray-500 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700/50 pt-2 mt-auto">
-                                    <span className="flex items-center gap-1 ml-auto hover:text-gray-700 dark:hover:text-white cursor-pointer">💬 {comment.replies ? comment.replies.length : 0}</span>
+                                    <span className="flex items-center gap-1 ml-auto hover:text-gray-700 dark:hover:text-white cursor-pointer">
+                                        💬 {comment.promptCommentCount !== undefined ? comment.promptCommentCount : (comment.replies ? comment.replies.length : 0)}
+                                    </span>
                                 </div>
                             </div>
                             

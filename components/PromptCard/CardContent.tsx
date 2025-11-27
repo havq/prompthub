@@ -40,10 +40,11 @@ const CardContent: React.FC<PromptCardProps> = ({
 
     return (
         <div className={`${contentPadding} flex flex-col flex-grow min-w-0`}>
-            <h3 className={`text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 truncate-2-lines ${viewMode !== 'list' ? 'min-h-[40px]' : ''}`}>
+            <h3 className={`text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 truncate-2-lines ${viewMode !== 'list' ? 'min-h-[38px]' : ''}`}>
                 {prompt.title}
             </h3>
 
+            {/*
             {prompt.tags && prompt.tags.length > 0 && (
                 <div className={`flex flex-wrap gap-1.5 mb-3 ${viewMode === 'list' ? 'hidden md:flex' : 'flex'}`}>
                     {prompt.tags.slice(0, 4).map((tag) => (
@@ -61,6 +62,7 @@ const CardContent: React.FC<PromptCardProps> = ({
                     ))}
                 </div>
             )}
+            */}
 
             <div className={`mt-auto pt-3 border-t border-gray-200 dark:border-gray-700/50`}>
                 {showRatingsSetting && (
@@ -92,7 +94,7 @@ const CardContent: React.FC<PromptCardProps> = ({
                                     loading="lazy"
                                 />
                                 <span className="truncate">
-                                    {t('common.by')}{' '}
+                                    {/*{t('common.by')}{' '}*/}
                                     <span className="font-semibold group-hover:underline">{prompt.authorName}</span>
                                 </span>
                             </Link>
@@ -144,7 +146,7 @@ const CardContent: React.FC<PromptCardProps> = ({
                             <button
                                 onClick={(e) => { e.stopPropagation(); onRemix(prompt); }}
                                 title={t('promptCard.remixPrompt')}
-                                className={`text-center bg-gray-100 dark:bg-[#1c1f26] hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-medium py-1.5 px-3 rounded-md transition-colors text-xs ${!showCopyButtonSetting ? 'w-full' : ''}`}
+                                className={`text-center bg-gray-100 dark:bg-[#1c1f26] hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-medium py-2.5 px-3 rounded-md transition-colors text-xs ${!showCopyButtonSetting ? 'w-full' : ''}`}
                             >
                                 {t('promptCard.remix')}
                             </button>
