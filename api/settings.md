@@ -200,7 +200,6 @@ function get_app_settings($conn, $is_admin_request) {
             // SECURITY FIX: Never expose backend cache tokens (like PayPal/Blogger access tokens) to the frontend
             if (strpos($key, 'paypal_access_token_') === 0) continue;
             if (strpos($key, 'blogger') === 0) continue; // Hide Blogger tokens
-            if ($key === 'googleClientSecret') continue; // Hide Google Client Secret
             
             if ($value === null) continue;
 
@@ -221,7 +220,8 @@ function get_app_settings($conn, $is_admin_request) {
             unset($final_settings['tumblrConfigs']);
             unset($final_settings['r2Configs']);
             unset($final_settings['cloudinaryConfigs']);
-            unset($final_settings['googleClientId']); // Client ID is public but maybe hide if not needed
+            unset($final_settings['googleClientId']);
+            unset($final_settings['googleClientSecret']); // Hide Client Secret from non-admins
             
             if (isset($final_settings['imgbbApiKeys'])) {
                 $final_settings['imgbbApiKeys'] = array_map(function($item) { unset($item['key']); return $item; }, $final_settings['imgbbApiKeys']);

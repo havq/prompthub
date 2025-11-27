@@ -1,4 +1,3 @@
-
 import { getSettings } from './settingsService';
 import { fetchApi } from './api/core';
 
@@ -38,7 +37,8 @@ export const authorizeBlogger = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
         const client = (window as any).google.accounts.oauth2.initCodeClient({
             client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/blogger',
+            // Updated scope for Google Drive File access
+            scope: 'https://www.googleapis.com/auth/drive.file',
             ux_mode: 'popup',
             callback: async (response: any) => {
                 if (response.error) {

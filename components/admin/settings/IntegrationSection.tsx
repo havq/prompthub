@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { AppSettings, UploadMethod, WatermarkSettings, SmtpConfig, CloudflareR2Config } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
@@ -28,7 +25,7 @@ const uploadOptions: { value: UploadMethod; label: string }[] = [
     { value: 'cloudinary', label: 'Cloudinary' },
     { value: 'r2', label: 'Cloudflare R2' },
     { value: 'tumblr', label: 'Tumblr' },
-    { value: 'blogger', label: 'Blogger (Google)' },
+    { value: 'blogger', label: 'Google Drive' }, // Updated label
     { value: 'base64', label: 'Base64' }
 ];
 
@@ -88,7 +85,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
         setIsAuthorizingBlogger(true);
         try {
             await authorizeBlogger();
-            alert("Blogger authorized successfully!");
+            alert("Google Drive authorized successfully!");
         } catch (error: any) {
             alert("Authorization failed: " + error.message);
         } finally {
@@ -170,17 +167,17 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             value={settings.googleClientSecret || ''} 
                             onChange={e => onChange('googleClientSecret', e.target.value)} 
                             className="mt-1 w-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600"
-                            placeholder="Required for Blogger upload (token exchange)"
+                            placeholder="Required for Google Drive upload (token exchange)"
                         />
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Required for "Continue with Google" and Blogger/Picasa image uploads. Get this from the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">Google Cloud Console</a>.
+                            Required for "Continue with Google" and Google Drive image uploads. Get this from the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">Google Cloud Console</a>.
                         </p>
                     </div>
 
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                        <h4 className="text-sm font-medium text-gray-800 dark:text-white mb-2">Blogger / Picasa Authorization</h4>
+                        <h4 className="text-sm font-medium text-gray-800 dark:text-white mb-2">Google Drive Authorization</h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                            Authorize the application to upload images to Google Blogger/Picasa on your behalf. This is required if you select "Blogger" as an upload method. You must save the Client ID and Secret above first.
+                            Authorize the application to upload images to Google Drive on your behalf. This is required if you select "Google Drive" as an upload method. You must save the Client ID and Secret above first.
                         </p>
                         <button 
                             onClick={handleConnectBlogger} 
@@ -188,12 +185,12 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
                         >
                             {isAuthorizingBlogger ? <Spinner size="sm" className="mr-2" /> : null}
-                            Authorize Blogger
+                            Authorize Google Drive
                         </button>
                     </div>
                 </div>
             </CollapsibleSection>
-
+            {/* ... Rest of the file ... */}
             <CollapsibleSection title="Image & Video Uploads">
                     <div className="space-y-6">
                     <UploadMethodSelector label={t('admin.settings.imageUploadMethodAdmin')} hint={t('admin.settings.imageUploadMethodHint')} selectedMethods={settings.imageUploadMethod || []} onChange={newMethods => onChange('imageUploadMethod', newMethods)} />
@@ -205,9 +202,9 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                     <UploadMethodSelector label="Video Upload Method (Pro User)" hint="Choose services for Pro users to upload videos. Falls back to user settings if empty." selectedMethods={settings.proVideoUploadMethod || []} onChange={newMethods => onChange('proVideoUploadMethod', newMethods)} />
                 </div>
             </CollapsibleSection>
-            
+            {/* ... Watermark and API Configs ... */}
             <CollapsibleSection title="Watermark Settings">
-                <div className="space-y-6">
+                 <div className="space-y-6">
                     <Toggle checked={settings.watermarkSettings?.enabled ?? false} onChange={val => handleWatermarkSettingChange('enabled', val)} label="Enable Watermark" hint="Automatically add a watermark to uploaded images." />
                     {settings.watermarkSettings?.enabled && (
                         <>
@@ -218,12 +215,13 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                                     {(['cloudinary', 'tumblr', 'imgbb', 'server', 'r2', 'blogger'] as UploadMethod[]).map(method => (
                                         <label key={method} className="flex items-center gap-2">
                                             <input type="checkbox" checked={settings.watermarkSettings?.applyTo?.includes(method)} onChange={e => handleWatermarkApplyToChange(method, e.target.checked)} className="h-4 w-4 rounded" />
-                                            <span className="text-sm capitalize">{method}</span>
+                                            <span className="text-sm capitalize">{method === 'blogger' ? 'Google Drive' : method}</span>
                                         </label>
                                     ))}
                                 </div>
                             </div>
-                            <div>
+                            {/* ... rest of watermark settings */}
+                             <div>
                                 <label htmlFor="watermark-text" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Watermark Text</label>
                                 <input type="text" id="watermark-text" value={settings.watermarkSettings?.text || ''} onChange={e => handleWatermarkSettingChange('text', e.target.value)} className="mt-1 w-full bg-gray-100 dark:bg-gray-700 rounded-md px-3 py-2" placeholder="e.g., yoursite.com"/>
                             </div>
@@ -260,7 +258,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                 </div>
             </CollapsibleSection>
 
-            <CollapsibleSection title="API Configurations">
+             <CollapsibleSection title="API Configurations">
                 <div className="space-y-6">
                     {/* IMGBB REPEATER */}
                     <div>
@@ -300,7 +298,6 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                     {/* R2 REPEATER */}
                     <div>
                         <h4 className="font-semibold text-gray-800 dark:text-white">Cloudflare R2 Configurations</h4>
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Configure R2 buckets for direct-from-browser uploads using presigned URLs. The backend needs corresponding credentials. <a href="https://developers.cloudflare.com/r2/api/s3/presigned-urls/" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline">Learn more</a>.</p>
                         <div className="space-y-2 mt-3">
                             {(settings.r2Configs || []).map((item, index) => (
                                 <div key={item.id} className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
@@ -321,8 +318,7 @@ const IntegrationSection: React.FC<IntegrationSectionProps> = ({
                     {/* TUMBLR REPEATER */}
                     <div>
                         <h4 className="font-semibold text-gray-800 dark:text-white">Tumblr API Credentials</h4>
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Required for the Tumblr upload method. Create a new app on <a href="https://www.tumblr.com/oauth/apps" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline">Tumblr OAuth Apps</a> to get these credentials.</p>
-                        <div className="space-y-2 mt-3">
+                         <div className="space-y-2 mt-3">
                             {(settings.tumblrConfigs || []).map((item, index) => (
                                 <div key={item.id} className="p-3 bg-gray-100 dark:bg-gray-700/50 rounded-md space-y-2 border border-gray-200 dark:border-gray-600">
                                     <input type="text" placeholder="Consumer Key" value={item.consumerKey || ''} onChange={e => handleRepeaterChange('tumblrConfigs', index, 'consumerKey', e.target.value)} className="w-full bg-white dark:bg-gray-600 rounded-md px-3 py-2 text-sm"/>
