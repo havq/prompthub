@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Prompt, CategoryWithCount, UserProfile, UploadMethod, PromptTextEntry } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,6 +12,7 @@ import MediaPreview from './remix/MediaPreview';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';
 import { useAuth } from '../context/AuthContext';
 import { getAllUsers } from '../services/api';
+import { getSettings } from '../services/settingsService';
 
 interface PromptFormProps {
   initialData: Prompt | null;
@@ -31,6 +34,7 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     const { t } = useLanguage();
     const { currentUser } = useAuth();
     const [users, setUsers] = useState<UserProfile[]>(propUsers);
+    const { enableVideoUploads } = getSettings();
 
     // Basic Details
     const [title, setTitle] = useState('');
@@ -388,6 +392,7 @@ export const PromptForm: React.FC<PromptFormProps> = ({
                             isRefDragging={isRefDragging}
                             handleRefDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
                             handleRefDrop={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(false); if(e.dataTransfer.files?.[0]) processReferenceFile(e.dataTransfer.files[0]); }}
+                            enableVideoUploads={enableVideoUploads}
                         />
                     </div>
                 </div>

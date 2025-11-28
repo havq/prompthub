@@ -166,6 +166,8 @@ export interface AppSettings {
   commentRateLimitSeconds: number;
   commentCooldownSeconds: number;
   commentsGloballyEnabled: boolean;
+  enableShowcaseUploads: boolean;
+  enableVideoUploads: boolean;
   navigationMenu: NavigationLink[];
   bottomTabMenu: BottomTabNavigationLink[];
   bottomTabNavigationStyle: BottomTabNavigationStyle;

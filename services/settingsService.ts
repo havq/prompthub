@@ -1,4 +1,6 @@
 
+
+
 import { AppSettings, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig } from '../utils/types';
 import { saveAppSettings as saveExternalSettings, getAppSettings as getExternalSettings } from './externalApi';
 
@@ -129,6 +131,8 @@ const fallbackSettings: AppSettings = {
   commentRateLimitSeconds: 30,
   commentCooldownSeconds: 3,
   commentsGloballyEnabled: true,
+  enableShowcaseUploads: true,
+  enableVideoUploads: true,
   navigationMenu: [
     { id: 'feed', titleKey: 'header.feed', path: '/feed', order: 0, requiresAuth: true },
     { id: 'community', titleKey: 'header.community', path: '/community', order: 1 },

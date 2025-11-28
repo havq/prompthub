@@ -1,4 +1,7 @@
 
+
+
+
 import React from 'react';
 import { AppSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
@@ -61,6 +64,18 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({ settings, onChange, t }
                         onChange={val => onChange('registrationEnabled', val)}
                         label={t('admin.settings.registrationEnabled')}
                         hint={t('admin.settings.registrationEnabledHint')}
+                    />
+                    <Toggle
+                        checked={settings.enableShowcaseUploads ?? true}
+                        onChange={val => onChange('enableShowcaseUploads', val)}
+                        label={t('admin.settings.enableShowcaseUploads')}
+                        hint={t('admin.settings.enableShowcaseUploadsHint')}
+                    />
+                    <Toggle
+                        checked={settings.enableVideoUploads ?? true}
+                        onChange={val => onChange('enableVideoUploads', val)}
+                        label={t('admin.settings.enableVideoUploads')}
+                        hint={t('admin.settings.enableVideoUploadsHint')}
                     />
                     <Toggle
                         checked={settings.showGoProButton ?? true}

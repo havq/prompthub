@@ -1,3 +1,5 @@
+
+
 import React, { useRef, useState, useEffect } from 'react';
 import { UploadMethod } from '../../utils/types';
 import Spinner from '../Spinner';
@@ -49,10 +51,11 @@ interface PromptMediaUploadProps {
     handleRefDragEvents: (e: React.DragEvent<HTMLDivElement>) => void;
     handleRefDrop: (e: React.DragEvent<HTMLDivElement>) => void;
     hideReferenceImageSettings?: boolean;
+    enableVideoUploads?: boolean;
 }
 
 const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
-    const { t } = props;
+    const { t, enableVideoUploads = true } = props;
     const [isMainUploadDropdownOpen, setIsMainUploadDropdownOpen] = useState(false);
     const mainUploadDropdownRef = useRef<HTMLDivElement>(null);
     const [isVideoUploadDropdownOpen, setIsVideoUploadDropdownOpen] = useState(false);
@@ -110,7 +113,7 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                                         className="absolute top-1 right-1 bg-red-600/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
                                         aria-label={`Remove image ${index + 1}`}
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
                                     </button>
                                 </div>
                             )
@@ -155,6 +158,8 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                     <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">{t('modals.showcase.dragDrop')}</p>
                 </div>
             </div>
+
+            {enableVideoUploads && (
             <div>
                 <label htmlFor="video-url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('submitPromptPage.videoUrl')}</label>
                 <div className="mt-1 flex items-center gap-2">
@@ -197,6 +202,7 @@ const PromptMediaUpload: React.FC<PromptMediaUploadProps> = (props) => {
                         <input type="file" ref={props.videoFileInputRef} onChange={props.handleVideoFileSelected} className="hidden" accept="video/mp4,video/webm,video/quicktime,video/mov"/>
                 </div>
             </div>
+            )}
 
             {!props.hideReferenceImageSettings && props.imageUrls.length > 0 && !props.videoUrl && (
                 <div>

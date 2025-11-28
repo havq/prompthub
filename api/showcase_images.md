@@ -1,3 +1,5 @@
+
+
 <?php
 function clear_showcase_cache($redis) {
     if (!$redis) return;
@@ -145,6 +147,16 @@ function handle_showcase_images($conn, $method, $id, $get_params, $post_data) {
                 echo $jsonResponse;
                 break;
             case 'POST':
+                // Check feature toggle
+                $setting_res = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'enableShowcaseUploads'");
+                $enabled = $setting_res && $setting_res->num_rows > 0 ? $setting_res->fetch_assoc()['setting_value'] : 'true';
+                
+                // Only Admins can bypass if disabled
+                if ($enabled === 'false' && !$is_admin_request) {
+                    send_error('Showcase uploads are currently disabled by the administrator.', 403);
+                    return;
+                }
+
                 clear_showcase_cache($redis);
                 clear_prompts_cache($redis); // For showcase counts on prompt cards
 
@@ -224,4 +236,3 @@ function handle_showcase_images($conn, $method, $id, $get_params, $post_data) {
         send_error("Database error in showcase_images handler: " . $e->getMessage(), 500);
     }
 }
-?>

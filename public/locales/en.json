@@ -1,3 +1,5 @@
+
+
 {
   "common": {
     "all": "All",
@@ -285,6 +287,10 @@
       "saved": "Saved!",
       "commentsGloballyEnabled": "Enable Comments Globally",
       "commentsGloballyEnabledHint": "This is a master switch for the entire comment system.",
+      "enableShowcaseUploads": "Enable Showcase Uploads",
+      "enableShowcaseUploadsHint": "Allow users to upload showcase images to prompts.",
+      "enableVideoUploads": "Enable Video Uploads",
+      "enableVideoUploadsHint": "Allow users to upload videos in prompts.",
       "showGoProButton": "Show 'Go Pro' Button",
       "showGoProButtonHint": "Display the 'Go Pro' button in the header and other areas.",
       "showAIPromptIdeasButton": "Show 'AI Prompt Ideas' Button",

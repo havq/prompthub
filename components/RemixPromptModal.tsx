@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Prompt, UserProfile, UploadMethod, CategoryWithCount, PromptTextEntry } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,6 +11,7 @@ import MediaPreview from './remix/MediaPreview';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';
 import PromptMediaUpload from './prompt-form/PromptMediaUpload';
 import PromptAdvancedSettings from './prompt-form/PromptAdvancedSettings';
+import { getSettings } from '../services/settingsService';
 
 interface RemixPromptModalProps {
   promptToRemix: Prompt;
@@ -28,6 +30,7 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
 }) => {
     const { t } = useLanguage();
     const isAdmin = userProfile.role === 'Admin';
+    const { enableVideoUploads } = getSettings();
 
     // Basic Details
     const [title, setTitle] = useState(`Remix of ${promptToRemix.title}`);
@@ -375,6 +378,7 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
                                         isRefDragging={isRefDragging}
                                         handleRefDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
                                         handleRefDrop={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(false); if(e.dataTransfer.files?.[0]) processReferenceFile(e.dataTransfer.files[0]); }}
+                                        enableVideoUploads={enableVideoUploads}
                                     />
                                 </div>
 

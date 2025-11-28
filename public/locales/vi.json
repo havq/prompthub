@@ -1,3 +1,5 @@
+
+
 {
   "common": {
     "all": "Tất cả",
@@ -285,6 +287,10 @@
       "saved": "Đã lưu!",
       "commentsGloballyEnabled": "Bật bình luận toàn cục",
       "commentsGloballyEnabledHint": "Đây là công tắc chính cho toàn bộ hệ thống bình luận.",
+      "enableShowcaseUploads": "Bật tải ảnh Showcase",
+      "enableShowcaseUploadsHint": "Cho phép người dùng tải ảnh showcase lên các prompt.",
+      "enableVideoUploads": "Bật tải lên video",
+      "enableVideoUploadsHint": "Cho phép người dùng tải lên video trong prompt.",
       "showGoProButton": "Hiển thị nút 'Go Pro'",
       "showGoProButtonHint": "Hiển thị nút 'Go Pro' ở đầu trang và các khu vực khác.",
       "showAIPromptIdeasButton": "Hiển thị nút 'Ý tưởng Prompt AI'",

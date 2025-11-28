@@ -1,11 +1,13 @@
 
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { transformCloudinaryUrl } from '../../services/cloudinaryUtils';
 import Spinner from '../Spinner';
 import { ShowcaseImage } from '../../utils/types';
 import { buildUrl } from '../../utils/permalinks';
+import { getSettings } from '../../services/settingsService';
 
 interface ShowcaseTabProps {
     showcaseImages: ShowcaseImage[];
@@ -29,10 +31,13 @@ const ShowcaseTab: React.FC<ShowcaseTabProps> = ({
     onClose
 }) => {
     const { t } = useLanguage();
+    const { enableShowcaseUploads } = getSettings();
 
     return (
         <div>
-            <div className="flex justify-center mb-6"><button onClick={onUploadClick} className="inline-flex items-center gap-2 rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">{t('promptDetail.uploadCreation')}</button></div>
+            {enableShowcaseUploads !== false && (
+                <div className="flex justify-center mb-6"><button onClick={onUploadClick} className="inline-flex items-center gap-2 rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">{t('promptDetail.uploadCreation')}</button></div>
+            )}
             {isLoadingShowcase ? (<div className="flex justify-center"><Spinner /></div>) : showcaseImages.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
                     {showcaseImages.map((image, index) => (
