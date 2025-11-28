@@ -137,6 +137,9 @@ export const SubmitPromptPage: React.FC = () => {
                 isPro={!!isPro}
                 inline={true}
             />
+            {error && <p className="my-4 text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-900/50 p-3 rounded-md text-sm text-center">{error}</p>}
+            {success && <p className="my-4 text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-md text-sm text-center">{success}</p>}
+
         </div>
     );
 };

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Prompt, CategoryWithCount, UserProfile, UploadMethod, PromptTextEntry } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
@@ -319,6 +318,13 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting || isUploading || isUploadingVideo || isUploadingReference) return;
+        
+        // Handle pending image URL input
+        let finalImageUrls = [...imageUrls];
+        if (urlInputRef.current && urlInputRef.current.value.trim()) {
+            finalImageUrls.push(urlInputRef.current.value.trim());
+            urlInputRef.current.value = '';
+        }
 
         const hasText = promptTexts.some(entry => entry.text.trim() !== '');
         if (!hasText) {
@@ -328,7 +334,7 @@ export const PromptForm: React.FC<PromptFormProps> = ({
 
         const promptData: any = {
             title, text: JSON.stringify(promptTexts), promptNote: promptNote || undefined, promptSource: promptSource || undefined,
-            imageUrl: JSON.stringify(imageUrls),
+            imageUrl: JSON.stringify(finalImageUrls),
             videoUrl: videoUrl || undefined,
             referenceImageUrl: requiresUserImage ? referenceImageUrl : undefined,
             categoryIds, tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),

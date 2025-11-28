@@ -279,6 +279,13 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
         e.preventDefault();
         if (isSubmitting) return;
 
+        // Handle pending image URL input
+        let finalImageUrls = [...imageUrls];
+        if (urlInputRef.current && urlInputRef.current.value.trim()) {
+            finalImageUrls.push(urlInputRef.current.value.trim());
+            urlInputRef.current.value = '';
+        }
+
         const hasText = promptTexts.some(entry => entry.text.trim() !== '');
         if (!hasText) {
             alert("Please enter prompt text for at least one language.");
@@ -293,7 +300,7 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
                 text: JSON.stringify(promptTexts), // Serialize multi-lang text
                 promptNote: promptNote || undefined, 
                 promptSource: promptSource || undefined,
-                imageUrl: JSON.stringify(imageUrls), // Send as JSON array string
+                imageUrl: JSON.stringify(finalImageUrls), // Send as JSON array string
                 videoUrl: videoUrl || undefined, 
                 referenceImageUrl: requiresUserImage ? referenceImageUrl : undefined,
                 categoryIds, tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),

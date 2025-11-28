@@ -1,6 +1,4 @@
 
-
-
 import { getSettings } from './settingsService';
 import { uploadToImgbb } from './imgbbService';
 import { uploadToCloudinary } from './cloudinaryService'; // We will override the export here locally or update logic
@@ -75,15 +73,67 @@ export const uploadToR2 = async (file: File): Promise<UploadResult> => {
     }
 };
 
-
-const applyWatermark = (file: File): Promise<File> => {
+// Helper to convert any image to WebP
+const convertToWebP = (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
-        const settings = getSettings().watermarkSettings;
-        if (!settings || !settings.enabled) {
+        // If it's already WebP, resolve immediately
+        if (file.type === 'image/webp') {
             resolve(file);
             return;
         }
 
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            
+            if (!ctx) {
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error("Could not get canvas context for WebP conversion."));
+                return;
+            }
+
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob((blob) => {
+                URL.revokeObjectURL(objectUrl);
+                if (blob) {
+                    // Smart Optimization Check:
+                    // If the converted WebP is larger than the original file, discard the conversion
+                    // and use the original file. This prevents file size inflation on already compressed images.
+                    if (blob.size > file.size) {
+                         console.log(`WebP conversion resulted in larger file (${blob.size} vs ${file.size}). Keeping original.`);
+                         resolve(file);
+                         return;
+                    }
+
+                    const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                    resolve(new File([blob], newName, { type: 'image/webp' }));
+                } else {
+                    reject(new Error("WebP conversion failed."));
+                }
+            }, 'image/webp', 0.85); // Quality 0.85
+        };
+
+        img.onerror = (e) => {
+            URL.revokeObjectURL(objectUrl);
+            console.error("Failed to load image for WebP conversion", e);
+            // Return original file if conversion fails to ensure upload doesn't break
+            resolve(file); 
+        };
+
+        img.src = objectUrl;
+    });
+};
+
+const applyWatermark = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+        const settings = getSettings().watermarkSettings;
+        
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
@@ -101,115 +151,118 @@ const applyWatermark = (file: File): Promise<File> => {
                 ctx.drawImage(img, 0, 0);
 
                 // 2. Prepare watermark
-                ctx.globalAlpha = settings.opacity / 100;
-                
-                const finalizeAndResolve = () => {
-                    canvas.toBlob((blob) => {
-                        if (blob) {
-                            resolve(new File([blob], file.name, { type: file.type }));
-                        } else {
-                            reject(new Error("Canvas to Blob conversion failed."));
-                        }
-                    }, file.type);
-                };
+                if (settings && settings.enabled) {
+                    ctx.globalAlpha = settings.opacity / 100;
+                    
+                    // 3. Apply logo or text
+                    if (settings.repeat) {
+                        if (settings.logoUrl) {
+                            const logo = new Image();
+                            logo.crossOrigin = "Anonymous";
+                            logo.onload = () => {
+                                const logoWidth = img.width * (settings.size / 100);
+                                const logoHeight = logo.height * (logoWidth / logo.width);
+                                const stepX = logoWidth * 2.5;
+                                const stepY = logoHeight * 3;
 
-                // 3. Apply logo or text
-                if (settings.repeat) {
-                    if (settings.logoUrl) {
-                        const logo = new Image();
-                        logo.crossOrigin = "Anonymous";
-                        logo.onload = () => {
-                            const logoWidth = img.width * (settings.size / 100);
-                            const logoHeight = logo.height * (logoWidth / logo.width);
-                            const stepX = logoWidth * 2.5;
-                            const stepY = logoHeight * 3;
+                                for (let y = -stepY; y < canvas.height + stepY; y += stepY) {
+                                    for (let x = -stepX; x < canvas.width + stepX; x += stepX) {
+                                        const offsetX = (Math.floor(y / stepY) % 2) * (stepX / 2);
+                                        ctx.save();
+                                        ctx.translate(x + offsetX, y);
+                                        ctx.rotate(-Math.PI / 6); // -30 degrees
+                                        ctx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+                                        ctx.restore();
+                                    }
+                                }
+                                finalizeAndResolve();
+                            };
+                            logo.onerror = () => {
+                                console.error("Failed to load watermark logo image. Proceeding without logo.");
+                                finalizeAndResolve();
+                            };
+                            logo.src = settings.logoUrl;
+                            return; // Wait for logo load
+                        } else if (settings.text) {
+                            const fontSize = Math.max(12, img.width * (settings.size / 100) / 5); 
+                            ctx.font = `bold ${fontSize}px Arial`;
+                            ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+                            ctx.shadowBlur = 5;
+
+                            const textMetrics = ctx.measureText(settings.text);
+                            const stepX = textMetrics.width * 2;
+                            const stepY = fontSize * 5;
 
                             for (let y = -stepY; y < canvas.height + stepY; y += stepY) {
                                 for (let x = -stepX; x < canvas.width + stepX; x += stepX) {
-                                    const offsetX = (Math.floor(y / stepY) % 2) * (stepX / 2);
+                                     const offsetX = (Math.floor(y / stepY) % 2) * (stepX / 2);
                                     ctx.save();
                                     ctx.translate(x + offsetX, y);
                                     ctx.rotate(-Math.PI / 6); // -30 degrees
-                                    ctx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+                                    ctx.fillText(settings.text, 0, 0);
                                     ctx.restore();
                                 }
                             }
-                            finalizeAndResolve();
-                        };
-                        logo.onerror = () => {
-                            console.error("Failed to load watermark logo image. Skipping watermark.");
-                            resolve(file);
-                        };
-                        logo.src = settings.logoUrl;
-                    } else if (settings.text) {
-                        const fontSize = Math.max(12, img.width * (settings.size / 100) / 5); // Heuristic
-                        ctx.font = `bold ${fontSize}px Arial`;
-                        ctx.fillStyle = "rgba(255, 255, 255, 1)";
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
-                        ctx.shadowBlur = 5;
-
-                        const textMetrics = ctx.measureText(settings.text);
-                        const stepX = textMetrics.width * 2;
-                        const stepY = fontSize * 5;
-
-                        for (let y = -stepY; y < canvas.height + stepY; y += stepY) {
-                            for (let x = -stepX; x < canvas.width + stepX; x += stepX) {
-                                 const offsetX = (Math.floor(y / stepY) % 2) * (stepX / 2);
-                                ctx.save();
-                                ctx.translate(x + offsetX, y);
-                                ctx.rotate(-Math.PI / 6); // -30 degrees
-                                ctx.fillText(settings.text, 0, 0);
-                                ctx.restore();
-                            }
                         }
-                        finalizeAndResolve();
-                    } else {
-                        resolve(file);
-                    }
-                } else { // Single placement logic
-                    if (settings.logoUrl) {
-                        const logo = new Image();
-                        logo.crossOrigin = "Anonymous";
-                        logo.onload = () => {
-                            const logoWidth = img.width * (settings.size / 100);
-                            const logoHeight = logo.height * (logoWidth / logo.width);
-                            const { x, y } = getWatermarkPosition(img.width, img.height, logoWidth, logoHeight, settings.position);
-                            ctx.drawImage(logo, x, y, logoWidth, logoHeight);
-                            finalizeAndResolve();
-                        };
-                        logo.onerror = () => {
-                            console.error("Failed to load watermark logo image. Skipping watermark.");
-                            resolve(file);
-                        };
-                        logo.src = settings.logoUrl;
-                    } else if (settings.text) {
-                        const fontSize = img.width * (settings.size / 100) / 5;
-                        ctx.font = `bold ${fontSize}px Arial`;
-                        ctx.fillStyle = "rgba(255, 255, 255, 1)";
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'top';
-                        
-                        const textMetrics = ctx.measureText(settings.text);
-                        const { x, y } = getWatermarkPosition(img.width, img.height, textMetrics.width, fontSize, settings.position);
+                    } else { // Single placement logic
+                        if (settings.logoUrl) {
+                            const logo = new Image();
+                            logo.crossOrigin = "Anonymous";
+                            logo.onload = () => {
+                                const logoWidth = img.width * (settings.size / 100);
+                                const logoHeight = logo.height * (logoWidth / logo.width);
+                                const { x, y } = getWatermarkPosition(img.width, img.height, logoWidth, logoHeight, settings.position);
+                                ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+                                finalizeAndResolve();
+                            };
+                            logo.onerror = () => {
+                                console.error("Failed to load watermark logo image. Proceeding without logo.");
+                                finalizeAndResolve();
+                            };
+                            logo.src = settings.logoUrl;
+                            return; // Wait for logo load
+                        } else if (settings.text) {
+                            const fontSize = img.width * (settings.size / 100) / 5;
+                            ctx.font = `bold ${fontSize}px Arial`;
+                            ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'top';
+                            
+                            const textMetrics = ctx.measureText(settings.text);
+                            const { x, y } = getWatermarkPosition(img.width, img.height, textMetrics.width, fontSize, settings.position);
 
-                        ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
-                        ctx.shadowBlur = 5;
-                        ctx.shadowOffsetX = 2;
-                        ctx.shadowOffsetY = 2;
-                        
-                        ctx.fillText(settings.text, x, y);
-                        finalizeAndResolve();
-                    } else {
-                        resolve(file);
+                            ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+                            ctx.shadowBlur = 5;
+                            ctx.shadowOffsetX = 2;
+                            ctx.shadowOffsetY = 2;
+                            
+                            ctx.fillText(settings.text, x, y);
+                        }
                     }
                 }
+
+                finalizeAndResolve();
+
+                function finalizeAndResolve() {
+                    // Always convert to WebP when applying watermark
+                    // Note: When watermarking, we generally accept size increase as the image content has changed.
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                            resolve(new File([blob], newName, { type: 'image/webp' }));
+                        } else {
+                            reject(new Error("Canvas to Blob conversion failed."));
+                        }
+                    }, 'image/webp', 0.85); // Quality 0.85
+                }
             };
-            img.onerror = () => reject(new Error("Failed to load image for watermarking."));
+            img.onerror = () => reject(new Error("Failed to load image for processing."));
             img.src = event.target?.result as string;
         };
-        reader.onerror = () => reject(new Error("Failed to read file for watermarking."));
+        reader.onerror = () => reject(new Error("Failed to read file for processing."));
         reader.readAsDataURL(file);
     });
 };
@@ -348,13 +401,21 @@ export const uploadImage = async (file: File, methodOverride?: UploadMethod, rol
     const settings = getSettings();
     const watermarkSettings = settings.watermarkSettings;
 
-    // Check if watermarking should be applied for this image and method
-    if (mediaType === 'image' && watermarkSettings?.enabled && watermarkSettings.applyTo?.includes(method) && method !== 'base64') {
+    // Handle Image Processing (Watermark OR WebP Conversion)
+    if (mediaType === 'image' && method !== 'base64') {
         try {
-            fileToUpload = await applyWatermark(file);
+            // Check if watermarking is enabled and applies to this method
+            if (watermarkSettings?.enabled && watermarkSettings.applyTo?.includes(method)) {
+                // applyWatermark now handles WebP conversion as well
+                fileToUpload = await applyWatermark(file);
+            } else {
+                // If no watermark, simply convert to WebP for optimization
+                // But check if conversion actually saves space
+                fileToUpload = await convertToWebP(file);
+            }
         } catch (error) {
-            console.error("Failed to apply watermark, uploading original image instead.", error);
-            // Fallback to original file if watermarking fails
+            console.error("Image processing failed, falling back to original file.", error);
+            // Fallback to original file if processing fails
             fileToUpload = file;
         }
     }
@@ -382,6 +443,10 @@ export const uploadImage = async (file: File, methodOverride?: UploadMethod, rol
     if (method === 'blogger') {
         // Use server-side proxy for Blogger upload to use stored tokens
         return uploadToServer(fileToUpload, 'blogger');
+    }
+
+    if (method === 'imgbox') {
+        return uploadToServer(fileToUpload, 'imgbox');
     }
     
     // Default to base64

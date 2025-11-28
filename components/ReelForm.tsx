@@ -161,13 +161,20 @@ export const ReelForm: React.FC<ReelFormProps> = ({ initialData, onSubmit, onClo
     e.preventDefault();
     if (isSubmitting || isUploading || isUploadingVideo || isUploadingThumbnail) return;
     
+    // Handle pending image URL input
+    let finalImageUrls = [...imageUrls];
+    if (urlInputRef.current && urlInputRef.current.value.trim()) {
+        finalImageUrls.push(urlInputRef.current.value.trim());
+        urlInputRef.current.value = '';
+    }
+
     const tags = tagsInput.split(',').map(tag => tag.trim()).filter(Boolean);
     
     const reelData = {
         title,
         videoUrl,
         videoThumbnail: videoThumbnail || undefined,
-        imageUrl: JSON.stringify(imageUrls),
+        imageUrl: JSON.stringify(finalImageUrls),
         tags,
         status,
         promptId: promptId || undefined,

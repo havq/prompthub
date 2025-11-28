@@ -3,7 +3,7 @@
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
-export type UploadMethod = 'server' | 'imgbb' | 'cloudinary' | 'tumblr' | 'base64' | 'r2' | 'blogger';
+export type UploadMethod = 'server' | 'imgbb' | 'cloudinary' | 'tumblr' | 'base64' | 'r2' | 'blogger' | 'imgbox';
 
 export interface AuthUser {
   uid: string;
