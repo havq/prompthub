@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Badge, SocialLink, SocialPlatform, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig, LanguageSettings, RecaptchaSettings, NotificationBarSettings, WatermarkSettings, PromptCardSettings, UploadMethod, GamificationSettings, CloudflareR2Config } from '../../utils/types';
 import { getSettings, saveSettings } from '../../services/settingsService';
@@ -51,6 +53,7 @@ const AdminSettings: React.FC = () => {
     const [localSettings, setLocalSettings] = useState(() => getSettings());
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
     const [isUploadingLogo, setIsUploadingLogo] = useState<'light' | 'dark' | 'watermark' | null>(null);
+    const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
     // Password Change State
@@ -219,6 +222,28 @@ const AdminSettings: React.FC = () => {
         }
     };
     
+    const handleFaviconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const validation = validateImageFile(file, t);
+        if (!validation.isValid) {
+            alert(validation.error || 'Invalid file.');
+            if (e.target) e.target.value = "";
+            return;
+        }
+
+        setIsUploadingFavicon(true);
+        try {
+            const result = await uploadImage(file, undefined, { isAdmin: true });
+            handleSettingsChange('faviconUrl', result.imageUrl);
+        } catch (error: any) { alert(`Favicon upload failed: ${error.message}`); } 
+        finally {
+            setIsUploadingFavicon(false);
+            if (e.target) e.target.value = "";
+        }
+    };
+
     const handleBadgeIconUploadClick = (badge: Badge) => {
         setUploadingBadge(badge);
         badgeIconUploadRef.current?.click();
@@ -303,7 +328,13 @@ const AdminSettings: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column */}
                 <div className="space-y-8">
-                    <GeneralSection settings={localSettings} onChange={handleSettingsChange} t={t} />
+                    <GeneralSection 
+                        settings={localSettings} 
+                        onChange={handleSettingsChange} 
+                        t={t}
+                        isUploadingFavicon={isUploadingFavicon}
+                        handleFaviconChange={handleFaviconChange} 
+                    />
                     <DesignSection
                         settings={localSettings}
                         onChange={handleSettingsChange}

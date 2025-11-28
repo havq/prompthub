@@ -1,5 +1,9 @@
 
 
+
+
+
+
 {
   "common": {
     "all": "All",
@@ -231,6 +235,10 @@
     "settings": {
       "title": "Settings",
       "appSettingsTitle": "App Settings",
+      "siteTitle": "Site Title",
+      "siteDescription": "Meta Description",
+      "siteKeywords": "Meta Keywords",
+      "customCss": "Custom CSS",
       "promptsPerPage": "Prompts Per Page",
       "imageUploadMaxSize": "Max Image Upload Size (MB)",
       "imageUploadMaxSizeHint": "Set the maximum file size for image uploads. Note: Your server's `upload_max_filesize` setting in php.ini may also limit this.",
@@ -244,6 +252,7 @@
       "commentCooldownHint": "Grace period a user must wait between comments before the rate limit timer is shown. Use 0 to disable.",
       "appLogoLight": "App Logo (Light Theme)",
       "appLogoDark": "App Logo (Dark Theme)",
+      "appFavicon": "App Favicon",
       "appLogoPlaceholder": "Enter image URL...",
       "upload": "Upload",
       "uploadToImgbb": "Upload to Imgbb",

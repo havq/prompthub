@@ -1,5 +1,4 @@
 
-
 export type Language = 'en' | 'vi' | 'zh' | 'ko';
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -125,6 +124,14 @@ export interface AppSettings {
   relatedPostsCount: number;
   appLogoLight: string | null;
   appLogoDark: string | null;
+  faviconUrl: string | null;
+  
+  // SEO & Customization
+  siteTitle?: string;
+  siteDescription?: string;
+  siteKeywords?: string;
+  customCss?: string;
+
   firebaseConfig: any;
   imageUploadMethod: UploadMethod[];
   userImageUploadMethod: UploadMethod[];

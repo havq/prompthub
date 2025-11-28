@@ -1,6 +1,8 @@
 
 
 
+
+
 import { AppSettings, ImgbbKey, CloudinaryConfig, TumblrConfig, SepayConfig, PaypalConfig } from '../utils/types';
 import { saveAppSettings as saveExternalSettings, getAppSettings as getExternalSettings } from './externalApi';
 
@@ -15,6 +17,14 @@ const fallbackSettings: AppSettings = {
   relatedPostsCount: 5,
   appLogoLight: null,
   appLogoDark: null,
+  faviconUrl: null,
+  
+  // SEO & Customization
+  siteTitle: "",
+  siteDescription: "",
+  siteKeywords: "",
+  customCss: "",
+
   // FIX: Add missing 'firebaseConfig' property to satisfy the AppSettings type.
   firebaseConfig: {},
   imageUploadMethod: ['server'],

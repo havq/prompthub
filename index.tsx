@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -12,10 +15,53 @@ const root = ReactDOM.createRoot(rootElement);
 
 const AppInitializer: React.FC = () => {
     const [initialized, setInitialized] = useState(false);
+    const [refresher, setRefresher] = useState(0);
 
     useEffect(() => {
         loadSettings().then(() => {
             const settings = getSettings();
+
+            // Update Favicon
+            if (settings.faviconUrl) {
+                let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+                if (!link) {
+                    link = document.createElement('link');
+                    link.rel = 'icon';
+                    document.head.appendChild(link);
+                }
+                link.href = settings.faviconUrl;
+            }
+            
+            // Apply SEO Settings
+            if (settings.siteTitle) {
+                document.title = settings.siteTitle;
+            }
+
+            const updateMeta = (name: string, content: string | undefined) => {
+                if (!content) return;
+                let meta = document.querySelector(`meta[name="${name}"]`);
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.setAttribute('name', name);
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', content);
+            };
+
+            updateMeta('description', settings.siteDescription);
+            updateMeta('keywords', settings.siteKeywords);
+
+            // Apply Custom CSS
+            if (settings.customCss) {
+                const cssId = 'prompthub-custom-css';
+                let style = document.getElementById(cssId);
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = cssId;
+                    document.head.appendChild(style);
+                }
+                style.textContent = settings.customCss;
+            }
 
             // Function to inject code and execute scripts
             const injectCode = (code: string | undefined, target: 'head' | 'body') => {
@@ -54,7 +100,61 @@ const AppInitializer: React.FC = () => {
             console.error("Failed to initialize app:", error);
             // You could show an error message to the user here
         });
+    }, [refresher]);
+
+    // Listen to settings changes to re-apply dynamic assets
+    useEffect(() => {
+        const handleSettingsChange = () => {
+            const settings = getSettings();
+            
+            // Favicon
+            if (settings.faviconUrl) {
+                let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+                if (!link) {
+                    link = document.createElement('link');
+                    link.rel = 'icon';
+                    document.head.appendChild(link);
+                }
+                link.href = settings.faviconUrl;
+            }
+            
+            // SEO
+            if (settings.siteTitle) {
+                document.title = settings.siteTitle;
+            }
+            
+            const updateMeta = (name: string, content: string | undefined) => {
+                if (!content) return;
+                let meta = document.querySelector(`meta[name="${name}"]`);
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.setAttribute('name', name);
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', content);
+            };
+            updateMeta('description', settings.siteDescription);
+            updateMeta('keywords', settings.siteKeywords);
+
+            // Custom CSS
+            if (settings.customCss) {
+                const cssId = 'prompthub-custom-css';
+                let style = document.getElementById(cssId);
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = cssId;
+                    document.head.appendChild(style);
+                }
+                style.textContent = settings.customCss;
+            }
+            
+            // Re-triggering injectCode is complex as it appends duplicate scripts. 
+            // Only reversible/safe attributes are re-applied here.
+        };
+        window.addEventListener('storage', handleSettingsChange);
+        return () => window.removeEventListener('storage', handleSettingsChange);
     }, []);
+
 
     if (!initialized) {
         // A minimal, inline i18n for the pre-loading screen
