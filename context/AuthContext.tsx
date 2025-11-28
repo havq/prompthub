@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { UserProfile, Notification, AuthUser } from '../utils/types';
 import { fetchApi } from '../services/api/core';
@@ -115,6 +114,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const loginWithGoogle = async () => {
+    // Force refresh settings to ensure Client ID is loaded and fresh
+    await loadSettings();
+
     return new Promise<void>((resolve, reject) => {
         // @ts-ignore
         if (typeof google === 'undefined') {

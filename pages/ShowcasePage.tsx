@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAllShowcaseImages, getPrompts } from '../services/api';
 import { ShowcaseImage, Prompt } from '../utils/types';
@@ -66,7 +65,7 @@ const ShowcasePage: React.FC = () => {
                     onClose={() => setGalleryState({ open: false, index: 0 })}
                 />
             )}
-            <div className="space-y-8">
+            <div className="space-y-8 px-2 md:px-0">
                 <div className="text-center">
                     <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
                         {t('showcasePage.title')}
@@ -77,23 +76,29 @@ const ShowcasePage: React.FC = () => {
                 </div>
 
                 {images.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    /* Masonry Layout using CSS Columns */
+                    <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4 mx-auto">
                         {images.map((image, index) => (
                             <div
                                 key={image.id}
-                                className="relative group aspect-square cursor-pointer"
+                                className="relative group cursor-pointer break-inside-avoid mb-4 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow"
                                 onClick={() => setGalleryState({ open: true, index })}
                             >
                                 <img
-                                    src={transformCloudinaryUrl(image.imageUrl, 'w_400,h_400,c_fill,g_auto')}
+                                    src={transformCloudinaryUrl(image.imageUrl, 'w_600,c_limit,q_auto')}
                                     alt={`Showcase by ${image.username}`}
-                                    className="w-full h-full object-cover rounded-md bg-gray-200 dark:bg-gray-700 transition-transform duration-300 group-hover:scale-105"
+                                    className="w-full h-auto object-contain bg-gray-200 dark:bg-gray-700"
                                     loading="lazy"
                                 />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                                    <p className="text-white text-xs">
-                                        by <Link to={`/author/${image.userId}`} onClick={(e) => e.stopPropagation()} className="font-semibold hover:underline">{image.username}</Link>
-                                    </p>
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                                    <div className="text-white w-full">
+                                        <p className="text-xs font-medium mb-1 line-clamp-2 opacity-90">
+                                            {image.promptText}
+                                        </p>
+                                        <p className="text-xs opacity-75">
+                                            by <Link to={`/author/${image.userId}`} onClick={(e) => e.stopPropagation()} className="font-bold hover:underline text-white">{image.username}</Link>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         ))}

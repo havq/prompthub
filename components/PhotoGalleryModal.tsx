@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { ShowcaseImage } from '../utils/types';
 import Spinner from './Spinner';
@@ -52,7 +51,7 @@ const PhotoGalleryModal: React.FC<PhotoGalleryModalProps> = ({ images, startInde
   if (!currentImage) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[90]" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[90]" onClick={onClose} role="dialog" aria-modal="true">
       <div className="relative w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
         {/* Close Button */}
         <button
@@ -69,7 +68,7 @@ const PhotoGalleryModal: React.FC<PhotoGalleryModalProps> = ({ images, startInde
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); goToPrev(); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-3 bg-black/30 rounded-full"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-3 bg-black/30 rounded-full hover:bg-black/50 transition-colors"
             aria-label="Previous image"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,7 +78,13 @@ const PhotoGalleryModal: React.FC<PhotoGalleryModalProps> = ({ images, startInde
         )}
         
         {/* Image Display */}
-         <TransformWrapper centerOnInit={true}>
+         <TransformWrapper 
+            initialScale={1} 
+            minScale={0.5} 
+            maxScale={5} 
+            centerOnInit={true}
+            wheel={{ step: 0.2 }}
+         >
             {({ zoomIn, zoomOut, resetTransform }) => (
                 <>
                     <div className="absolute top-4 left-4 z-50 flex flex-col gap-2">
@@ -95,9 +100,9 @@ const PhotoGalleryModal: React.FC<PhotoGalleryModalProps> = ({ images, startInde
                         </svg>
                        </button>
                     </div>
-                    <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center justify-center">
+                    <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
                         {isImageLoading && (
-                            <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="absolute inset-0 flex items-center justify-center z-0">
                                 <Spinner size="lg" />
                             </div>
                         )}
@@ -108,19 +113,21 @@ const PhotoGalleryModal: React.FC<PhotoGalleryModalProps> = ({ images, startInde
                             <img
                                 src={currentImage.imageUrl}
                                 alt={`Showcase by ${currentImage.username}`}
-                                className={`transition-opacity duration-300 max-w-full max-h-full object-contain ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                                className={`transition-opacity duration-300 max-w-[95vw] max-h-[90vh] object-contain ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                                 onLoad={() => setIsImageLoading(false)}
                                 onError={() => setIsImageLoading(false)}
+                                style={{ width: 'auto', height: 'auto' }}
                             />
                         </TransformComponent>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 text-white text-sm">
+                        
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 text-white text-sm z-10">
                             {currentImage.promptText && (
-                                <p className="mb-2 text-xs italic line-clamp-2">
+                                <p className="mb-2 text-sm italic line-clamp-3 opacity-90 max-w-4xl mx-auto text-center">
                                     "{currentImage.promptText}"
                                 </p>
                             )}
-                            <p>
-                                By <Link to={`/author/${currentImage.userId}`} onClick={onClose} className="font-semibold hover:underline">{currentImage.username}</Link> on {new Date(currentImage.createdAt).toLocaleDateString()}
+                            <p className="text-center text-gray-300">
+                                By <Link to={`/author/${currentImage.userId}`} onClick={onClose} className="font-bold text-white hover:underline hover:text-indigo-300 transition-colors">{currentImage.username}</Link> on {new Date(currentImage.createdAt).toLocaleDateString()}
                             </p>
                         </div>
                     </div>
@@ -133,7 +140,7 @@ const PhotoGalleryModal: React.FC<PhotoGalleryModalProps> = ({ images, startInde
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); goToNext(); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-3 bg-black/30 rounded-full"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-3 bg-black/30 rounded-full hover:bg-black/50 transition-colors"
             aria-label="Next image"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
