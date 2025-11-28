@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PromptGridWidgetData, Prompt, CategoryWithCount } from '../../utils/types';
 import { getPrompts } from '../../services/api';
 import PromptCard from '../PromptCard';
@@ -14,9 +15,10 @@ interface PromptGridWidgetProps {
   // Pass down interaction handlers from parent to reuse logic/modals
   onOpenDetail: (prompt: Prompt) => void;
   cardProps: any; 
+  deletedPromptIds?: Set<string>;
 }
 
-const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, onOpenDetail, cardProps }) => {
+const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, onOpenDetail, cardProps, deletedPromptIds }) => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -70,6 +72,12 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
     fetchWidgetPrompts();
   }, [categoryId, tag, sort, limit]);
 
+  // Filter prompts based on deleted IDs passed from parent
+  const displayedPrompts = useMemo(() => {
+    if (!deletedPromptIds || deletedPromptIds.size === 0) return prompts;
+    return prompts.filter(p => !deletedPromptIds.has(p.id));
+  }, [prompts, deletedPromptIds]);
+
   const isSlider = viewMode === 'slider-1' || viewMode === 'slider-2';
 
   useEffect(() => {
@@ -92,7 +100,7 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
         container.addEventListener('scroll', handleScroll, { passive: true });
         return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [isSlider, prompts.length, viewMode]);
+  }, [isSlider, displayedPrompts.length, viewMode]);
 
   const scroll = (direction: 'left' | 'right') => {
       if (scrollContainerRef.current) {
@@ -169,7 +177,7 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
       return <div className="flex justify-center p-8"><Spinner /></div>;
   }
 
-  if (prompts.length === 0) {
+  if (displayedPrompts.length === 0) {
       return null; 
   }
   
@@ -219,8 +227,8 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
       if (viewMode === 'slider-2') {
           // Chunk prompts into pairs for 2 rows
           const chunkedPrompts = [];
-          for (let i = 0; i < prompts.length; i += 2) {
-              chunkedPrompts.push(prompts.slice(i, i + 2));
+          for (let i = 0; i < displayedPrompts.length; i += 2) {
+              chunkedPrompts.push(displayedPrompts.slice(i, i + 2));
           }
           
           sliderContent = chunkedPrompts.map((chunk, index) => (
@@ -230,7 +238,7 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
           ));
       } else {
           // Slider 1 Row
-          sliderContent = prompts.map(prompt => (
+          sliderContent = displayedPrompts.map(prompt => (
                <div key={prompt.id} className={`flex-shrink-0 snap-start ${widthClass}`}>
                    {renderPrompt(prompt)}
                </div>
@@ -326,7 +334,7 @@ const PromptGridWidget: React.FC<PromptGridWidgetProps> = ({ data, categories, o
             </div>
         ) : (
             <div className={containerClasses}>
-                {prompts.map(prompt => {
+                {displayedPrompts.map(prompt => {
                     const avgRatingData = cardProps.averageRatings[prompt.id] || { average: 0, count: 0 };
                     const canManage = isAdmin || (currentUser && prompt.authorId === currentUser.uid);
 

@@ -2,7 +2,6 @@
 import React from 'react';
 import { Prompt, Collection, UserProfile, CategoryWithCount } from '../../utils/types';
 import { useLanguage } from '../../context/LanguageContext';
-import AIPromptGeneratorModal from '../AIPromptGeneratorModal';
 import LoginSuggestionModal from '../LoginSuggestionModal';
 import RemixPromptModal from '../RemixPromptModal';
 import AddToCollectionModal from '../AddToCollectionModal';
@@ -70,7 +69,7 @@ interface HomeModalsProps {
 }
 
 const HomeModals: React.FC<HomeModalsProps> = ({
-    isAIGeneratorOpen, setIsAIGeneratorOpen, isLoginModalOpen, setIsLoginModalOpen,
+    isLoginModalOpen, setIsLoginModalOpen,
     promptToRemix, setPromptToRemix, handleRemixSuccess, categories, currentUser, userProfile, isPro,
     promptForCollections, setPromptForCollections, collections, handleCreateCollection, handleToggleInCollection,
     promptForShowcase, setPromptForShowcase, handleShowcaseSubmit, reportingPrompt, setReportingPrompt,
@@ -83,7 +82,6 @@ const HomeModals: React.FC<HomeModalsProps> = ({
 }) => {
     return (
         <>
-            {isAIGeneratorOpen && <AIPromptGeneratorModal onClose={() => setIsAIGeneratorOpen(false)} />}
             {isLoginModalOpen && <LoginSuggestionModal onClose={() => setIsLoginModalOpen(false)} />}
             {promptToRemix && currentUser && userProfile && <RemixPromptModal promptToRemix={promptToRemix} onClose={() => setPromptToRemix(null)} onSubmitSuccess={handleRemixSuccess} categories={categories} currentUser={currentUser} userProfile={userProfile} isPro={!!isPro} />}
             {promptForCollections && <AddToCollectionModal prompt={promptForCollections} userCollections={collections} onClose={() => setPromptForCollections(null)} onCreate={handleCreateCollection} onToggle={handleToggleInCollection} />}

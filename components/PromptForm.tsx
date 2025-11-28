@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Prompt, CategoryWithCount, UserProfile, UploadMethod, PromptTextEntry } from '../utils/types';
 import { useLanguage } from '../context/LanguageContext';
@@ -6,9 +5,9 @@ import Spinner from './Spinner';
 import PromptBasicDetails from './prompt-form/PromptBasicDetails';
 import PromptMediaUpload from './prompt-form/PromptMediaUpload';
 import PromptAdvancedSettings from './prompt-form/PromptAdvancedSettings';
+import PromptExtraDetails from './prompt-form/PromptExtraDetails';
 import MediaPreview from './remix/MediaPreview';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';
-import { GoogleGenAI } from '@google/genai';
 import { useAuth } from '../context/AuthContext';
 import { getAllUsers } from '../services/api';
 
@@ -40,8 +39,6 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     const [promptNote, setPromptNote] = useState('');
     const [promptSource, setPromptSource] = useState('');
     const [tagsInput, setTagsInput] = useState('');
-    const [isSuggestingTags, setIsSuggestingTags] = useState(false);
-    const [suggestTagsError, setSuggestTagsError] = useState('');
 
     // Media State
     const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -155,31 +152,6 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     useEffect(() => {
         return () => { if (progressIntervalRef.current) clearInterval(progressIntervalRef.current); };
     }, []);
-
-    const handleSuggestTags = async () => {
-        const currentText = promptTexts[activeLangIndex]?.text || '';
-        if (!currentText.trim() || isSuggestingTags) return;
-        if (!process.env.API_KEY) {
-            setSuggestTagsError("AI API Key not configured.");
-            return;
-        }
-        setIsSuggestingTags(true);
-        setSuggestTagsError('');
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const result = await ai.models.generateContent({
-              model: 'gemini-2.5-flash',
-              contents: `Suggest 5 relevant tags for this prompt, separated by commas: "${currentText}"`,
-            });
-            const tags = result.text.split(',').map(t => t.trim()).join(', ');
-            setTagsInput(prev => prev ? `${prev}, ${tags}` : tags);
-        } catch (error) {
-            console.error("AI Tag Suggestion Error:", error);
-            setSuggestTagsError("Failed to generate tags.");
-        } finally {
-            setIsSuggestingTags(false);
-        }
-    };
 
     const startProgressSimulation = () => {
         setUploadProgress(0);
@@ -359,25 +331,21 @@ export const PromptForm: React.FC<PromptFormProps> = ({
     const content = (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="space-y-4 md:col-span-2">
-                    <PromptBasicDetails
-                        title={title} setTitle={setTitle}
-                        promptTexts={promptTexts}
-                        setPromptTexts={setPromptTexts}
-                        activeLangIndex={activeLangIndex}
-                        setActiveLangIndex={setActiveLangIndex}
-                        promptNote={promptNote} setPromptNote={setPromptNote}
-                        promptSource={promptSource} setPromptSource={setPromptSource}
-                        tagsInput={tagsInput} setTagsInput={setTagsInput}
-                        onSuggestTags={handleSuggestTags}
-                        isSuggestingTags={isSuggestingTags}
-                        suggestTagsError={suggestTagsError}
-                        INPUT_STYLE={INPUT_STYLE}
-                        t={t}
-                    />
-                </div>
-                <div className="space-y-4">
-                     {(imageUrls.length > 0 || videoUrl || referenceImageUrl) && (
+                {/* Left Column: Basic Details + Preview + Media Inputs */}
+                <div className="space-y-6 md:col-span-2">
+                    <div className="space-y-4">
+                        <PromptBasicDetails
+                            title={title} setTitle={setTitle}
+                            promptTexts={promptTexts}
+                            setPromptTexts={setPromptTexts}
+                            activeLangIndex={activeLangIndex}
+                            setActiveLangIndex={setActiveLangIndex}
+                            INPUT_STYLE={INPUT_STYLE}
+                            t={t}
+                        />
+                    </div>
+
+                    {(imageUrls.length > 0 || videoUrl || referenceImageUrl) && (
                         <div className="mb-4">
                             <MediaPreview 
                                 imageUrl={imageUrls[0]} 
@@ -387,49 +355,69 @@ export const PromptForm: React.FC<PromptFormProps> = ({
                             />
                         </div>
                     )}
-                    <PromptMediaUpload
-                        imageUrls={imageUrls} setImageUrls={setImageUrls}
-                        videoUrl={videoUrl} setVideoUrl={setVideoUrl}
-                        referenceImageUrl={referenceImageUrl} setReferenceImageUrl={setReferenceImageUrl}
-                        requiresUserImage={requiresUserImage} setRequiresUserImage={setRequiresUserImage}
-                        imageDimensions={imageDimensions}
-                        rotation={rotation} setRotation={setRotation}
-                        isUploading={isUploading} isUploadingVideo={isUploadingVideo} isUploadingReference={isUploadingReference}
-                        uploadProgress={uploadProgress}
-                        uploadOptions={uploadOptions} videoUploadOptions={videoUploadOptions}
-                        isAdmin={isUserAdmin} isPro={isPro}
-                        INPUT_STYLE={INPUT_STYLE} t={t}
-                        handleUploadClick={handleUploadClick}
-                        handleImageFilesSelected={(e) => processImageFiles(e.target.files || [] as any, e.target.getAttribute('data-method') as UploadMethod)}
-                        handleImageDrop={handleImageDrop}
-                        handleDragStart={handleDragStart} handleDragOver={handleDragOver}
-                        handleDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
-                        isDragging={isDragging}
-                        draggedIndex={draggedIndex}
-                        setDraggedIndex={setDraggedIndex}
-                        handleRemoveImage={(index) => setImageUrls(prev => prev.filter((_, i) => i !== index))}
-                        addUrlFromInput={() => { if (urlInputRef.current?.value) { setImageUrls(prev => [...prev, urlInputRef.current!.value]); urlInputRef.current.value = ''; } }}
-                        urlInputRef={urlInputRef} fileInputRef={fileInputRef} videoFileInputRef={videoFileInputRef} referenceFileInputRef={referenceFileInputRef}
-                        handleVideoUploadClick={handleVideoUploadClick}
-                        handleVideoFileSelected={(e) => e.target.files?.[0] && processVideoFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
-                        handleReferenceUploadClick={handleReferenceUploadClick}
-                        handleReferenceFileChange={(e) => e.target.files?.[0] && processReferenceFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
-                        isRefDragging={isRefDragging}
-                        handleRefDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
-                        handleRefDrop={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(false); if(e.dataTransfer.files?.[0]) processReferenceFile(e.dataTransfer.files[0]); }}
-                    />
-                    <PromptAdvancedSettings
-                        categories={categories} categoryIds={categoryIds} handleCategoryChange={handleCategoryChange}
-                        isUserAdmin={isUserAdmin} authorId={authorId} setAuthorId={setAuthorId}
-                        users={users}
-                        t={t}
-                        status={status} setStatus={setStatus}
-                        isPro={isPro}
-                        isPrivate={isPrivate} setIsPrivate={setIsPrivate}
-                        isNSFW={isNSFW} setIsNSFW={setIsNSFW}
-                        commentsEnabled={commentsEnabled} setCommentsEnabled={setCommentsEnabled}
-                        INPUT_STYLE={INPUT_STYLE}
-                    />
+
+                    <div className="space-y-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Media Uploads</h4>
+                         <PromptMediaUpload
+                            imageUrls={imageUrls} setImageUrls={setImageUrls}
+                            videoUrl={videoUrl} setVideoUrl={setVideoUrl}
+                            referenceImageUrl={referenceImageUrl} setReferenceImageUrl={setReferenceImageUrl}
+                            requiresUserImage={requiresUserImage} setRequiresUserImage={setRequiresUserImage}
+                            imageDimensions={imageDimensions}
+                            rotation={rotation} setRotation={setRotation}
+                            isUploading={isUploading} isUploadingVideo={isUploadingVideo} isUploadingReference={isUploadingReference}
+                            uploadProgress={uploadProgress}
+                            uploadOptions={uploadOptions} videoUploadOptions={videoUploadOptions}
+                            isAdmin={isUserAdmin} isPro={isPro}
+                            INPUT_STYLE={INPUT_STYLE} t={t}
+                            handleUploadClick={handleUploadClick}
+                            handleImageFilesSelected={(e) => processImageFiles(e.target.files || [] as any, e.target.getAttribute('data-method') as UploadMethod)}
+                            handleImageDrop={handleImageDrop}
+                            handleDragStart={handleDragStart} handleDragOver={handleDragOver}
+                            handleDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
+                            isDragging={isDragging}
+                            draggedIndex={draggedIndex}
+                            setDraggedIndex={setDraggedIndex}
+                            handleRemoveImage={(index) => setImageUrls(prev => prev.filter((_, i) => i !== index))}
+                            addUrlFromInput={() => { if (urlInputRef.current?.value) { setImageUrls(prev => [...prev, urlInputRef.current!.value]); urlInputRef.current.value = ''; } }}
+                            urlInputRef={urlInputRef} fileInputRef={fileInputRef} videoFileInputRef={videoFileInputRef} referenceFileInputRef={referenceFileInputRef}
+                            handleVideoUploadClick={handleVideoUploadClick}
+                            handleVideoFileSelected={(e) => e.target.files?.[0] && processVideoFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
+                            handleReferenceUploadClick={handleReferenceUploadClick}
+                            handleReferenceFileChange={(e) => e.target.files?.[0] && processReferenceFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
+                            isRefDragging={isRefDragging}
+                            handleRefDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
+                            handleRefDrop={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(false); if(e.dataTransfer.files?.[0]) processReferenceFile(e.dataTransfer.files[0]); }}
+                        />
+                    </div>
+                </div>
+
+                {/* Right Column: Advanced Settings + Extra Details */}
+                <div className="space-y-6">
+                    <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <PromptAdvancedSettings
+                            categories={categories} categoryIds={categoryIds} handleCategoryChange={handleCategoryChange}
+                            isUserAdmin={isUserAdmin} authorId={authorId} setAuthorId={setAuthorId}
+                            users={users}
+                            t={t}
+                            status={status} setStatus={setStatus}
+                            isPro={isPro}
+                            isPrivate={isPrivate} setIsPrivate={setIsPrivate}
+                            isNSFW={isNSFW} setIsNSFW={setIsNSFW}
+                            commentsEnabled={commentsEnabled} setCommentsEnabled={setCommentsEnabled}
+                            INPUT_STYLE={INPUT_STYLE}
+                        />
+                    </div>            
+
+                    <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <PromptExtraDetails
+                            promptNote={promptNote} setPromptNote={setPromptNote}
+                            promptSource={promptSource} setPromptSource={setPromptSource}
+                            tagsInput={tagsInput} setTagsInput={setTagsInput}
+                            INPUT_STYLE={INPUT_STYLE}
+                            t={t}
+                        />
+                    </div>
                 </div>
             </div>
             {!inline && (
@@ -456,7 +444,7 @@ export const PromptForm: React.FC<PromptFormProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl max-h-[95vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{initialData ? t('admin.promptForm.editTitle') : t('admin.promptForm.addTitle')}</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>

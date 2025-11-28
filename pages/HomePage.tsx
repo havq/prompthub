@@ -48,6 +48,9 @@ export const HomePage: React.FC = () => {
   // Homepage Layout State
   const [homeLayout, setHomeLayout] = useState<HomeWidget[]>([]);
   
+  // Optimistic Delete State
+  const [deletedPromptIds, setDeletedPromptIds] = useState<Set<string>>(new Set());
+  
   const TAGS_TO_SHOW_INITIAL = 12;
   const MOBILE_CATEGORY_LIMIT = 5;
 
@@ -175,7 +178,6 @@ export const HomePage: React.FC = () => {
   }, [logic.isLoading, logic.hasMore, logic.paginationStyle, logic.setCurrentPage]);
 
   // Modal Control State
-  const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [promptToRemix, setPromptToRemix] = useState<Prompt | null>(null);
   const [promptForCollections, setPromptForCollections] = useState<Prompt | null>(null);
@@ -277,14 +279,17 @@ export const HomePage: React.FC = () => {
         onDelete: setDeletingPrompt
   };
 
+  // Filtered prompts list for Standard Grid (apply optimistic delete)
+  const filteredLogicPrompts = logic.prompts.filter(p => !deletedPromptIds.has(p.id));
+
   const renderStandardGrid = () => (
       <div ref={promptListRef}>
         {(logic.isLoading && logic.prompts.length === 0) ? (
             <div className={containerClasses[logic.viewMode]}>{Array.from({ length: logic.settings.promptDisplayCount }).map((_, index) => <PromptCardSkeleton key={index} viewMode={logic.viewMode} />)}</div>
-        ) : logic.prompts.length > 0 ? (
+        ) : filteredLogicPrompts.length > 0 ? (
             <>
                 <div className={containerClasses[logic.viewMode]}>
-                    {logic.prompts.map(prompt => {
+                    {filteredLogicPrompts.map(prompt => {
                         const avgRatingData = logic.averageRatings[prompt.id] || { average: 0, count: 0 };
                         const canManage = logic.isAdmin || (logic.currentUser && prompt.authorId === logic.currentUser.uid);
                         return (
@@ -307,7 +312,7 @@ export const HomePage: React.FC = () => {
                 </div>
                 {logic.paginationStyle === 'pagination' && logic.totalPages > 1 && (<Pagination currentPage={logic.currentPage} totalPages={logic.totalPages} onPageChange={handlePageChange} />)}
                 {logic.paginationStyle === 'infiniteScroll' && logic.hasMore && (<div ref={loaderRef} className="flex justify-center py-8">{logic.isLoading && <Spinner size="md" />}</div>)}
-                {logic.paginationStyle === 'infiniteScroll' && !logic.hasMore && logic.prompts.length >= logic.settings.promptDisplayCount && (<p className="text-center text-gray-500 dark:text-gray-400 py-8">{t('home.endOfResults')}</p>)}
+                {logic.paginationStyle === 'infiniteScroll' && !logic.hasMore && filteredLogicPrompts.length >= logic.settings.promptDisplayCount && (<p className="text-center text-gray-500 dark:text-gray-400 py-8">{t('home.endOfResults')}</p>)}
             </>
         ) : (
             <div className="text-center py-16 bg-gray-100/50 dark:bg-gray-800/50 rounded-lg"><h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">{t('home.noPromptsFound')}</h2><p className="mt-2 text-gray-500 dark:text-gray-400">{t('home.noPromptsMessage')}</p>{isAnyFilterActive && (<button onClick={handleClearFilters} className="mt-4 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">{t('home.clearFilters')}</button>)}</div>
@@ -318,7 +323,7 @@ export const HomePage: React.FC = () => {
   return (
     <div className="space-y-8">
       <HomeModals 
-        isAIGeneratorOpen={isAIGeneratorOpen} setIsAIGeneratorOpen={setIsAIGeneratorOpen}
+        isAIGeneratorOpen={false} setIsAIGeneratorOpen={() => {}}
         isLoginModalOpen={isLoginModalOpen} setIsLoginModalOpen={setIsLoginModalOpen}
         promptToRemix={promptToRemix} setPromptToRemix={setPromptToRemix}
         handleRemixSuccess={() => { setPromptToRemix(null); logic.resetPaging(); logic.setRefetchTrigger(c => c + 1); }}
@@ -331,7 +336,15 @@ export const HomePage: React.FC = () => {
         handlePromptFormSubmit={(data) => logic.handlePromptFormSubmit(data, selectedPrompt, setSelectedPrompt).then(() => setEditingPrompt(null))}
         isActionLoading={false} isAdmin={logic.isAdmin}
         deletingPrompt={deletingPrompt} setDeletingPrompt={setDeletingPrompt}
-        handleConfirmDelete={() => logic.handleConfirmDelete(deletingPrompt, selectedPrompt, setSelectedPrompt).then(() => setDeletingPrompt(null))}
+        // Enhanced Delete Handler for Optimistic Updates on Homepage Widgets
+        handleConfirmDelete={async () => {
+            if (deletingPrompt) {
+                // Immediately update local tracking of deleted items
+                setDeletedPromptIds(prev => new Set(prev).add(deletingPrompt.id));
+            }
+            await logic.handleConfirmDelete(deletingPrompt, selectedPrompt, setSelectedPrompt);
+            setDeletingPrompt(null);
+        }}
         t={t}
         sourcePromptForModal={sourcePromptForModal} setSourcePromptForModal={setSourcePromptForModal}
         searchablePrompts={logic.searchablePrompts} handleFindSimilar={handleFindSimilar}
@@ -352,8 +365,8 @@ export const HomePage: React.FC = () => {
       <HomeHeader 
         searchInput={logic.searchInput} handleSearchChange={(e) => logic.setSearchInput(e.target.value)}
         setIsFilterPanelOpen={setIsFilterPanelOpen}
-        showAIPromptIdeasButton={logic.settings.showAIPromptIdeasButton ?? true}
-        handleAIGeneratorClick={() => handleAuthAction(() => setIsAIGeneratorOpen(true))}
+        showAIPromptIdeasButton={false}
+        handleAIGeneratorClick={() => {}}
         handleSubmitPromptClick={() => handleAuthAction(() => navigate('/submit'))}
         selectedDateFilter={logic.selectedDateFilter} handleSelectDateFilter={handleSelectDateFilter}
         sortBy={logic.sortBy} handleSortChange={(s) => logic.setSortBy(s)}
@@ -374,9 +387,9 @@ export const HomePage: React.FC = () => {
                       case 'banner':
                           return <HeroBannerWidget key={widget.id} data={widget.data} />;
                       case 'featured-comments-slider':
-                          return <FeaturedCommentsSlider key={widget.id} data={widget.data} />;
+                          return <FeaturedCommentsSlider key={widget.id} data={widget.data} deletedPromptIds={deletedPromptIds} />;
                       case 'community-activity':
-                          return <CommunityActivityWidget key={widget.id} data={widget.data} />;
+                          return <CommunityActivityWidget key={widget.id} data={widget.data} deletedPromptIds={deletedPromptIds} />;
                       case 'prompt-grid':
                           return (
                             <PromptGridWidget 
@@ -385,6 +398,7 @@ export const HomePage: React.FC = () => {
                                 categories={logic.categories}
                                 onOpenDetail={handleOpenPromptDetail}
                                 cardProps={widgetCardProps}
+                                deletedPromptIds={deletedPromptIds}
                             />
                           );
                       case 'post-grid':

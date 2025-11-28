@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { FeaturedCommentsWidgetData, Comment, Prompt } from '../../utils/types';
 import { getAllComments, getPrompt } from '../../services/api';
 import { Link } from 'react-router-dom';
@@ -34,7 +34,7 @@ const getSafeImageUrl = (imageUrlValue: string | undefined): string => {
     return imageUrlValue;
 };
 
-const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = ({ data }) => {
+const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData; deletedPromptIds?: Set<string> }> = ({ data, deletedPromptIds }) => {
     const [comments, setComments] = useState<ExtendedComment[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeSlide, setActiveSlide] = useState(0);
@@ -49,25 +49,21 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
         const fetchData = async () => {
             try {
                 setLoading(true);
-                // 1. Fetch all comments
+                // Fetch slightly more to buffer against deletions
                 const allComments = await getAllComments();
                 
                 if (!isMounted.current) return;
 
-                // 2. Take top N comments based on limit
-                const topComments = allComments.slice(0, data.limit || 10);
+                const topComments = allComments.slice(0, (data.limit || 10) + 5);
 
-                // 3. Collect unique prompt IDs from these comments
                 const uniquePromptIds = [...new Set(topComments.map(c => c.promptId).filter(id => {
                     if (!id) return false;
                     const strId = String(id);
                     return !strId.includes('{') && strId !== 'undefined';
                 }))];
 
-                // 4. Fetch details for these specific prompts
-                // We map promises to handle individual failures without crashing all
                 const promptPromises = uniquePromptIds.map(id => 
-                    getPrompt(String(id)).catch(() => null) // Silently fail for missing/deleted prompts
+                    getPrompt(String(id)).catch(() => null) 
                 );
                 
                 const prompts = await Promise.all(promptPromises);
@@ -79,8 +75,6 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
                     if (p) promptMap.set(p.id, p);
                 });
 
-                // 5. Enrich comments with prompt data
-                // Filter out comments where the prompt could not be found (deleted/missing)
                 const enrichedComments = topComments.reduce<ExtendedComment[]>((acc, c) => {
                     const p = promptMap.get(String(c.promptId) || '');
                     
@@ -109,6 +103,14 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
         };
     }, [data.limit]);
 
+    const displayedComments = useMemo(() => {
+        let filtered = comments;
+        if (deletedPromptIds && deletedPromptIds.size > 0) {
+             filtered = comments.filter(c => !c.promptId || !deletedPromptIds.has(String(c.promptId)));
+        }
+        return filtered.slice(0, data.limit || 10);
+    }, [comments, deletedPromptIds, data.limit]);
+
     // Calculate total slides on mount/resize/data change
     useEffect(() => {
         const updateSlideInfo = () => {
@@ -128,7 +130,7 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
             window.removeEventListener('resize', updateSlideInfo);
             clearTimeout(timer);
         };
-    }, [comments.length, loading]);
+    }, [displayedComments.length, loading]);
 
     const handleScroll = () => {
         if (scrollRef.current) {
@@ -155,7 +157,7 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
     };
 
     if (loading) return <div className="h-64 w-full bg-gray-200 dark:bg-gray-800/20 animate-pulse rounded-xl my-8"></div>;
-    if (comments.length === 0) return null;
+    if (displayedComments.length === 0) return null;
 
     return (
         <div className="bg-white dark:bg-[#131519] border border-gray-200 dark:border-gray-700 rounded-xl p-6 my-8 shadow-lg overflow-hidden">
@@ -179,7 +181,7 @@ const FeaturedCommentsSlider: React.FC<{ data: FeaturedCommentsWidgetData }> = (
                     onScroll={handleScroll}
                     className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-2"
                 >
-                    {comments.map((comment) => (
+                    {displayedComments.map((comment) => (
                         <div key={comment.id} className="snap-start flex-shrink-0 w-[320px] bg-gray-50 dark:bg-[#1e2128] border border-gray-200 dark:border-gray-700/50 rounded-xl overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors flex h-40 shadow-sm dark:shadow-none">
                             {/* Comment Content */}
                             <div className="p-4 flex flex-col justify-between flex-1 min-w-0">

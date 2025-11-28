@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import Spinner from '../Spinner';
 import { PromptTextEntry } from '../../utils/types';
 import ConfirmModal from '../ConfirmModal';
 import { useLanguage } from '../../context/LanguageContext';
@@ -12,22 +11,12 @@ interface PromptBasicDetailsProps {
     setPromptTexts: React.Dispatch<React.SetStateAction<PromptTextEntry[]>>;
     activeLangIndex: number;
     setActiveLangIndex: (index: number) => void;
-    promptNote: string;
-    setPromptNote: (val: string) => void;
-    promptSource: string;
-    setPromptSource: (val: string) => void;
-    tagsInput: string;
-    setTagsInput: (val: string) => void;
-    onSuggestTags: () => void;
-    isSuggestingTags: boolean;
-    suggestTagsError: string;
     INPUT_STYLE: string;
     t: (key: string, options?: any) => string;
 }
 
 const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
-    title, setTitle, promptTexts, setPromptTexts, activeLangIndex, setActiveLangIndex, promptNote, setPromptNote, promptSource, setPromptSource, tagsInput, setTagsInput,
-    onSuggestTags, isSuggestingTags, suggestTagsError, INPUT_STYLE, t
+    title, setTitle, promptTexts, setPromptTexts, activeLangIndex, setActiveLangIndex, INPUT_STYLE, t
 }) => {
     const { language } = useLanguage();
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
@@ -39,7 +28,6 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
         if (!promptTexts || promptTexts.length === 0) return;
 
         // Automatically set the language tab for new empty prompts to the user's current language.
-        // This runs when promptTexts or language changes, but the condition ensures it only applies to fresh prompts.
         if (promptTexts.length === 1 && promptTexts[0].text.trim() === '') {
             const langMapping: Record<string, string[]> = {
                 'vi': ['Tiếng Việt', 'Vietnamese', 'VN', 'VI'],
@@ -52,8 +40,6 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
             const primaryLabel = currentLangLabels[0] || 'English';
             const currentLabel = promptTexts[0].lang;
 
-            // Only override if the current label is the hardcoded default 'Tiếng Việt' 
-            // and the user's language is NOT Vietnamese.
             if (currentLabel === 'Tiếng Việt' && primaryLabel !== 'Tiếng Việt') {
                  const newTexts = [...promptTexts];
                  newTexts[0].lang = primaryLabel;
@@ -187,27 +173,6 @@ const PromptBasicDetails: React.FC<PromptBasicDetailsProps> = ({
                         placeholder={t('admin.promptForm.enterPromptTextPlaceholder', { lang: promptTexts[activeLangIndex]?.lang || '' })}
                     />
                 </div>
-            </div>
-            <div>
-                <label htmlFor="prompt-note" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.promptNoteLabel')}</label>
-                <textarea id="prompt-note" rows={3} value={promptNote} onChange={(e) => setPromptNote(e.target.value)}
-                    className={`mt-1 ${INPUT_STYLE}`} placeholder={t('admin.promptForm.promptNotePlaceholder')} />
-            </div>
-            <div>
-                <label htmlFor="prompt-source" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.sourceUrlLabel')}</label>
-                <input id="prompt-source" type="url" value={promptSource} onChange={(e) => setPromptSource(e.target.value)}
-                    className={`mt-1 ${INPUT_STYLE}`} placeholder={t('admin.promptForm.sourceUrlPlaceholder')} />
-            </div>
-            <div>
-                <label htmlFor="prompt-tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.promptForm.tags')}</label>
-                <div className="flex items-center gap-2 mt-1">
-                    <input type="text" id="prompt-tags" value={tagsInput} onChange={(e) => setTagsInput(e.target.value)}
-                        className={`flex-grow ${INPUT_STYLE}`} placeholder={t('admin.promptForm.tagsPlaceholder')} />
-                    <button type="button" onClick={onSuggestTags} disabled={isSuggestingTags || !promptTexts[activeLangIndex]?.text.trim()} className="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:hover:bg-indigo-800/80 text-indigo-700 dark:text-indigo-300 font-semibold py-2 px-4 rounded-md transition-colors text-sm w-44 flex justify-center">
-                        {isSuggestingTags ? <Spinner size="sm" /> : '💡 ' + t('admin.promptForm.suggestTagsAI')}
-                    </button>
-                </div>
-                {suggestTagsError && <p className="mt-1 text-xs text-red-500">{suggestTagsError}</p>}
             </div>
 
             {isLangModalOpen && (

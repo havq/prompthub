@@ -5,9 +5,9 @@ import { useLanguage } from '../context/LanguageContext';
 import { remixPrompt } from '../services/api';
 import Spinner from './Spinner';
 import PromptBasicDetails from './prompt-form/PromptBasicDetails';
+import PromptExtraDetails from './prompt-form/PromptExtraDetails';
 import MediaPreview from './remix/MediaPreview';
 import { uploadImage, getUploadMethodsForRole } from '../services/imageUploadService';
-import { GoogleGenAI } from '@google/genai';
 import PromptMediaUpload from './prompt-form/PromptMediaUpload';
 import PromptAdvancedSettings from './prompt-form/PromptAdvancedSettings';
 
@@ -39,8 +39,6 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
     const [promptNote, setPromptNote] = useState(promptToRemix.promptNote || '');
     const [promptSource, setPromptSource] = useState(promptToRemix.promptSource || '');
     const [tagsInput, setTagsInput] = useState(promptToRemix.tags?.join(', ') || '');
-    const [isSuggestingTags, setIsSuggestingTags] = useState(false);
-    const [suggestTagsError, setSuggestTagsError] = useState('');
 
     // Media State
     const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -125,32 +123,6 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
         }
         
     }, [promptToRemix]);
-
-    const handleSuggestTags = async () => {
-        const currentText = promptTexts[activeLangIndex]?.text || '';
-        if (!currentText.trim() || isSuggestingTags) return;
-        
-        if (!process.env.API_KEY) {
-            setSuggestTagsError("AI API Key not configured.");
-            return;
-        }
-        setIsSuggestingTags(true);
-        setSuggestTagsError('');
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const result = await ai.models.generateContent({
-              model: 'gemini-2.5-flash',
-              contents: `Suggest 5 relevant tags for this prompt, separated by commas: "${currentText}"`,
-            });
-            const tags = result.text.split(',').map(t => t.trim()).join(', ');
-            setTagsInput(prev => prev ? `${prev}, ${tags}` : tags);
-        } catch (error) {
-            console.error("AI Tag Suggestion Error:", error);
-            setSuggestTagsError("Failed to generate tags.");
-        } finally {
-            setIsSuggestingTags(false);
-        }
-    };
     
     const startProgressSimulation = () => {
         setUploadProgress(0);
@@ -335,23 +307,30 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
                 <div className="p-6 overflow-y-auto flex-grow">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
+                            {/* Left Column: Basic Info + Extra Details (Tags/Notes) */}
+                            <div className="space-y-6">
                                 <PromptBasicDetails 
                                     title={title} setTitle={setTitle} 
                                     promptTexts={promptTexts} 
                                     setPromptTexts={setPromptTexts}
                                     activeLangIndex={activeLangIndex}
                                     setActiveLangIndex={setActiveLangIndex}
-                                    promptNote={promptNote} setPromptNote={setPromptNote}
-                                    promptSource={promptSource} setPromptSource={setPromptSource}
-                                    tagsInput={tagsInput} setTagsInput={setTagsInput} 
-                                    onSuggestTags={handleSuggestTags} 
-                                    isSuggestingTags={isSuggestingTags} 
-                                    suggestTagsError={suggestTagsError} 
                                     INPUT_STYLE={INPUT_STYLE} 
                                     t={t}
                                 />
+                                
+                                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <PromptExtraDetails
+                                        promptNote={promptNote} setPromptNote={setPromptNote}
+                                        promptSource={promptSource} setPromptSource={setPromptSource}
+                                        tagsInput={tagsInput} setTagsInput={setTagsInput} 
+                                        INPUT_STYLE={INPUT_STYLE} 
+                                        t={t}
+                                    />
+                                </div>
                             </div>
+                            
+                            {/* Right Column: Media Uploads + Settings */}
                             <div className="space-y-4">
                                 {(imageUrls.length > 0 || videoUrl || referenceImageUrl) && (
                                     <div className="mb-4">
@@ -364,37 +343,40 @@ const RemixPromptModal: React.FC<RemixPromptModalProps> = ({
                                     </div>
                                 )}
                                 
-                                <PromptMediaUpload
-                                    imageUrls={imageUrls} setImageUrls={setImageUrls}
-                                    videoUrl={videoUrl} setVideoUrl={setVideoUrl}
-                                    referenceImageUrl={referenceImageUrl} setReferenceImageUrl={setReferenceImageUrl}
-                                    requiresUserImage={requiresUserImage} setRequiresUserImage={setRequiresUserImage}
-                                    imageDimensions={imageDimensions}
-                                    rotation={rotation} setRotation={setRotation}
-                                    isUploading={isUploading} isUploadingVideo={isUploadingVideo} isUploadingReference={isUploadingReference}
-                                    uploadProgress={uploadProgress}
-                                    uploadOptions={uploadOptions} videoUploadOptions={videoUploadOptions}
-                                    isAdmin={isAdmin} isPro={isPro}
-                                    INPUT_STYLE={INPUT_STYLE} t={t}
-                                    handleUploadClick={handleUploadClick}
-                                    handleImageFilesSelected={(e) => processImageFiles(e.target.files || [] as any, e.target.getAttribute('data-method') as UploadMethod)}
-                                    handleImageDrop={handleImageDrop}
-                                    handleDragStart={handleDragStart} handleDragOver={handleDragOver}
-                                    handleDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
-                                    isDragging={isDragging}
-                                    draggedIndex={draggedIndex}
-                                    setDraggedIndex={setDraggedIndex}
-                                    handleRemoveImage={(index) => setImageUrls(prev => prev.filter((_, i) => i !== index))}
-                                    addUrlFromInput={() => { if (urlInputRef.current?.value) { setImageUrls(prev => [...prev, urlInputRef.current!.value]); urlInputRef.current.value = ''; } }}
-                                    urlInputRef={urlInputRef} fileInputRef={fileInputRef} videoFileInputRef={videoFileInputRef} referenceFileInputRef={referenceFileInputRef}
-                                    handleVideoUploadClick={handleVideoUploadClick}
-                                    handleVideoFileSelected={(e) => e.target.files?.[0] && processVideoFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
-                                    handleReferenceUploadClick={handleReferenceUploadClick}
-                                    handleReferenceFileChange={(e) => e.target.files?.[0] && processReferenceFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
-                                    isRefDragging={isRefDragging}
-                                    handleRefDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
-                                    handleRefDrop={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(false); if(e.dataTransfer.files?.[0]) processReferenceFile(e.dataTransfer.files[0]); }}
-                                />
+                                <div className="space-y-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Media Uploads</h4>
+                                    <PromptMediaUpload
+                                        imageUrls={imageUrls} setImageUrls={setImageUrls}
+                                        videoUrl={videoUrl} setVideoUrl={setVideoUrl}
+                                        referenceImageUrl={referenceImageUrl} setReferenceImageUrl={setReferenceImageUrl}
+                                        requiresUserImage={requiresUserImage} setRequiresUserImage={setRequiresUserImage}
+                                        imageDimensions={imageDimensions}
+                                        rotation={rotation} setRotation={setRotation}
+                                        isUploading={isUploading} isUploadingVideo={isUploadingVideo} isUploadingReference={isUploadingReference}
+                                        uploadProgress={uploadProgress}
+                                        uploadOptions={uploadOptions} videoUploadOptions={videoUploadOptions}
+                                        isAdmin={isAdmin} isPro={isPro}
+                                        INPUT_STYLE={INPUT_STYLE} t={t}
+                                        handleUploadClick={handleUploadClick}
+                                        handleImageFilesSelected={(e) => processImageFiles(e.target.files || [] as any, e.target.getAttribute('data-method') as UploadMethod)}
+                                        handleImageDrop={handleImageDrop}
+                                        handleDragStart={handleDragStart} handleDragOver={handleDragOver}
+                                        handleDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
+                                        isDragging={isDragging}
+                                        draggedIndex={draggedIndex}
+                                        setDraggedIndex={setDraggedIndex}
+                                        handleRemoveImage={(index) => setImageUrls(prev => prev.filter((_, i) => i !== index))}
+                                        addUrlFromInput={() => { if (urlInputRef.current?.value) { setImageUrls(prev => [...prev, urlInputRef.current!.value]); urlInputRef.current.value = ''; } }}
+                                        urlInputRef={urlInputRef} fileInputRef={fileInputRef} videoFileInputRef={videoFileInputRef} referenceFileInputRef={referenceFileInputRef}
+                                        handleVideoUploadClick={handleVideoUploadClick}
+                                        handleVideoFileSelected={(e) => e.target.files?.[0] && processVideoFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
+                                        handleReferenceUploadClick={handleReferenceUploadClick}
+                                        handleReferenceFileChange={(e) => e.target.files?.[0] && processReferenceFile(e.target.files[0], e.target.getAttribute('data-method') as UploadMethod)}
+                                        isRefDragging={isRefDragging}
+                                        handleRefDragEvents={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(e.type === 'dragenter' || e.type === 'dragover'); }}
+                                        handleRefDrop={(e) => { e.preventDefault(); e.stopPropagation(); setIsRefDragging(false); if(e.dataTransfer.files?.[0]) processReferenceFile(e.dataTransfer.files[0]); }}
+                                    />
+                                </div>
 
                                 <PromptAdvancedSettings
                                     categories={categories} categoryIds={categoryIds} handleCategoryChange={handleCategoryChange}

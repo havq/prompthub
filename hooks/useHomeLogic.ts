@@ -262,12 +262,29 @@ export const useHomeLogic = () => {
 
     const handleConfirmDelete = async (deletingPrompt: Prompt | null, selectedPrompt: Prompt | null, setSelectedPrompt: (p: Prompt | null) => void) => {
         if (!deletingPrompt) return;
+
+        // Capture current state for rollback
+        const previousPrompts = [...prompts];
+        const previousSearchable = [...searchablePrompts];
+        const previousTotal = totalPrompts;
+
+        // Optimistic Update: Immediately remove from local state
+        setPrompts(prev => prev.filter(p => p.id !== deletingPrompt.id));
+        setSearchablePrompts(prev => prev.filter(p => p.id !== deletingPrompt.id));
+        setTotalPrompts(prev => Math.max(0, prev - 1));
+
+        if (selectedPrompt?.id === deletingPrompt.id) setSelectedPrompt(null);
+
         try {
             await apiDeletePrompt(deletingPrompt.id);
-            if (selectedPrompt?.id === deletingPrompt.id) setSelectedPrompt(null);
-            setRefetchTrigger(c => c + 1);
+            // API success, no further action needed as UI is already updated
         } catch (error) {
             console.error("Failed to delete prompt:", error);
+            // Rollback state on failure
+            setPrompts(previousPrompts);
+            setSearchablePrompts(previousSearchable);
+            setTotalPrompts(previousTotal);
+            alert("Failed to delete prompt. Restoring...");
             throw error;
         }
     };

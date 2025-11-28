@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { NewCommentsWidgetData, Comment } from '../../utils/types';
 import { getAllComments, getPrompt } from '../../services/api';
 import { Link } from 'react-router-dom';
@@ -9,7 +9,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { buildUrl } from '../../utils/permalinks';
 import Spinner from '../Spinner';
 
-const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData }> = ({ data }) => {
+const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData; deletedPromptIds?: Set<string> }> = ({ data, deletedPromptIds }) => {
     const [comments, setComments] = useState<(Comment & { promptTitle?: string })[]>([]);
     const [loading, setLoading] = useState(true);
     const isMounted = useRef(true);
@@ -20,20 +20,22 @@ const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData }> = ({ data
         const fetchData = async () => {
             setLoading(true);
             try {
+                // Fetch more comments to handle potential filtering of deleted items
+                const fetchLimit = (data.limit || 5) + 10;
                 const allComments = await getAllComments();
                 
                 if (!isMounted.current) return;
 
-                const recentComments = allComments.slice(0, data.limit || 5);
+                const recentComments = allComments.slice(0, fetchLimit);
                 
-                // Get unique prompt IDs, robustly filtering
+                // Get unique prompt IDs
                 const promptIds = [...new Set(recentComments.map(c => c.promptId).filter(id => {
                      if (!id) return false;
                      const strId = String(id);
                      return !strId.includes('{') && strId !== 'undefined';
                 }))];
                 
-                // Fetch prompt titles individually, gracefully handling failures
+                // Fetch prompt titles
                 const promptPromises = promptIds.map(id => 
                     getPrompt(String(id)).catch(err => null)
                 );
@@ -46,7 +48,7 @@ const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData }> = ({ data
                     if(p) promptMap.set(p.id, p.title);
                 });
                 
-                // Filter out comments where prompt details could not be fetched (deleted prompts)
+                // Enrich comments
                 const enriched = recentComments.reduce<(Comment & { promptTitle?: string })[]>((acc, c) => {
                     const title = promptMap.get(String(c.promptId) || '');
                     if (title) { 
@@ -69,6 +71,14 @@ const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData }> = ({ data
         return () => { isMounted.current = false; };
     }, [data.limit]);
 
+    const displayedComments = useMemo(() => {
+        let filtered = comments;
+        if (deletedPromptIds && deletedPromptIds.size > 0) {
+            filtered = comments.filter(c => !c.promptId || !deletedPromptIds.has(String(c.promptId)));
+        }
+        return filtered.slice(0, data.limit || 5);
+    }, [comments, deletedPromptIds, data.limit]);
+
     return (
         <div className="h-full">
             <div className="flex items-center gap-2 mb-4 border-b border-gray-200 dark:border-gray-800 pb-3">
@@ -79,7 +89,7 @@ const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData }> = ({ data
                 <div className="flex justify-center py-10"><Spinner size="sm" /></div>
             ) : (
                 <div className="space-y-3">
-                    {comments.map(comment => (
+                    {displayedComments.map(comment => (
                         <div key={comment.id} className="flex gap-3 bg-gray-50 dark:bg-[#1e2128] p-2.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors group shadow-sm dark:shadow-none">
                             <Link to={`/author/${comment.userId}`} className="flex-shrink-0">
                                 <img 
@@ -102,7 +112,7 @@ const NewCommentsListWidget: React.FC<{ data: NewCommentsWidgetData }> = ({ data
                             </div>
                         </div>
                     ))}
-                    {comments.length === 0 && <p className="text-center text-xs text-gray-500 py-2">No comments available.</p>}
+                    {displayedComments.length === 0 && <p className="text-center text-xs text-gray-500 py-2">No comments available.</p>}
                 </div>
             )}
         </div>

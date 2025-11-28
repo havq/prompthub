@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { RankingListWidgetData, Prompt } from '../../utils/types';
 import { getPrompts } from '../../services/api';
 import { Link } from 'react-router-dom';
@@ -8,7 +9,7 @@ import { buildUrl } from '../../utils/permalinks';
 import { useLanguage } from '../../context/LanguageContext';
 import Spinner from '../Spinner';
 
-const RankingListWidget: React.FC<{ data: RankingListWidgetData }> = ({ data }) => {
+const RankingListWidget: React.FC<{ data: RankingListWidgetData; deletedPromptIds?: Set<string> }> = ({ data, deletedPromptIds }) => {
     const [items, setItems] = useState<Prompt[]>([]);
     const [loading, setLoading] = useState(true);
     const isMounted = useRef(true);
@@ -30,7 +31,10 @@ const RankingListWidget: React.FC<{ data: RankingListWidgetData }> = ({ data }) 
                 };
                 const sortParam = sortByMap[dataSource || 'views'] || 'views';
                 
-                const res = await getPrompts({ page: 1, limit: limit || 5, sortBy: sortParam as any });
+                // Fetch slightly more items to account for potential local deletions
+                const fetchLimit = (limit || 5) + 5;
+
+                const res = await getPrompts({ page: 1, limit: fetchLimit, sortBy: sortParam as any });
                 if (isMounted.current) {
                     setItems(res.prompts);
                 }
@@ -43,7 +47,15 @@ const RankingListWidget: React.FC<{ data: RankingListWidgetData }> = ({ data }) 
 
         fetchData();
         return () => { isMounted.current = false; };
-    }, [limit, dataSource]); // Only re-run if limit or dataSource changes
+    }, [limit, dataSource]);
+
+    const displayedItems = useMemo(() => {
+        let filtered = items;
+        if (deletedPromptIds && deletedPromptIds.size > 0) {
+            filtered = items.filter(p => !deletedPromptIds.has(p.id));
+        }
+        return filtered.slice(0, limit || 5);
+    }, [items, deletedPromptIds, limit]);
 
     const getIcon = () => {
         if (data.icon === 'heart') return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-yellow-500"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" /></svg>;
@@ -61,7 +73,7 @@ const RankingListWidget: React.FC<{ data: RankingListWidgetData }> = ({ data }) 
                 <div className="flex justify-center py-10"><Spinner size="sm" /></div>
             ) : (
                 <ul className="space-y-3">
-                    {items.map((item, index) => {
+                    {displayedItems.map((item, index) => {
                         const images = getImageUrls(item.imageUrl);
                         const displayImage = images.length > 0 ? images[0] : '';
                         
@@ -83,7 +95,7 @@ const RankingListWidget: React.FC<{ data: RankingListWidgetData }> = ({ data }) 
                             </li>
                         );
                     })}
-                    {items.length === 0 && <li className="text-xs text-gray-500 italic text-center">{t('widgets.noItemsFound')}</li>}
+                    {displayedItems.length === 0 && <li className="text-xs text-gray-500 italic text-center">{t('widgets.noItemsFound')}</li>}
                 </ul>
             )}
             <Link to="/prompts-list" className="block mt-4 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-right transition-colors">{t('common.showMore', { count: '' })} &rarr;</Link>

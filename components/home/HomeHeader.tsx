@@ -4,9 +4,6 @@ import { useLanguage } from '../../context/LanguageContext';
 import DateFilter from '../DateFilter';
 import SortControl from '../SortControl';
 import { GetPromptsParams } from '../../services/externalApi';
-//import { buildUrl } from '../../utils/permalinks';
-//import { useNavigate } from '/react-router-dom';
-//import { getSettings } from '../../services/settingsService';
 
 interface HomeHeaderProps {
     searchInput: string;
@@ -47,8 +44,8 @@ const FilterSelect: React.FC<{label: string, value: string, onChange: (e: React.
 );
 
 const HomeHeader: React.FC<HomeHeaderProps> = ({
-    searchInput, handleSearchChange, setIsFilterPanelOpen, showAIPromptIdeasButton,
-    handleAIGeneratorClick, handleSubmitPromptClick, selectedDateFilter, handleSelectDateFilter,
+    searchInput, handleSearchChange, setIsFilterPanelOpen,
+    handleSubmitPromptClick, selectedDateFilter, handleSelectDateFilter,
     sortBy, handleSortChange, isAnyFilterActive, handleClearFilters,
     commentFilter, setCommentFilter, remixFilter, setRemixFilter, referenceImageFilter, setReferenceImageFilter,
     nsfwFilter, setNsfwFilter,
@@ -91,16 +88,6 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
                         </button>
                     </div>
                     <div className="grid grid-cols-2 sm:flex items-center sm:justify-end gap-2 w-full sm:w-auto">
-                        {showAIPromptIdeasButton && (
-                            <button onClick={handleAIGeneratorClick} className="col-span-1 flex items-center justify-center gap-2 px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-100 dark:border-indigo-800 transition-colors">
-                                💡 {t('home.generateWithAI')}
-                            </button>
-                        )}
-                        {/*
-                        <button onClick={handleSubmitPromptClick} className={`col-span-1 flex items-center justify-center px-3 py-3.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md ${!showAIPromptIdeasButton ? 'col-span-2' : ''}`}>
-                            {t('home.submitPrompt')}
-                        </button>
-                        */}
                         {/* Desktop Filter Button */}
                         <button onClick={() => setIsFilterPanelOpen(true)} className="hidden sm:flex lg:hidden items-center justify-center px-3 py-2.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-[#1c1f26] text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-800">
                             {t('home.filters')}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AppSettings } from '../../../utils/types';
 import CollapsibleSection from './CollapsibleSection';
@@ -66,12 +67,6 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({ settings, onChange, t }
                         onChange={val => onChange('showGoProButton', val)}
                         label={t('admin.settings.showGoProButton')}
                         hint={t('admin.settings.showGoProButtonHint')}
-                    />
-                    <Toggle
-                        checked={settings.showAIPromptIdeasButton ?? true}
-                        onChange={val => onChange('showAIPromptIdeasButton', val)}
-                        label={t('admin.settings.showAIPromptIdeasButton')}
-                        hint={t('admin.settings.showAIPromptIdeasButtonHint')}
                     />
                 </div>
             </CollapsibleSection>
