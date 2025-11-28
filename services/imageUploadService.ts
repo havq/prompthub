@@ -1,7 +1,6 @@
-
 import { getSettings } from './settingsService';
-import { uploadToImgbb } from './imgbbService';
-import { uploadToCloudinary } from './cloudinaryService'; // We will override the export here locally or update logic
+import { uploadToImgbb } from './imgbbService'; // Kept for backward compatibility if needed, but unused in main flow now
+import { uploadToCloudinary } from './cloudinaryService'; 
 import { UploadMethod, WatermarkSettings } from '../utils/types';
 import { fetchApi } from './api/core';
 import { uploadToServer as uploadToServerProxy } from './serverUploadService';
@@ -433,7 +432,8 @@ export const uploadImage = async (file: File, methodOverride?: UploadMethod, rol
     }
 
     if (method === 'imgbb') {
-        return uploadToImgbb(fileToUpload);
+        // Use server-side proxy for ImgBB to hide API keys and allow non-admin upload
+        return uploadToServer(fileToUpload, 'imgbb');
     }
     
     if (method === 'cloudinary') {
