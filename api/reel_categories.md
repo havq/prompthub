@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Loại bỏ tất cả các tag HTML, bao gồm cả nội dung trong các tag <script> và <style>.
@@ -94,7 +95,7 @@ function handle_reel_categories($conn, $method, $id, $get_params, $post_data) {
                 echo $jsonResponse;
                 break;
             case 'POST':
-                if (!$is_admin_request) send_error('Administrator access required.', 403);
+                // Auth check handled in api.php
                 clear_reel_categories_cache($redis);
                 $data = $post_data;
                 if (empty($data['name'])) send_error('Category name cannot be empty.', 400);
@@ -117,7 +118,7 @@ function handle_reel_categories($conn, $method, $id, $get_params, $post_data) {
                 send_json(['id' => $newId, 'name' => $sanitized_name, 'parentId' => $data['parentId'] ?? null]);
                 break;
             case 'PUT':
-                if (!$is_admin_request) send_error('Administrator access required.', 403);
+                // Auth check handled in api.php
                 clear_reel_categories_cache($redis);
                 if (!$id) send_error('Missing ID for PUT request', 400);
                 $data = $post_data;
@@ -142,7 +143,7 @@ function handle_reel_categories($conn, $method, $id, $get_params, $post_data) {
                 send_json($data);
                 break;
             case 'DELETE':
-                if (!$is_admin_request) send_error('Administrator access required.', 403);
+                // Auth check handled in api.php
                 clear_reel_categories_cache($redis);
                 if (!$id) send_error('Missing ID for DELETE request', 400);
                 $stmt = $conn->prepare("DELETE FROM reel_categories WHERE id=?");

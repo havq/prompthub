@@ -90,7 +90,7 @@ export const deleteReelComment = (commentId: string, userId: string): Promise<{ 
 export const updateReelComment = (commentId: string, userId: string, text: string): Promise<ReelComment> => fetchApi<ReelComment>('reel_comments', `&id=${commentId}`, { method: 'PUT', body: JSON.stringify({ text, userId }) });
 
 // --- Reel Category Functions ---
-export const getReelCategories = (): Promise<PostCategoryWithCount[]> => fetchApi<PostCategoryWithCount[]>('reel_categories', '&counts=true').then(mapItems);
-export const addReelCategory = (data: Omit<PostCategory, 'id'>): Promise<PostCategory> => fetchApi<PostCategory>('reel_categories', '', { method: 'POST', body: JSON.stringify(data) }).then(mapItem);
-export const updateReelCategory = (data: PostCategory): Promise<PostCategory> => fetchApi<PostCategory>('reel_categories', `&id=${data.id}`, { method: 'PUT', body: JSON.stringify(data) }).then(() => data);
+export const getReelCategories = (): Promise<ReelCategoryWithCount[]> => fetchApi<ReelCategoryWithCount[]>('reel_categories', '&counts=true').then(mapItems);
+export const addReelCategory = (data: Omit<ReelCategory, 'id'>): Promise<ReelCategory> => fetchApi<ReelCategory>('reel_categories', '', { method: 'POST', body: JSON.stringify(data) }).then(mapItem);
+export const updateReelCategory = (data: ReelCategory): Promise<ReelCategory> => fetchApi<ReelCategory>('reel_categories', `&id=${data.id}`, { method: 'PUT', body: JSON.stringify(data) }).then(() => data);
 export const deleteReelCategory = (id: string): Promise<{ id: string }> => fetchApi<{ id: string }>('reel_categories', `&id=${id}`, { method: 'DELETE' });
